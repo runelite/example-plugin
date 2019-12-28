@@ -38,7 +38,6 @@ import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.ClientToolbar;
-import net.runelite.client.plugins.notes.NotesPlugin;
 import net.runelite.client.util.ImageUtil;
 
 @PluginDescriptor(
@@ -69,7 +68,7 @@ public class NpcDialoguePlugin extends Plugin
         panel.init();
 
         // Hack to get around not having resources.
-        final BufferedImage icon = ImageUtil.getResourceStreamFromClass(NotesPlugin.class, "notes_icon.png");
+        final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "dialogue_icon.png");
 
         navButton = NavigationButton.builder()
                 .tooltip("NPC dialogue")
