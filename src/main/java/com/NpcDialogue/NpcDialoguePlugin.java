@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package NpcDialogue;
+package com.NpcDialogue;
 
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
@@ -42,8 +42,7 @@ import net.runelite.client.util.ImageUtil;
 
 @PluginDescriptor(
         name = "NPC dialogue",
-        description = "Utility to make it easier to transcribe NPC dialogue for OSRS Wiki.",
-        enabledByDefault = false
+        description = "Utility to make it easier to transcribe NPC dialogue for OSRS Wiki."
 )
 
 public class NpcDialoguePlugin extends Plugin
