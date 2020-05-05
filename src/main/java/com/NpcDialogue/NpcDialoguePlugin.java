@@ -79,6 +79,12 @@ public class NpcDialoguePlugin extends Plugin
         clientToolbar.addNavigation(navButton);
     }
 
+    @Override
+    protected void shutDown()
+    {
+        clientToolbar.removeNavigation(navButton);
+    }
+
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked menuOptionClicked) {
         if (menuOptionClicked.getMenuAction() == MenuAction.WIDGET_TYPE_6 && menuOptionClicked.getMenuOption().equals("Continue")) {
