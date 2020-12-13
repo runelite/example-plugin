@@ -29,7 +29,7 @@ import java.util.Map;
 @PluginDescriptor(
 	name = "Runecrafting counter"
 )
-public class ExamplePlugin extends Plugin
+public class PouchUsageLeft extends Plugin
 {
 	private static final int SPELL_CONTACT_ANIMATION_ID = 4413;
 

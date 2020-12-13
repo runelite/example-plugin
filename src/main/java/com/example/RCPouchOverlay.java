@@ -33,10 +33,10 @@ import java.awt.*;
 
 class RCPouchOverlay extends WidgetItemOverlay
 {
-    private final ExamplePlugin plugin;
+    private final PouchUsageLeft plugin;
 
     @Inject
-    private RCPouchOverlay(ExamplePlugin plugin)
+    private RCPouchOverlay(PouchUsageLeft plugin)
     {
         showOnInventory();
         this.plugin = plugin;
