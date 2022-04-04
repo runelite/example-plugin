@@ -153,7 +153,7 @@ public class PouchUsageLeft extends Plugin
 		}
 
 
-		int removedItemCount = (int)itemsRemoved.stream().filter(k -> k == ItemID.DAEYALT_ESSENCE || k == ItemID.PURE_ESSENCE).count();
+		int removedItemCount = (int)itemsRemoved.stream().filter(k -> k == ItemID.DAEYALT_ESSENCE || k == ItemID.PURE_ESSENCE || k == ItemID.GUARDIAN_ESSENCE).count();
 		log.info("Stored {} items", removedItemCount);
 		itemUses.put(lastClickedItem, itemUses.get(lastClickedItem)+removedItemCount);
 		lastClickedItem = -1;
