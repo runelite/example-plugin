@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Vintner
+A winemaker's Swiss Army Knife
