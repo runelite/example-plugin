@@ -7,10 +7,21 @@ repositories {
 	maven {
 		url = 'https://repo.runelite.net'
 	}
+	maven {
+		url 'https://repo.maven.apache.org/maven2/'
+	}
 	mavenCentral()
 }
 
 def runeLiteVersion = 'latest.release'
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources']
+		}
+	}
+}
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -18,6 +29,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.20'
 	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
+	implementation 'com.google.cloud:google-cloud-translate:2.19.0'
 	testImplementation 'junit:junit:4.12'
 	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
