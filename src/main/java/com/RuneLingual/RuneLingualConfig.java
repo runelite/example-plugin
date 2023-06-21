@@ -33,7 +33,6 @@ public interface RuneLingualConfig extends Config
 			keyName = "enableAPI",
 			position = 2
 	)
-	boolean enableAPI();
 	default boolean allowAPI() {return false;}
 
 	@ConfigSection(

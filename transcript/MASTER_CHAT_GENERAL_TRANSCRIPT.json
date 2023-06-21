@@ -1,0 +1,15 @@
+{
+    "transcript": {
+        "itemexamine": {
+            "arazorsharpsword": "A razor sharp sword.",
+            "asolidwoodenshield": "A solid wooden shield.",
+            "oneofthe4basicelementalrunes": "One of the 4 basic elemental Runes.",
+            "arrowswithbronzeheads": "Arrows with bronze heads.",
+            "usedforbasiclevelmissilespells": "Used for basic level missile spells.",
+            "name": "ITEM_EXAMINE",
+            "shortbuteffective": "Short but effective.",
+            "itsawoodenbucket": "It\u0027s a wooden bucket.",
+            "usedforcursespells": "Used for curse spells."
+        }
+    }
+}

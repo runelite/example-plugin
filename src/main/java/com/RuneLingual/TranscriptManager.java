@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LingualTranscript implements Serializable{
+public class TranscriptManager implements Serializable{
     private Map<String, Map<String, String>> transcript = new HashMap<>();
     private static final long serialVersionUID = 9190132562154153951L;
 
@@ -15,6 +15,11 @@ public class LingualTranscript implements Serializable{
          // adds a new entry to commit later***/
         String nameKey = name.replaceAll("[\\s\\p{Punct}]", "").toLowerCase();
         String textKey = text.replaceAll("[\\s\\p{Punct}]", "").toLowerCase();
+
+        if(textKey.startsWith("colnormalprice")) {
+            System.out.println("this string seems to be from another plugin - won't translate!");
+            return;  // ignores ge prices plugin strings
+        }
 
         Map<String, String> npcTranscripts = transcript.get(nameKey);
         if (npcTranscripts == null) {
@@ -41,13 +46,11 @@ public class LingualTranscript implements Serializable{
                 // retrieves a specific dialog line from the previously accessed NPC
                 return npcTranscripts.get(textKey);
             }
-            // if given text line was not found - adds it then returns the updated text
-            this.addTranscript(name, text);
-            return getTranslatedText(name, text);
+            // if given text line was not found - raises an exception
+            throw new Exception("translation line was not found");
         }
         // if given npc was not found on the database - adds it then returns the updated text
-        this.addTranscript(name, text);
-        return getTranslatedText(name, text);
+        throw new Exception("translation line was not found");
 
     }
     public String getTranslatedName(String name) throws Exception {
@@ -66,7 +69,6 @@ public class LingualTranscript implements Serializable{
             return npcTranscripts.get("name");
 
         }
-        // if translated name was not found
-        return name;
+        throw new Exception("translation line was not found");
     }
 }

@@ -1,0 +1,14 @@
+{
+  "transcript": {
+    "itemexamine": {
+      "arazorsharpsword": "Uma espada afiada como uma navalha.",
+      "asolidwoodenshield": "Um escudo de madeira sólida.",
+      "oneofthe4basicelementalrunes": "Uma das 4 runas elementais básicas.",
+      "arrowswithbronzeheads": "Flechas com pontas de bronze.",
+      "usedforbasiclevelmissilespells": "Usado para feitiços básicos de mísseis.",
+      "name": "ITEM_EXAMINE",
+      "shortbuteffective": "Curto, mas efetivo.",
+      "itsawoodenbucket": "É um balde de madeira."
+    }
+  }
+}

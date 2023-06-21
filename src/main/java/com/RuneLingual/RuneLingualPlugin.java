@@ -3,9 +3,10 @@ package com.RuneLingual;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
+
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.widgets.WidgetInfo;
@@ -28,16 +29,20 @@ import com.google.cloud.translate.Translation;
 @PluginDescriptor(
 	// Plugin name shown at plugin hub
 	name = "RuneLingual",
-	description = "A translation plugin for osrs"
+	description = "A translation plugin for OSRS."
 )
 public class RuneLingualPlugin extends Plugin
 {
 	// translation options
 	private LangCode targetLanguage; // defaults to en-US on startup
 
-	String NPC_TRANSCRIPT_FILE_NAME = new String("MASTER_NPC_DIALOG_TRANSCRIPT.json");
+	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_NPC_DIALOG_TRANSCRIPT.json");
+	String GAME_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_GAME_MESSAGE_TRANSCRIPT.json");
+	String TRANSCRIPT_FOLDER_PATH = new String("transcript\\");
 
 	private TranscriptsDatabaseManager npcDialogMaster = new TranscriptsDatabaseManager();
+	private ChatMessageTranslator chatTranslator = new ChatMessageTranslator();
+
 	private boolean changesDetected = false;
 
 	@Inject
@@ -50,31 +55,46 @@ public class RuneLingualPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
+
+		// plugin startup
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
+
+
+		// loading files
 		log.info("Loading transcripts...");
-		npcDialogMaster.setFile(NPC_TRANSCRIPT_FILE_NAME);
+
+		npcDialogMaster.setFile(NPC_MASTER_TRANSCRIPT_FILE_NAME);
 		npcDialogMaster.loadTranscripts();
-		changesDetected = true;
+
+		chatTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
+		chatTranslator.setAllowDynamic(config.allowAPI());
+		chatTranslator.setLang(targetLanguage.getLangCode());
+		chatTranslator.startup();
+
+		changesDetected = true;  // TODO: change this to actual changes being detected
 
 		//npcDialogMaster.transcript.addTranscript("Hans", "Test");
 		log.info("RuneLingual started!");
-
-		//npcDialogMaster.saveTranscript();
-		//log.info(npcDialogMaster.transcript.getTranslatedText("Hans","Test"));
-		//log.info(npcDialogMaster.transcript.getTranslatedName("Hans"));
-		//log.info(npcDialogMaster.transcript.getTranslatedName("Jorge"));
-		//log.info(npcDialogMaster.transcript.getTranslatedText("Jorge", "bom dia"));
 	}
 
 	@Subscribe
-	public void onOverheadTextChanged(OverheadTextChanged event){
+	public void onOverheadTextChanged(OverheadTextChanged event)
+	{
+		//TODO: change npc overheads as they appear
 	}
 
 	@Subscribe
-	public void onGameTick(GameTick event) throws Exception{
+	public void onGameTick(GameTick event) throws Exception
+	{
+		/***Occurs once every game tick***/
+
+		// TODO: detect player name strings in the middle of sentences to keep them intact
+		// TODO: lookup widget info for more dialog types
+		boolean hasChat = false;
 		Widget dialogText = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT);
 		Widget dialogLabel = client.getWidget(WidgetInfo.DIALOG_NPC_NAME);
+		Widget dialogPlayerText = client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT);  // player messages occur on a separate widget
 		if (dialogText != null && dialogLabel != null)
 		{
 			String npcText = dialogText.getText();
@@ -82,49 +102,25 @@ public class RuneLingualPlugin extends Plugin
 
 			dialogText.setText(npcDialogMaster.transcript.getTranslatedText(npcName, npcText));
 			dialogLabel.setText(npcDialogMaster.transcript.getTranslatedName(npcName));
-			//log.info("name: " + npcName + "text: " + npcText);
-			// npcDialog.setText("Mensagem traduzida aqui");  // replaces npc text
-			//client.refreshChat()
+			hasChat = true;
+
+		} else if (dialogPlayerText != null)
+		{
+			// player talking to a npc
+			String playerText = dialogPlayerText.getText();
+
+			dialogPlayerText.setText(npcDialogMaster.transcript.getTranslatedText("player", playerText));
+			hasChat = true;
 		}
+		if(hasChat) client.refreshChat();
 
 	}
 
 	@Subscribe
-	public void onChatMessage(ChatMessage event){
-		// intercepts all chat messages
-		ChatMessageType messageType = event.getType();
-
-		if(messageType.equals(ChatMessageType.PUBLICCHAT)){
-			// public chat messages
-
-			// translates the message itself
-
-			/*String actorname = event.getName();
-			ChatMessage newMessage = googleTranslateMessage(event, "pt");
-			event.getMessageNode().setValue(newMessage.getMessage());
-			event.getMessageNode().setName(newMessage.getName());*/
-
-			// looks for the actor to replace the overhead text
-
-		} else if (messageType.equals(ChatMessageType.GAMEMESSAGE)) {
-			// game messages (such as welcome, errors, kill count)
-		} else if (messageType.equals(ChatMessageType.FRIENDSCHAT)) {
-			// friends
-		} else if (messageType.equals(ChatMessageType.CLAN_MESSAGE)) {
-			//
-		} else if (messageType.equals(ChatMessageType.DIALOG)) {
-			// NPC DIALOG
-			log.info(event.getSender() + event.getMessage() + event.getClass());
-			event.getMessageNode().setValue("teste1");
-			event.setMessage("teste2");
-			client.refreshChat();
-		} else {
-			// for any other chat message
-			// log.info(event.getSender() + " - " + event.getName() + " - " + event.getMessage() + " - " + event.getType());
-		}
-
-
-
+	public void onChatMessage(ChatMessage event) throws Exception
+	{
+		this.chatTranslator.setMessage(event);
+		this.chatTranslator.translateAndReplace();
 	}
 
 
@@ -147,9 +143,11 @@ public class RuneLingualPlugin extends Plugin
 			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
 		} else if (newGameState == GameState.LOGIN_SCREEN) {
 			// when at the login screen
+			chatTranslator.shutdown(changesDetected);
 			if(changesDetected)
 			{
 				npcDialogMaster.saveTranscript();
+
 			}
 
 		}

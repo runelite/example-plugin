@@ -1,73 +1,86 @@
 package com.RuneLingual;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 public class TranscriptsDatabaseManager {
     public String FILE_PATH = new String();
-    public LingualTranscript transcript = new LingualTranscript();
+    public TranscriptManager transcript = new TranscriptManager();
 
-    public void saveTranscript() throws Exception
-    {
-
-        /* This should only be called to update the master database
-
-        @param name: the label of the object that should be saved
-        @param text: the contents of the object that should be saved
-
-        Only useful for master database.
-        Given contents will be added as new entries.*/
+    public void saveTranscript() throws Exception {
         String filePath = FILE_PATH;
         File file = new File(filePath);
-        try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(file)))
-        {
-            if (!file.exists())
-            {
-                if (!file.getParentFile().exists())
-                {
-                    if (!file.getParentFile().mkdirs())
-                    {
+
+        if (file == null) {
+            throw new Exception("Invalid file");
+        }
+
+        try (JsonWriter writer = new JsonWriter(new FileWriter(file))) {
+            if (!file.exists()) {
+                if (!file.getParentFile().exists()) {
+                    if (!file.getParentFile().mkdirs()) {
                         throw new IOException("Failed to create parent directories.");
                     }
                 }
-                if (!file.createNewFile())
-                {
+                if (!file.createNewFile()) {
                     throw new IOException("Failed to create new file.");
                 }
             }
-            System.out.println("File created or accessed successfully");
+
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(transcript);
-            outputStream.writeObject(json);
+            writer.setIndent("    ");
+            gson.toJson(transcript, TranscriptManager.class, writer);
+            System.out.println("File created or accessed successfully");
         } catch (IOException e) {
-            throw new Exception("Could not update transcripts on master" + e + e.getMessage());
+            throw new Exception("Could not update transcripts on master: " + e.getMessage());
         }
     }
 
-    public void loadTranscripts() throws Exception
-    {
-        // load a translation db - treat as stream in distribution
+    public void loadTranscripts() throws Exception {
         String filePath = FILE_PATH;
         File file = new File(filePath);
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file))) {
-            String json = (String) objectInputStream.readObject();
-            Gson gson = new Gson();
-            transcript = gson.fromJson(json, LingualTranscript.class);
-            System.out.println("Transcript was loaded successfully.");
-            System.out.println("Aqui: " + transcript);
-        } catch (IOException | ClassNotFoundException e) {
-            this.saveTranscript();
-            //throw new Exception("Could not load translation files: " + e.getMessage());
+
+        if (file.exists()) {
+            if (file.length() > 0) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                    StringBuilder jsonBuilder = new StringBuilder();
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        jsonBuilder.append(line);
+                    }
+
+                    String json = jsonBuilder.toString();
+                    if (json.trim().isEmpty()) {
+                        System.out.println("Empty JSON file");
+                        transcript = new TranscriptManager();
+                    } else {
+                        // Manually check if JSON is an object
+                        if (json.startsWith("{") && json.endsWith("}")) {
+                            Gson gson = new Gson();
+                            transcript = gson.fromJson(json, TranscriptManager.class);
+                            System.out.println("Transcript was loaded successfully.");
+                            System.out.println("Aqui: " + transcript);
+                        } else {
+                            System.out.println("Invalid JSON format. Expected an object.");
+                            transcript = new TranscriptManager();
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new Exception("Could not load translation files: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Empty file");
+                transcript = new TranscriptManager();
+            }
+        } else {
+            throw new Exception("Given file does not exist!");
         }
     }
-
 
     public void setFile(String filePath){this.FILE_PATH = filePath;}
 }
-
