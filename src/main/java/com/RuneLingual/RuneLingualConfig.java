@@ -10,7 +10,7 @@ public interface RuneLingualConfig extends Config
 {
 	String GROUP = "lingualConfig";
 	@ConfigSection(
-			name = "On-The-Fly translating",
+			name = "Live translating",
 			description = "Public chat translating options",
 			position = 1,
 			closedByDefault = false
@@ -25,6 +25,16 @@ public interface RuneLingualConfig extends Config
 		position = 1
 	)
 	String APIKey();
+
+	@ConfigItem(
+			name = "Translating service",
+			description = "Select the translating service to use with the given API key.",
+			section = "chatSettings",
+			keyName = "translatingService",
+			position = 2
+	)
+	default TranslatingServiceSelectableList getService() {return TranslatingServiceSelectableList.GOOGLE_TRANSLATE;}
+
 	default String getAPIKey() {return APIKey();}
 	@ConfigItem(
 			name = "Enable API translating",
@@ -50,7 +60,7 @@ public interface RuneLingualConfig extends Config
 		keyName = "targetLang",
 		position = 1
 	)
-	default LangCode presetLang() {return LangCode.ENGLISH;}
+	default LangCodeSelectableList presetLang() {return LangCodeSelectableList.ENGLISH;}
 
 	@ConfigItem(
 			name = "Translate public chat",

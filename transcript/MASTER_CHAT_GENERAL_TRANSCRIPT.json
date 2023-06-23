@@ -10,6 +10,14 @@
             "shortbuteffective": "Short but effective.",
             "itsawoodenbucket": "It\u0027s a wooden bucket.",
             "usedforcursespells": "Used for curse spells."
+        },
+        "welcome": {
+            "name": "WELCOME",
+            "welcometooldschoolrunescape": "Welcome to Old School RuneScape."
+        },
+        "npcexamine": {
+            "theheadcookoflumbridgecastle": "The head cook of Lumbridge castle.",
+            "name": "NPC_EXAMINE"
         }
     }
 }

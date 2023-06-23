@@ -1,0 +1,30 @@
+{
+  "transcript": {
+    "cook": {
+      "fineialwaysknewyouadventurertypeswerecallousbrbeastsgoonyourmerryway": "Tudo bem. Eu sempre soube que vocês, aventureiros, eram insensíveis com criaturas. Siga seu caminho alegre!",
+      "ohdearohdearohdeariminaterribleterriblebrmessitsthedukesbirthdaytodayandishouldbebrmakinghimalovelybigbirthdaycake": "Oh, céus, estou em uma terrível, terrível confusão! Hoje é o aniversário do Duque e eu deveria estar fazendo um lindo bolo de aniversário para ele.",
+      "name": "Cozinheiro",
+      "sniffdonttalktomeaboutcakes": "*sniff* Não fale comigo sobre bolos...",
+      "whatamitodo": "O que devo fazer?",
+      "iveforgottentobuytheingredientsillnevergetbrthemintimenowhellsackmewhatwillidoihavebrfourchildrenandagoattolookafterwouldyouhelpbrmeplease": "Esqueci de comprar os ingredientes. Nunca conseguirei pegá-los a tempo agora. Ele vai me demitir! O que farei? Tenho quatro filhos e uma cabra para cuidar. Você poderia me ajudar, por favor?"
+    },
+    "player": {
+      "noidontfeellikeitmaybelater": "Não, não estou com vontade. Talvez mais tarde.",
+      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me faz um bolo?",
+      "name": "jogador",
+      "whatswrong": "O que há de errado?"
+    },
+    "playeroption": {
+      "": "",
+      "no": "Não.",
+      "nicehat": "Chapéu legal!",
+      "youdontlookveryhappy": "Você não parece muito feliz.",
+      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me faz um bolo?",
+      "yes": "Sim.",
+      "startthecooksassistantquest": "Iniciar a missão Assistente do Cozinheiro?",
+      "name": "opçãodojogador",
+      "whatswrong": "O que há de errado?",
+      "selectanoption": "Selecione uma opção"
+    }
+  }
+}

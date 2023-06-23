@@ -146,7 +146,8 @@ public class ChatMessageTranslator
             }
         } else if(allowDynamic == false)
         {
-            // TODO: other game translations that does not require an api key
+            // TODO: handle prefix and sufixes for player names and items
+
             // if the given string is not found raise an exception, then add to the master database
             if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && allowCHALREQ_CLANCHAT)
             {

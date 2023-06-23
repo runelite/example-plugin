@@ -1,0 +1,33 @@
+{
+    "transcript": {
+        "cook": {
+            "fineialwaysknewyouadventurertypeswerecallousbrbeastsgoonyourmerryway": "Fine. I always knew you Adventurer types were callous\u003cbr\u003ebeasts. Go on your merry way!",
+            "ohdearohdearohdeariminaterribleterriblebrmessitsthedukesbirthdaytodayandishouldbebrmakinghimalovelybigbirthdaycake": "Oh dear, oh dear, oh dear, I\u0027m in a terrible terrible\u003cbr\u003emess! It\u0027s the Duke\u0027s birthday today, and I should be\u003cbr\u003emaking him a lovely big birthday cake.",
+            "name": "Cook",
+            "sniffdonttalktomeaboutcakes": " *sniff* Don\u0027t talk to me about cakes...",
+            "whatamitodo": "What am I to do?",
+            "iveforgottentobuytheingredientsillnevergetbrthemintimenowhellsackmewhatwillidoihavebrfourchildrenandagoattolookafterwouldyouhelpbrmeplease": "I\u0027ve forgotten to buy the ingredients. I\u0027ll never get\u003cbr\u003ethem in time now. He\u0027ll sack me! What will I do? I have\u003cbr\u003efour children and a goat to look after. Would you help\u003cbr\u003eme? Please?",
+            "errthankyouitsaprettyordinarycookshatreally": "Err thank you. It\u0027s a pretty ordinary cooks hat really.",
+            "itsallstandardcooksissueuniform": "Its all standard cook\u0027s issue uniform...",
+            "iamarealcookihaventgottimetobechattingbraboutculinaryfashioniamindesperateneedofhelp": "I am a real cook! I haven\u0027t got time to be chatting\u003cbr\u003eabout Culinary Fashion. I am in desperate need of help!"
+        },
+        "player": {
+            "noidontfeellikeitmaybelater": "No, I don\u0027t feel like it. Maybe later.",
+            "youreacookwhydontyoubakemeacake": "You\u0027re a cook, why don\u0027t you bake me a cake?",
+            "name": "player",
+            "whatswrong": "What\u0027s wrong?",
+            "nicehat": "Nice hat!",
+            "stillsuitsyouthetrousersareprettyspecialtoo": "Still, suits you. The trousers are pretty special too. ",
+            "thewholehatapronstripeytrousersensembleitbrworksitmakeyoulookslikearealcook": "The whole hat, apron, stripey trousers ensemble - it\u003cbr\u003eworks. It make you looks like a real cook.",
+            "hello": "Hello."
+        },
+        "sigmund": {
+            "canihelpyou": "Can I help you?",
+            "name": "Sigmund"
+        },
+        "dukehoracio": {
+            "name": "Duke Horacio",
+            "greetingswelcometomycastle": "Greetings. Welcome to my castle."
+        }
+    }
+}

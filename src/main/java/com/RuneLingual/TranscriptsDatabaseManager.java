@@ -1,6 +1,7 @@
 package com.RuneLingual;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,7 +20,7 @@ public class TranscriptsDatabaseManager {
             throw new Exception("Invalid file");
         }
 
-        try (JsonWriter writer = new JsonWriter(new FileWriter(file))) {
+        try (JsonWriter writer = new JsonWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
             if (!file.exists()) {
                 if (!file.getParentFile().exists()) {
                     if (!file.getParentFile().mkdirs()) {
@@ -46,7 +47,7 @@ public class TranscriptsDatabaseManager {
 
         if (file.exists()) {
             if (file.length() > 0) {
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
                     StringBuilder jsonBuilder = new StringBuilder();
                     String line;
 
@@ -78,7 +79,7 @@ public class TranscriptsDatabaseManager {
                 transcript = new TranscriptManager();
             }
         } else {
-            throw new Exception("Given file does not exist!");
+            throw new Exception("Given file does not exist!" + filePath);
         }
     }
 

@@ -19,11 +19,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameTick;
 
 // google cloud translating
-import com.google.cloud.translate.Detection;
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.Translate.TranslateOption;
-import com.google.cloud.translate.TranslateOptions;
-import com.google.cloud.translate.Translation;
+
 
 @Slf4j
 @PluginDescriptor(
@@ -34,14 +30,14 @@ import com.google.cloud.translate.Translation;
 public class RuneLingualPlugin extends Plugin
 {
 	// translation options
-	private LangCode targetLanguage; // defaults to en-US on startup
+	private LangCodeSelectableList targetLanguage; // defaults to en-US on startup
 
 	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_NPC_DIALOG_TRANSCRIPT.json");
 	String GAME_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_GAME_MESSAGE_TRANSCRIPT.json");
 	String TRANSCRIPT_FOLDER_PATH = new String("transcript\\");
 
-	private TranscriptsDatabaseManager npcDialogMaster = new TranscriptsDatabaseManager();
 	private ChatMessageTranslator chatTranslator = new ChatMessageTranslator();
+	private DialogTranslator dialogTranslator = new DialogTranslator();
 
 	private boolean changesDetected = false;
 
@@ -60,12 +56,53 @@ public class RuneLingualPlugin extends Plugin
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
 
+		// translation settings - TODO: check about spam and unknown messages
+		chatTranslator.setAllowAUTOTYPER(config.getAllowPublic());
+		chatTranslator.setAllowBROADCAST(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_CLANCHAT(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_FRIENDSCHAT(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_TRADE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_GROUP_WITH(config.getAllowGame());
+		chatTranslator.setAllowCLAN_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_CREATION_INVITATION(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_GIM_FORM_GROUP(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GUEST_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_GUEST_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCONSOLE(config.getAllowGame());
+		chatTranslator.setAllowENGINE(config.getAllowGame());
+		chatTranslator.setAllowFRIENDNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowFRIENDSCHAT(config.getAllowFriends());
+		chatTranslator.setAllowFRIENDSCHATNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowGAMEMESSAGE(config.getAllowGame());
+		chatTranslator.setAllowIGNORENOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowITEM_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowLOGOUTNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowMODAUTOTYPER(config.getAllowPublic());
+		chatTranslator.setAllowMODCHAT(config.getAllowPublic());
+		chatTranslator.setAllowMODPRIVATECHAT(config.getAllowFriends());
+		chatTranslator.setAllowNPC_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowOBJECT_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowPRIVATECHAT(config.getAllowFriends());
+		chatTranslator.setAllowPRIVATECHATOUT(config.getAllowLocal());
+		chatTranslator.setAllowPUBLICCHAT(config.getAllowPublic());
+		chatTranslator.setAllowSNAPSHOTFEEDBACK(config.getAllowGame());
+		chatTranslator.setAllowTENSECTIMEOUT(config.getAllowGame());
+		chatTranslator.setAllowTRADE(config.getAllowGame());
+		chatTranslator.setAllowTRADE_SENT(config.getAllowGame());
+		chatTranslator.setAllowTRADEREQ(config.getAllowGame());
+		chatTranslator.setAllowWELCOME(config.getAllowGame());
 
 		// loading files
 		log.info("Loading transcripts...");
 
-		npcDialogMaster.setFile(NPC_MASTER_TRANSCRIPT_FILE_NAME);
-		npcDialogMaster.loadTranscripts();
+		dialogTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
+		dialogTranslator.setAllowGame(config.getAllowGame());
+		dialogTranslator.setAllowName(config.getAllowName());
+		dialogTranslator.setLang(targetLanguage.getLangCode());
+		dialogTranslator.startup();
 
 		chatTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
 		chatTranslator.setAllowDynamic(config.allowAPI());
@@ -91,28 +128,8 @@ public class RuneLingualPlugin extends Plugin
 
 		// TODO: detect player name strings in the middle of sentences to keep them intact
 		// TODO: lookup widget info for more dialog types
-		boolean hasChat = false;
-		Widget dialogText = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT);
-		Widget dialogLabel = client.getWidget(WidgetInfo.DIALOG_NPC_NAME);
-		Widget dialogPlayerText = client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT);  // player messages occur on a separate widget
-		if (dialogText != null && dialogLabel != null)
-		{
-			String npcText = dialogText.getText();
-			String npcName = dialogLabel.getText();
-
-			dialogText.setText(npcDialogMaster.transcript.getTranslatedText(npcName, npcText));
-			dialogLabel.setText(npcDialogMaster.transcript.getTranslatedName(npcName));
-			hasChat = true;
-
-		} else if (dialogPlayerText != null)
-		{
-			// player talking to a npc
-			String playerText = dialogPlayerText.getText();
-
-			dialogPlayerText.setText(npcDialogMaster.transcript.getTranslatedText("player", playerText));
-			hasChat = true;
-		}
-		if(hasChat) client.refreshChat();
+		dialogTranslator.updateWidgets(client);
+		dialogTranslator.translateAndReplace(client);
 
 	}
 
@@ -123,12 +140,10 @@ public class RuneLingualPlugin extends Plugin
 		this.chatTranslator.translateAndReplace();
 	}
 
-
 	@Override
 	protected void shutDown() throws Exception
 	{
 		log.info("RuneLingual Stopped!");
-		npcDialogMaster.saveTranscript();
 	}
 
 
@@ -139,17 +154,11 @@ public class RuneLingualPlugin extends Plugin
 		if (newGameState == GameState.LOGGED_IN)
 		{
 			// when logging in
-
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
+			//client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
 		} else if (newGameState == GameState.LOGIN_SCREEN) {
-			// when at the login screen
+			// when at the login screen - only when logging out
 			chatTranslator.shutdown(changesDetected);
-			if(changesDetected)
-			{
-				npcDialogMaster.saveTranscript();
-
-			}
-
+			dialogTranslator.shutdown(changesDetected);
 		}
 	}
 
