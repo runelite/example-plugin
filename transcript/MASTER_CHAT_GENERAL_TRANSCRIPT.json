@@ -18,6 +18,10 @@
         "npcexamine": {
             "theheadcookoflumbridgecastle": "The head cook of Lumbridge castle.",
             "name": "NPC_EXAMINE"
+        },
+        "gamemessage": {
+            "name": "GAMEMESSAGE",
+            "youvestartedanewquestcol081190cooksassistantcol": "You\u0027ve started a new quest: \u003ccol\u003d081190\u003eCook\u0027s Assistant\u003c/col\u003e"
         }
     }
 }

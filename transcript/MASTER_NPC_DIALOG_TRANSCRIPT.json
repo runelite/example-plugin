@@ -1,33 +1,76 @@
 {
     "transcript": {
+        "dialogflow": {
+            "name": "dialogFlow",
+            "pleasewait": "Please wait...",
+            "clickheretocontinue": "Click here to continue"
+        },
         "cook": {
-            "fineialwaysknewyouadventurertypeswerecallousbrbeastsgoonyourmerryway": "Fine. I always knew you Adventurer types were callous\u003cbr\u003ebeasts. Go on your merry way!",
-            "ohdearohdearohdeariminaterribleterriblebrmessitsthedukesbirthdaytodayandishouldbebrmakinghimalovelybigbirthdaycake": "Oh dear, oh dear, oh dear, I\u0027m in a terrible terrible\u003cbr\u003emess! It\u0027s the Duke\u0027s birthday today, and I should be\u003cbr\u003emaking him a lovely big birthday cake.",
+            "iveforgottentobuytheingredientsillnevergetthemintimenowhellsackmewhatwillidoihavefourchildrenandagoattolookafterwouldyouhelpmeplease": "I\u0027ve forgotten to buy the ingredients. I\u0027ll never getthem in time now. He\u0027ll sack me! What will I do? I havefour children and a goat to look after. Would you helpme? Please?",
             "name": "Cook",
-            "sniffdonttalktomeaboutcakes": " *sniff* Don\u0027t talk to me about cakes...",
+            "ohdearohdearohdeariminaterribleterriblemessitsthedukesbirthdaytodayandishouldbemakinghimalovelybigbirthdaycake": "Oh dear, oh dear, oh dear, I\u0027m in a terrible terriblemess! It\u0027s the Duke\u0027s birthday today, and I should bemaking him a lovely big birthday cake.",
+            "fineialwaysknewyouadventurertypeswerecallousbeastsgoonyourmerryway": "Fine. I always knew you Adventurer types were callousbeasts. Go on your merry way!",
             "whatamitodo": "What am I to do?",
-            "iveforgottentobuytheingredientsillnevergetbrthemintimenowhellsackmewhatwillidoihavebrfourchildrenandagoattolookafterwouldyouhelpbrmeplease": "I\u0027ve forgotten to buy the ingredients. I\u0027ll never get\u003cbr\u003ethem in time now. He\u0027ll sack me! What will I do? I have\u003cbr\u003efour children and a goat to look after. Would you help\u003cbr\u003eme? Please?",
+            "sniffdonttalktomeaboutcakes": " *sniff* Don\u0027t talk to me about cakes...",
+            "noimnottheworldiscavinginaroundmeiamovercomebydarkfeelingsofimpendingdoom": "No, I\u0027m not. The world is caving in around me - I amovercome by dark feelings of impending doom.",
+            "nothatstheworstthingicoulddoidgetinterribletrouble": "No, that\u0027s the worst thing I could do. I\u0027d get in terribletrouble.",
+            "thatwouldbenicebutthedukedoesntallowholidaysforcorestaff": "That would be nice, but the Duke doesn\u0027t allow holidaysfor core staff.",
+            "mywifegetsseasickandihaveanirrationalfearofeyepatchesidontseeitworkingmyself": "My wife gets sea sick, and I have an irrational fear ofeyepatches. I don\u0027t see it working myself.",
+            "iknowimdoomed": "I know I\u0027m doomed.",
             "errthankyouitsaprettyordinarycookshatreally": "Err thank you. It\u0027s a pretty ordinary cooks hat really.",
             "itsallstandardcooksissueuniform": "Its all standard cook\u0027s issue uniform...",
-            "iamarealcookihaventgottimetobechattingbraboutculinaryfashioniamindesperateneedofhelp": "I am a real cook! I haven\u0027t got time to be chatting\u003cbr\u003eabout Culinary Fashion. I am in desperate need of help!"
+            "iamarealcookihaventgottimetobechattingaboutculinaryfashioniamindesperateneedofhelp": "I am a real cook! I haven\u0027t got time to be chattingabout Culinary Fashion. I am in desperate need of help!",
+            "ohthankyouthankyouineedmilkaneggandflouridbeverygratefulifyoucangetthemforme": "Oh thank you, thank you. I need milk, an egg andflour. I\u0027d be very grateful if you can get them for me.",
+            "thereisamillfairlyclosegonorthandthenwestmilllanemillisjustofftheroadtodraynoriusuallygetmyflourfromthere": "There is a Mill fairly close, go North and then West.Mill Lane Mill is just off the road to Draynor. Iusually get my flour from there.",
+            "talktomillieshellhelpshesalovelygirlandafinemillermakesureyoutakeapotwithyoufortheflourthoughyouvegotoneonyoualready": "Talk to Millie, she\u0027ll help, she\u0027s a lovely girl and a fineMiller. Make sure you take a pot with you for the flourthough, you\u0027ve got one on you already.",
+            "thereisacattlefieldontheothersideoftheriverjustacrosstheroadfromthegroatsfarm": "There is a cattle field on the other side of the river,just across the road from the Groats\u0027 Farm.",
+            "talktogilliegroatsshelooksafterthedairycowsshelltellyoueverythingyouneedtoknowaboutmilkingcows": "Talk to Gillie Groats, she looks after the Dairy cows -she\u0027ll tell you everything you need to know aboutmilking cows!",
+            "youllneedanemptybucketforthemilkitselfidoseeyouvegotabucketwithyoualreadyluckily": "You\u0027ll need an empty bucket for the milk itself. I do seeyou\u0027ve got a bucket with you already luckily!",
+            "inormallygetmyeggsfromthegroatsfarmontheothersideoftheriver": "I normally get my eggs from the Groats\u0027 farm, on theother side of the river.",
+            "butanychickenshouldlayeggs": "But any chicken should lay eggs.",
+            "pleasegettheingredientsquicklyimrunningoutoftimethedukewillthrowmeintothestreets": "Please get the ingredients quickly - I\u0027m running out oftime! The Duke will throw me into the streets!"
+        },
+        "playeroption": {
+            "": "",
+            "no": "No.",
+            "nicehat": "Nice hat!",
+            "youdontlookveryhappy": "You don\u0027t look very happy.",
+            "andeggswherearetheyfound": "And eggs? Where are they found?",
+            "yes": "Yes.",
+            "idtaketherestofthedayoffifiwereyou": "I\u0027d take the rest of the day off if I were you.",
+            "startthecooksassistantquest": "Start the Cook\u0027s Assistant quest?",
+            "pleasewait": "Please wait...",
+            "ivegotalltheinformationineedthanks": "I\u0027ve got all the information I need. Thanks.",
+            "1illgetrightonit": "[1] I\u0027ll get right on it.",
+            "whatswrong": "What\u0027s wrong?",
+            "selectanoption": "Select an Option",
+            "illgetrightonit": "I\u0027ll get right on it.",
+            "canyouremindmehowtofindthesethingsagain": "Can you remind me how to find these things again?",
+            "howaboutmilk": "How about milk?",
+            "youreacookwhydontyoubakemeacake": "You\u0027re a cook, why don\u0027t you bake me a cake?",
+            "name": "playerOption",
+            "wheredoifindsomeflour": "Where do I find some flour?",
+            "actuallyiknowwheretofindthisstuff": "Actually, I know where to find this stuff."
         },
         "player": {
+            "nicehat": "Nice hat!",
+            "youdontlookveryhappy": "You don\u0027t look very happy.",
+            "idtaketherestofthedayoffifiwereyou": "I\u0027d take the rest of the day off if I were you.",
+            "sowheredoifindtheseingredientsthen": "So where do I find these ingredients then?",
+            "stillsuitsyouthetrousersareprettyspecialtoo": "Still, suits you. The trousers are pretty special too. ",
+            "imafraidiverunoutofideas": "I\u0027m afraid I\u0027ve run out of ideas.",
+            "ivegotalltheinformationineedthanks": "I\u0027ve got all the information I need. Thanks.",
+            "whatswrong": "What\u0027s wrong?",
+            "wellmaybeyouneedtotakeaholiday": "Well maybe you need to take a holiday...",
+            "illgetrightonit": "I\u0027ll get right on it.",
+            "ihaventgotanyofthemyetimstilllooking": "I haven\u0027t got any of them yet, I\u0027m still looking.",
             "noidontfeellikeitmaybelater": "No, I don\u0027t feel like it. Maybe later.",
             "youreacookwhydontyoubakemeacake": "You\u0027re a cook, why don\u0027t you bake me a cake?",
             "name": "player",
-            "whatswrong": "What\u0027s wrong?",
-            "nicehat": "Nice hat!",
-            "stillsuitsyouthetrousersareprettyspecialtoo": "Still, suits you. The trousers are pretty special too. ",
-            "thewholehatapronstripeytrousersensembleitbrworksitmakeyoulookslikearealcook": "The whole hat, apron, stripey trousers ensemble - it\u003cbr\u003eworks. It make you looks like a real cook.",
-            "hello": "Hello."
-        },
-        "sigmund": {
-            "canihelpyou": "Can I help you?",
-            "name": "Sigmund"
-        },
-        "dukehoracio": {
-            "name": "Duke Horacio",
-            "greetingswelcometomycastle": "Greetings. Welcome to my castle."
+            "thewholehatapronstripeytrousersensembleitworksitmakeyoulookslikearealcook": "The whole hat, apron, stripey trousers ensemble - itworks. It make you looks like a real cook.",
+            "yesillhelpyou": "Yes, I\u0027ll help you.",
+            "hmmwhynotrunawaytotheseaandstartanewlifeasapirate": "Hmm, why not run away to the sea and start a newlife as a Pirate?",
+            "actuallyiknowwheretofindthisstuff": "Actually, I know where to find this stuff."
         }
     }
 }

@@ -1,30 +1,76 @@
 {
   "transcript": {
-    "cook": {
-      "fineialwaysknewyouadventurertypeswerecallousbrbeastsgoonyourmerryway": "Tudo bem. Eu sempre soube que vocês, aventureiros, eram insensíveis com criaturas. Siga seu caminho alegre!",
-      "ohdearohdearohdeariminaterribleterriblebrmessitsthedukesbirthdaytodayandishouldbebrmakinghimalovelybigbirthdaycake": "Oh, céus, estou em uma terrível, terrível confusão! Hoje é o aniversário do Duque e eu deveria estar fazendo um lindo bolo de aniversário para ele.",
-      "name": "Cozinheiro",
-      "sniffdonttalktomeaboutcakes": "*sniff* Não fale comigo sobre bolos...",
-      "whatamitodo": "O que devo fazer?",
-      "iveforgottentobuytheingredientsillnevergetbrthemintimenowhellsackmewhatwillidoihavebrfourchildrenandagoattolookafterwouldyouhelpbrmeplease": "Esqueci de comprar os ingredientes. Nunca conseguirei pegá-los a tempo agora. Ele vai me demitir! O que farei? Tenho quatro filhos e uma cabra para cuidar. Você poderia me ajudar, por favor?"
+    "dialogflow": {
+      "name": "dialogFlow",
+      "pleasewait": "Por favor, aguarde...",
+      "clickheretocontinue": "Clique aqui para continuar"
     },
-    "player": {
-      "noidontfeellikeitmaybelater": "Não, não estou com vontade. Talvez mais tarde.",
-      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me faz um bolo?",
-      "name": "jogador",
-      "whatswrong": "O que há de errado?"
+    "cook": {
+      "iveforgottentobuytheingredientsillnevergetthemintimenowhellsackmewhatwillidoihavefourchildrenandagoattolookafterwouldyouhelpmeplease": "Eu esqueci de comprar os ingredientes. Eu nunca conseguirei pegá-los a tempo. Ele vai me demitir! O que eu farei? Eu tenho quatro filhos e uma cabra para cuidar. Você poderia me ajudar, por favor?",
+      "name": "Cozinheiro",
+      "ohdearohdearohdeariminaterribleterriblemessitsthedukesbirthdaytodayandishouldbemakinghimalovelybigbirthdaycake": "Oh querido, oh querido, oh querido, estou em uma terrível bagunça! Hoje é o aniversário do Duque, e eu deveria estar fazendo um lindo e grande bolo de aniversário para ele.",
+      "fineialwaysknewyouadventurertypeswerecallousbeastsgoonyourmerryway": "Tudo bem. Eu sempre soube que aventureiros como você eram insensíveis. Vá em frente, continue seu caminho alegre.",
+      "whatamitodo": "O que devo fazer?",
+      "sniffdonttalktomeaboutcakes": "*sniff* Não fale comigo sobre bolos...",
+      "noimnottheworldiscavinginaroundmeiamovercomebydarkfeelingsofimpendingdoom": "Não, não estou. O mundo está desmoronando ao meu redor - estou dominado por sentimentos sombrios de iminente desgraça.",
+      "nothatstheworstthingicoulddoidgetinterribletrouble": "Não, isso é a pior coisa que eu poderia fazer. Eu me meteria em problemas terríveis.",
+      "thatwouldbenicebutthedukedoesntallowholidaysforcorestaff": "Seria bom, mas o Duque não permite férias para a equipe principal.",
+      "mywifegetsseasickandihaveanirrationalfearofeyepatchesidontseeitworkingmyself": "Minha esposa fica enjoada no mar, e eu tenho um medo irracional de tapa-olhos. Eu não vejo isso funcionando para mim.",
+      "iknowimdoomed": "Eu sei que estou condenado.",
+      "errthankyouitsaprettyordinarycookshatreally": "Err, obrigado. É um chapéu de cozinheiro bem comum, na verdade.",
+      "itsallstandardcooksissueuniform": "É todo o uniforme padrão de cozinheiro...",
+      "iamarealcookihaventgottimetobechattingaboutculinaryfashioniamindesperateneedofhelp": "Eu sou um cozinheiro de verdade! Eu não tenho tempo para ficar conversando sobre moda culinária. Estou desesperadamente precisando de ajuda!",
+      "ohthankyouthankyouineedmilkaneggandflouridbeverygratefulifyoucangetthemforme": "Oh, obrigado, obrigado. Eu preciso de leite, um ovo e farinha. Eu ficaria muito grato se você pudesse pegá-los para mim.",
+      "thereisamillfairlyclosegonorthandthenwestmilllanemillisjustofftheroadtodraynoriusuallygetmyflourfromthere": "Há um moinho relativamente próximo, vá para o Norte e depois para o Oeste. O Moinho da Rua do Moinho fica logo depois da estrada para Draynor. Eu costumo pegar minha farinha de lá.",
+      "talktomillieshellhelpshesalovelygirlandafinemillermakesureyoutakeapotwithyoufortheflourthoughyouvegotoneonyoualready": "Converse com a Millie, ela vai ajudar, ela é uma garota adorável e uma ótima moageira. Certifique-se de levar uma panela com você para a farinha, embora você já tenha uma.",
+      "thereisacattlefieldontheothersideoftheriverjustacrosstheroadfromthegroatsfarm": "Há um campo de gado do outro lado do rio, logo após a estrada da fazenda dos Groats.",
+      "talktogilliegroatsshelooksafterthedairycowsshelltellyoueverythingyouneedtoknowaboutmilkingcows": "Converse com a Gillie Groats, ela cuida das vacas leiteiras - ela vai te contar tudo que você precisa saber sobre ordenha de vacas!",
+      "youllneedanemptybucketforthemilkitselfidoseeyouvegotabucketwithyoualreadyluckily": "Você precisará de um balde vazio para o próprio leite. Vejo que você já tem um balde com você, felizmente!",
+      "inormallygetmyeggsfromthegroatsfarmontheothersideoftheriver": "Normalmente, pego meus ovos na fazenda dos Groats, do outro lado do rio.",
+      "butanychickenshouldlayeggs": "Mas qualquer galinha deveria botar ovos.",
+      "pleasegettheingredientsquicklyimrunningoutoftimethedukewillthrowmeintothestreets": "Por favor, pegue os ingredientes rapidamente - estou ficando sem tempo! O Duque vai me jogar nas ruas!"
     },
     "playeroption": {
       "": "",
       "no": "Não.",
       "nicehat": "Chapéu legal!",
       "youdontlookveryhappy": "Você não parece muito feliz.",
-      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me faz um bolo?",
+      "andeggswherearetheyfound": "E ovos? Onde eles são encontrados?",
       "yes": "Sim.",
-      "startthecooksassistantquest": "Iniciar a missão Assistente do Cozinheiro?",
-      "name": "opçãodojogador",
+      "idtaketherestofthedayoffifiwereyou": "Eu tiraria o resto do dia de folga se fosse você.",
+      "startthecooksassistantquest": "Iniciar a missão Assistente de Cozinheiro?",
+      "pleasewait": "Por favor, aguarde...",
+      "ivegotalltheinformationineedthanks": "Eu tenho todas as informações que preciso. Obrigado.",
+      "1illgetrightonit": "[1] Vou fazer isso imediatamente.",
       "whatswrong": "O que há de errado?",
-      "selectanoption": "Selecione uma opção"
+      "selectanoption": "Selecione uma opção",
+      "illgetrightonit": "Vou fazer isso imediatamente.",
+      "canyouremindmehowtofindthesethingsagain": "Você pode me lembrar como encontrar essas coisas novamente?",
+      "howaboutmilk": "E leite? E quanto a leite?",
+      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me assa um bolo?",
+      "name": "playerOption",
+      "wheredoifindsomeflour": "Onde encontro um pouco de farinha?",
+      "actuallyiknowwheretofindthisstuff": "Na verdade, eu sei onde encontrar essas coisas."
+    },
+    "player": {
+      "nicehat": "Chapéu legal!",
+      "youdontlookveryhappy": "Você não parece muito feliz.",
+      "idtaketherestofthedayoffifiwereyou": "Eu tiraria o resto do dia de folga se fosse você.",
+      "sowheredoifindtheseingredientsthen": "Então, onde eu encontro esses ingredientes?",
+      "stillsuitsyouthetrousersareprettyspecialtoo": "Ainda te serve. As calças são bem especiais também.",
+      "imafraidiverunoutofideas": "Receio que eu tenha ficado sem ideias.",
+      "ivegotalltheinformationineedthanks": "Eu tenho todas as informações que preciso. Obrigado.",
+      "whatswrong": "O que há de errado?",
+      "wellmaybeyouneedtotakeaholiday": "Bem, talvez você precise tirar férias...",
+      "illgetrightonit": "Vou fazer isso imediatamente.",
+      "ihaventgotanyofthemyetimstilllooking": "Eu ainda não tenho nenhum deles, ainda estou procurando.",
+      "noidontfeellikeitmaybelater": "Não, não estou com vontade. Talvez mais tarde.",
+      "youreacookwhydontyoubakemeacake": "Você é um cozinheiro, por que não me assa um bolo?",
+      "name": "player",
+      "thewholehatapronstripeytrousersensembleitworksitmakeyoulookslikearealcook": "O conjunto todo, chapéu, avental, calças listradas - funciona. Te faz parecer um verdadeiro cozinheiro.",
+      "yesillhelpyou": "Sim, vou ajudar você.",
+      "hmmwhynotrunawaytotheseaandstartanewlifeasapirate": "Hmm, por que não fugir para o mar e começar uma nova vida como pirata?",
+      "actuallyiknowwheretofindthisstuff": "Na verdade, eu sei onde encontrar essas coisas."
     }
   }
 }

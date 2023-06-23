@@ -4,10 +4,12 @@ import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.WidgetType;
 import net.runelite.client.util.Text;
 
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
@@ -25,10 +27,14 @@ public class DialogTranslator
     private Widget dialogText;
     private Widget dialogLabel;
     private Widget dialogPlayerText;
-
+    private Widget playerContinueButton;
+    private Widget npcContinueButton;
+    private ArrayList<Widget> selectableOptions;
 
     private String currentMessage;  // the last translated message
     private String currentSender;  // the last translated message sender
+    private String flowMessage;
+    private String flowSender;
     private String selectedLang;
     private String TRANSCRIPT_FOLDER_PATH;
     private String MASTER_NPC_DIALOG_TRANSCRIPT_SUFIX = new String("MASTER_NPC_DIALOG_TRANSCRIPT.json");
@@ -43,8 +49,8 @@ public class DialogTranslator
     public void translateAndReplace(Client client) throws Exception
     {
         // TODO: do NOT store translated text!
-        // TODO: look for "<br>" on the middle of strings
-        // TODO: click here to continue
+        // TODO: click here to continue - Id 15138821
+        // TODO: use sprite "1181" as translation button
 
         hasChat = false;  // resets
 
@@ -74,9 +80,7 @@ public class DialogTranslator
                     this.dialogMaster.transcript.addTranscript(senderName, dialogText);
             }
 
-        }
-
-        if(this.dialogPlayerText != null)
+        } else if(this.dialogPlayerText != null)
         {  // player messages
 
             String dialogText = this.dialogPlayerText.getText().replace("<br>", "");
@@ -99,18 +103,16 @@ public class DialogTranslator
 
                     this.dialogMaster.transcript.addTranscript("player", dialogText);
             }
-        }
-
-        if(this.dialogSpriteText != null)
-        {
-
-            System.out.println("new dialog sprite text: " + this.dialogOption.getText());
-        }
-
-        if(this.dialogOption != null)
-        {
-            // Keeps the last dialog option as the last translated line - hope it works xD
+        } else if(this.dialogOption != null)
+        {   // selectable dialog list
             Widget[] widgets = this.dialogOption.getParent().getChildren();
+            boolean alreadyTranslated = false;
+
+            for(Widget widget: widgets)
+            {
+                if(widget.getText() == currentMessage)
+                    alreadyTranslated = true;
+            }
 
             // TODO: fix options getting duped on master files
             for(Widget widget: widgets)
@@ -133,12 +135,62 @@ public class DialogTranslator
                     } catch (Exception e)
                     {
                         // if the dialog line is not found, adds it to database
-                        if(dialogText != currentMessage)
-
+                        if(alreadyTranslated == false)
                             this.dialogMaster.transcript.addTranscript("playerOption", dialogText);
                     }
                 }
             }
+        }
+
+        // dialog flow
+        if(this.playerContinueButton != null)
+        {
+            String buttonText = this.playerContinueButton.getText().replace("<br>", "");
+            try
+            {
+                String newText = this.translatedDialog.transcript.getTranslatedText("dialogFlow", buttonText);
+
+                // updates last translated message
+                flowSender = "dialogFlow";
+                flowMessage = newText;
+
+                // replaces the dialog text
+                if(allowGame) this.playerContinueButton.setText(newText);
+
+                hasChat = true;
+            } catch (Exception e)
+            {
+                // if the dialog line is not found, adds it to database
+                if(buttonText != flowMessage)
+                    this.dialogMaster.transcript.addTranscript("dialogFlow", buttonText);
+            }
+        } else if(this.npcContinueButton != null)
+        {
+            String buttonText = this.npcContinueButton.getText().replace("<br>", "");
+            try
+            {
+                String newText = this.translatedDialog.transcript.getTranslatedText("dialogFlow", buttonText);
+
+                // updates last translated message
+                flowSender = "dialogFlow";
+                flowMessage = newText;
+
+                // replaces the dialog text
+                if(allowGame) this.npcContinueButton.setText(newText);
+
+                hasChat = true;
+            } catch (Exception e)
+            {
+                // if the dialog line is not found, adds it to database
+                if(buttonText != flowMessage)
+                    this.dialogMaster.transcript.addTranscript("dialogFlow", buttonText);
+            }
+        }
+
+        if(this.dialogSpriteText != null)
+        {
+
+            System.out.println("new dialog sprite text: " + this.dialogOption.getText());
         }
 
         if(hasChat) client.refreshChat();
@@ -172,6 +224,10 @@ public class DialogTranslator
         this.dialogLabel = client.getWidget(WidgetInfo.DIALOG_NPC_NAME);
         this.dialogText = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT);
         this.dialogPlayerText = client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT);
+
+        // no WidgetInfo for the dialog continue button i guess...
+        this.playerContinueButton = client.getWidget(WidgetID.DIALOG_PLAYER_GROUP_ID, 5);
+        this.npcContinueButton = client.getWidget(WidgetID.DIALOG_NPC_GROUP_ID, 5);
     }
 
     // setter methods for initialization
