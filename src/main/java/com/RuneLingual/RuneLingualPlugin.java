@@ -157,8 +157,8 @@ public class RuneLingualPlugin extends Plugin
 			//client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
 		} else if (newGameState == GameState.LOGIN_SCREEN) {
 			// when at the login screen - only when logging out
-			chatTranslator.shutdown(changesDetected);
-			dialogTranslator.shutdown(changesDetected);
+			chatTranslator.shutdown();
+			dialogTranslator.shutdown();
 		}
 	}
 

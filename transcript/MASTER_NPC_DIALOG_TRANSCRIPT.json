@@ -3,7 +3,8 @@
         "dialogflow": {
             "name": "dialogFlow",
             "pleasewait": "Please wait...",
-            "clickheretocontinue": "Click here to continue"
+            "clickheretocontinue": "Click here to continue",
+            "": ""
         },
         "cook": {
             "iveforgottentobuytheingredientsillnevergetthemintimenowhellsackmewhatwillidoihavefourchildrenandagoattolookafterwouldyouhelpmeplease": "I\u0027ve forgotten to buy the ingredients. I\u0027ll never getthem in time now. He\u0027ll sack me! What will I do? I havefour children and a goat to look after. Would you helpme? Please?",
@@ -71,6 +72,10 @@
             "yesillhelpyou": "Yes, I\u0027ll help you.",
             "hmmwhynotrunawaytotheseaandstartanewlifeasapirate": "Hmm, why not run away to the sea and start a newlife as a Pirate?",
             "actuallyiknowwheretofindthisstuff": "Actually, I know where to find this stuff."
+        },
+        "other": {
+            "": "",
+            "name": "other"
         }
     }
 }
