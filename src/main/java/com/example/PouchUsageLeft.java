@@ -34,25 +34,29 @@ public class PouchUsageLeft extends Plugin
 	private static final int SPELL_CONTACT_ANIMATION_ID = 4413;
 
 	private static final int[] AREAS_CLOSE_TO_ZMI = {9778, 12119};
-	private static final int MED_POUCH = 5510;
-	private static final int LARGE_POUCH = 5512;
-	private static final int GIANT_POUCH = 5514;
+	private static final int MED_POUCH = ItemID.MEDIUM_POUCH;
+	private static final int LARGE_POUCH = ItemID.LARGE_POUCH;
+	private static final int GIANT_POUCH = ItemID.GIANT_POUCH;
+	private static final int COLOSSAL_POUCH = ItemID.COLOSSAL_POUCH;
 
 	private static final int MED_POUCH_USES = 44*6;
 	private static final int LARGE_POUCH_USES = 31*9;
-	private static final int GIANT_POUCH_USES = 120;
+	private static final int GIANT_POUCH_USES = 10*12;
+	private static final int COLOSSAL_POUCH_USES = 8*40;
 
 	@Getter
 	private Map<Integer, Integer> itemUses = new HashMap<Integer, Integer>() {{
 			put(MED_POUCH, 0);
 			put(LARGE_POUCH, 0);
 			put(GIANT_POUCH, 0);
+			put(COLOSSAL_POUCH, 0);
 	}};
 
 	public final Map<Integer, Integer> maxItemUses = new HashMap<Integer, Integer>() {{
 		put(MED_POUCH, MED_POUCH_USES);
 		put(LARGE_POUCH, LARGE_POUCH_USES);
 		put(GIANT_POUCH, GIANT_POUCH_USES);
+		put(COLOSSAL_POUCH, COLOSSAL_POUCH_USES);
 	}};
 
 	private Multiset<Integer> previousInventorySnapshot;
