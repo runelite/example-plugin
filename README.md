@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Altered Stats
+A plugin that shows any stats that are altered from their current base level. This only tracks hard level changes (such as from potions) and not invisible boosts (like the celestial ring).
