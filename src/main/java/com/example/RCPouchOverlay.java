@@ -59,8 +59,11 @@ class RCPouchOverlay extends WidgetItemOverlay
             textComponent.setColor(Color.RED);
         }
 
-        textComponent.setText(Integer.toString(usesLeft));
+        //Prevent rendering of usage counter on Small Pouch
+        if (usesLeft > 0) {
+            textComponent.setText(Integer.toString(usesLeft));
 
-        textComponent.render(graphics);
+            textComponent.render(graphics);
+        }
     }
 }
