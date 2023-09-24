@@ -1,13 +1,13 @@
-package com.example;
+package ventura.rcpouchalert;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class PouchUsageLeftPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(PouchUsageLeft.class);
+		ExternalPluginManager.loadBuiltin(PouchUsageLeftPlugin.class);
 		RuneLite.main(args);
 	}
 }

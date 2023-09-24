@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.example;
+package ventura.rcpouchalert;
 
 import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
@@ -33,10 +33,10 @@ import java.awt.*;
 
 class RCPouchOverlay extends WidgetItemOverlay
 {
-    private final PouchUsageLeft plugin;
+    private final PouchUsageLeftPlugin plugin;
 
     @Inject
-    private RCPouchOverlay(PouchUsageLeft plugin)
+    private RCPouchOverlay(PouchUsageLeftPlugin plugin)
     {
         showOnInventory();
         this.plugin = plugin;
@@ -52,7 +52,7 @@ class RCPouchOverlay extends WidgetItemOverlay
         final TextComponent textComponent = new TextComponent();
         textComponent.setPosition(new Point(bounds.x - 1, bounds.y + bounds.height));
 
-        int usesLeft = this.plugin.maxItemUses.get(itemId) - this.plugin.getItemUses().get(itemId);
+        int usesLeft = this.plugin.getMaxItemUses().get(itemId) - this.plugin.getItemUses().get(itemId);
         if (usesLeft > 12) {
             textComponent.setColor(Color.WHITE);
         } else {
