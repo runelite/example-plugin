@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.ChatMessageType;
+
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.api.widgets.WidgetInfo;
@@ -56,56 +56,14 @@ public class RuneLingualPlugin extends Plugin
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
 
-		// translation settings - TODO: check about spam and unknown messages
-		chatTranslator.setAllowAUTOTYPER(config.getAllowPublic());
-		chatTranslator.setAllowBROADCAST(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_CLANCHAT(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_FRIENDSCHAT(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_TRADE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_GROUP_WITH(config.getAllowGame());
-		chatTranslator.setAllowCLAN_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_CREATION_INVITATION(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_GIM_FORM_GROUP(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GUEST_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_GUEST_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCONSOLE(config.getAllowGame());
-		chatTranslator.setAllowENGINE(config.getAllowGame());
-		chatTranslator.setAllowFRIENDNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowFRIENDSCHAT(config.getAllowFriends());
-		chatTranslator.setAllowFRIENDSCHATNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowGAMEMESSAGE(config.getAllowGame());
-		chatTranslator.setAllowIGNORENOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowITEM_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowLOGOUTNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowMODAUTOTYPER(config.getAllowPublic());
-		chatTranslator.setAllowMODCHAT(config.getAllowPublic());
-		chatTranslator.setAllowMODPRIVATECHAT(config.getAllowFriends());
-		chatTranslator.setAllowNPC_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowOBJECT_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowPRIVATECHAT(config.getAllowFriends());
-		chatTranslator.setAllowPRIVATECHATOUT(config.getAllowLocal());
-		chatTranslator.setAllowPUBLICCHAT(config.getAllowPublic());
-		chatTranslator.setAllowSNAPSHOTFEEDBACK(config.getAllowGame());
-		chatTranslator.setAllowTENSECTIMEOUT(config.getAllowGame());
-		chatTranslator.setAllowTRADE(config.getAllowGame());
-		chatTranslator.setAllowTRADE_SENT(config.getAllowGame());
-		chatTranslator.setAllowTRADEREQ(config.getAllowGame());
-		chatTranslator.setAllowWELCOME(config.getAllowGame());
+		readConfigs();
 
 		// loading files
 		log.info("Loading transcripts...");
 
-		dialogTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
-		dialogTranslator.setAllowGame(config.getAllowGame());
-		dialogTranslator.setAllowName(config.getAllowName());
 		dialogTranslator.setLang(targetLanguage.getLangCode());
 		dialogTranslator.startup();
-
 		chatTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
-		chatTranslator.setAllowDynamic(config.allowAPI());
 		chatTranslator.setLang(targetLanguage.getLangCode());
 		chatTranslator.startup();
 
@@ -153,12 +111,15 @@ public class RuneLingualPlugin extends Plugin
 		GameState newGameState = gameStateChanged.getGameState();
 		if (newGameState == GameState.LOGGED_IN)
 		{
-			// when logging in
+			/* RESTORE PREVIOUS TRANSLATION STATE */
 			//client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
 		} else if (newGameState == GameState.LOGIN_SCREEN) {
-			// when at the login screen - only when logging out
-			chatTranslator.shutdown();
+			// at the login screen
+
+			/* TUNS OFF EVERY TRANSLATION */
+			chatTranslator.shutdown(changesDetected);
 			dialogTranslator.shutdown();
+
 		}
 	}
 
@@ -204,4 +165,54 @@ public class RuneLingualPlugin extends Plugin
 		*/
 		return null;
 	}
+
+	private void readConfigs() {
+		// Reads and sets translation states from config file
+
+		// translation settings - TODO: check about spam and unknown messages
+		chatTranslator.setAllowAUTOTYPER(config.getAllowPublic());
+		chatTranslator.setAllowBROADCAST(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_CLANCHAT(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_FRIENDSCHAT(config.getAllowGame());
+		chatTranslator.setAllowCHALREQ_TRADE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_GROUP_WITH(config.getAllowGame());
+		chatTranslator.setAllowCLAN_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_CREATION_INVITATION(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_GIM_FORM_GROUP(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GIM_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_GUEST_CHAT(config.getAllowClan());
+		chatTranslator.setAllowCLAN_GUEST_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCLAN_MESSAGE(config.getAllowGame());
+		chatTranslator.setAllowCONSOLE(config.getAllowGame());
+		chatTranslator.setAllowENGINE(config.getAllowGame());
+		chatTranslator.setAllowFRIENDNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowFRIENDSCHAT(config.getAllowFriends());
+		chatTranslator.setAllowFRIENDSCHATNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowGAMEMESSAGE(config.getAllowGame());
+		chatTranslator.setAllowIGNORENOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowITEM_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowLOGOUTNOTIFICATION(config.getAllowGame());
+		chatTranslator.setAllowMODAUTOTYPER(config.getAllowPublic());
+		chatTranslator.setAllowMODCHAT(config.getAllowPublic());
+		chatTranslator.setAllowMODPRIVATECHAT(config.getAllowFriends());
+		chatTranslator.setAllowNPC_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowOBJECT_EXAMINE(config.getAllowGame());
+		chatTranslator.setAllowPRIVATECHAT(config.getAllowFriends());
+		chatTranslator.setAllowPRIVATECHATOUT(config.getAllowLocal());
+		chatTranslator.setAllowPUBLICCHAT(config.getAllowPublic());
+		chatTranslator.setAllowSNAPSHOTFEEDBACK(config.getAllowGame());
+		chatTranslator.setAllowTENSECTIMEOUT(config.getAllowGame());
+		chatTranslator.setAllowTRADE(config.getAllowGame());
+		chatTranslator.setAllowTRADE_SENT(config.getAllowGame());
+		chatTranslator.setAllowTRADEREQ(config.getAllowGame());
+		chatTranslator.setAllowWELCOME(config.getAllowGame());
+
+		//dialogTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
+		dialogTranslator.setAllowGame(config.getAllowGame());
+		dialogTranslator.setAllowName(config.getAllowName());
+
+		chatTranslator.setAllowDynamic(config.allowAPI());
+	}
 }
+

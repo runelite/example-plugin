@@ -11,15 +11,15 @@ public interface RuneLingualConfig extends Config
 	String GROUP = "lingualConfig";
 	@ConfigSection(
 			name = "Live translating",
-			description = "Public chat translating options",
+			description = "Player chat translation options",
 			position = 1,
 			closedByDefault = false
 	)
 	String SECTION_CHAT_SETTINGS = "chatSettings";
 
 	@ConfigItem(
-		name = "API Key",
-		description = "Your API key for the translating service",
+		name = "Service API Key",
+		description = "Your API key for the chosen translating service",
 		section = "chatSettings",
 		keyName = "APIKey",
 		position = 1
@@ -28,7 +28,7 @@ public interface RuneLingualConfig extends Config
 
 	@ConfigItem(
 			name = "Translating service",
-			description = "Select the translating service to use with the given API key.",
+			description = "Select the translating service you'd like to use",
 			section = "chatSettings",
 			keyName = "translatingService",
 			position = 2
@@ -60,7 +60,7 @@ public interface RuneLingualConfig extends Config
 		keyName = "targetLang",
 		position = 1
 	)
-	default LangCodeSelectableList presetLang() {return LangCodeSelectableList.ENGLISH;}
+	default LangCodeSelectableList presetLang() {return LangCodeSelectableList.PORTUGUÊS_BRASILEIRO;}
 
 	@ConfigItem(
 			name = "Translate public chat",

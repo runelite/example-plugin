@@ -5,6 +5,8 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 
@@ -24,18 +26,26 @@ public class DialogTranslator extends TranslationBuffer
     private Widget otherContinueButton;
     private Widget otherDialog;
 
-    private String userName;
+    private String userName;  // player username
     private boolean hasChat;  // if the chat contents are changed, a widget update is needed
     private boolean allowGame;  // game text translations
     private boolean allowName;  // name translations
+
+    private ArrayList<String> stringSymbols = new ArrayList<>(Arrays.asList("%NUMBER%", "%MONKEY_TALK%", "%USERNAME%"));
+
+
     public void translateAndReplace(Client client) throws Exception
     {
-        // TODO: do NOT store translated text!
-        // TODO: use sprite "1181" (std spell book icon) as translation button
-        // TODO: show something if a translation is not found
-        // TODO: lookup chisel to scrape dialog lines
-        // %NUMBER%
-        // %USERNAME%
+        /* TODO:
+            - do NOT store translated text!
+            - fix options getting duped on master files
+            - use sprite "1181" (std spell book icon) as translation button
+            - show something if a translation is not found
+            - lookup chisel to scrape dialog lines
+            - lookup string symbols
+            - use npc ids
+            - sprite texts
+        */
 
         // resets dialog control variables
         hasChat = false;
@@ -98,7 +108,6 @@ public class DialogTranslator extends TranslationBuffer
         {   // selectable dialog list
             Widget[] optionWidgets = dialogOption.getParent().getChildren();
 
-            // TODO: fix options getting duped on master files
             for(Widget option: optionWidgets)
             { // gets all option texts
 
@@ -150,81 +159,72 @@ public class DialogTranslator extends TranslationBuffer
             } catch (Exception e)
             {
                 // if the dialog line is not found, adds it to database
-                if(dialogText != currentMessage)
-
-                    this.dialogMaster.transcript.addTranscript("other", dialogText);
+                if(!translatedContent.contains(otherText))
+                    master.transcript.addTranscript("other", otherText);
             }
         }
 
-        // dialog flow
-        if(this.playerContinueButton != null)
+        // continue buttons (various widgets)
+        if(playerContinueButton != null)
         {
-            String buttonText = this.playerContinueButton.getText().replace("<br>", "");
+            String buttonText = playerContinueButton.getText().replace("<br>", "");
             try
             {
-                String newText = this.translatedDialog.transcript.getTranslatedText("dialogFlow", buttonText);
-
-                // updates last translated message
-                flowSender = "dialogFlow";
-                flowMessage = newText;
+                String newText = translated.transcript.getTranslatedText("dialogFlow", buttonText);
+                updateBuffer(newText, buttonText);
 
                 // replaces the dialog text
-                if(allowGame) this.playerContinueButton.setText(newText);
+                if(allowGame) playerContinueButton.setText(newText);
 
                 hasChat = true;
             } catch (Exception e)
             {
-                // if the dialog line is not found, adds it to database
-                if(buttonText != flowMessage)
-                    this.dialogMaster.transcript.addTranscript("dialogFlow", buttonText);
+                if(!translatedContent.contains(buttonText))
+                    master.transcript.addTranscript("dialogFlow", buttonText);
             }
-        } else if(this.npcContinueButton != null)
+        } else if(npcContinueButton != null)
         {
-            String buttonText = this.npcContinueButton.getText().replace("<br>", "");
+            String buttonText = npcContinueButton.getText().replace("<br>", "");
             try
             {
-                String newText = this.translatedDialog.transcript.getTranslatedText("dialogFlow", buttonText);
+                String newText = translated.transcript.getTranslatedText("dialogFlow", buttonText);
 
-                // updates last translated message
-                flowSender = "dialogFlow";
-                flowMessage = newText;
+                updateBuffer(newText, buttonText);
 
                 // replaces the dialog text
-                if(allowGame) this.npcContinueButton.setText(newText);
+                if(allowGame) npcContinueButton.setText(newText);
 
                 hasChat = true;
             } catch (Exception e)
             {
                 // if the dialog line is not found, adds it to database
-                if(buttonText != flowMessage)
-                    this.dialogMaster.transcript.addTranscript("dialogFlow", buttonText);
+                if(!translatedContent.contains(buttonText))
+                    master.transcript.addTranscript("dialogFlow", buttonText);
             }
-        } else if(this.otherContinueButton != null)
+        } else if(otherContinueButton != null)
         {
-            String buttonText = this.otherContinueButton.getText().replace("<br>", "");
+            String buttonText = otherContinueButton.getText().replace("<br>", "");
             try
             {
-                String newText = this.translatedDialog.transcript.getTranslatedText("dialogFlow", buttonText);
+                String newText = translated.transcript.getTranslatedText("dialogFlow", buttonText);
 
-                // updates last translated message
-                flowSender = "dialogFlow";
-                flowMessage = newText;
+                updateBuffer(newText, buttonText);
 
                 // replaces the dialog text
-                if(allowGame) this.otherContinueButton.setText(newText);
+                if(allowGame) otherContinueButton.setText(newText);
 
                 hasChat = true;
             } catch (Exception e)
             {
                 // if the dialog line is not found, adds it to database
-                if(buttonText != flowMessage)
-                    this.dialogMaster.transcript.addTranscript("dialogFlow", buttonText);
+                if(!translatedContent.contains(buttonText))
+                    master.transcript.addTranscript("dialogFlow", buttonText);
             }
         }
+
 
         if(this.dialogSpriteText != null)
         {
-
             System.out.println("new dialog sprite text: " + this.dialogOption.getText());
         }
 
@@ -233,23 +233,21 @@ public class DialogTranslator extends TranslationBuffer
 
     public void startup() throws Exception
     {
-        /*** Load files and start translation API service ***/
+        /*** Load files and start translation API service if enabled ***/
+        String langCodeUpper =  selectedLang.toUpperCase(Locale.ROOT);
 
-        String masterFilePath = this.TRANSCRIPT_FOLDER_PATH + this.MASTER_NPC_DIALOG_TRANSCRIPT_SUFIX;
-        String translationFilePath = this.TRANSCRIPT_FOLDER_PATH + this.selectedLang.toUpperCase(Locale.ROOT) + this.TRANSLATED_NPC_DIALOG_TRANSCRIPT_SUFIX;
+        //this.setTRANSCRIPT_FOLDER_PATH(transcriptsFolderPath);
+        //this.master.loadTranscripts();
 
-        this.dialogMaster.setFile(masterFilePath);
-        this.dialogMaster.loadTranscripts();
-
-        this.translatedDialog.setFile(translationFilePath);
-        this.translatedDialog.loadTranscripts();
+        //this.translatedDialog.setFile(translationFilePath);
+        //this.translatedDialog.loadTranscripts();
     }
 
     public void shutdown() throws Exception
     {
         if(newTranscriptsFound)
         {
-            this.dialogMaster.saveTranscript();
+            //this.dialogMaster.saveTranscript();
         }
         // if no changes were found, no need to save
     }
@@ -257,7 +255,7 @@ public class DialogTranslator extends TranslationBuffer
     {
         /*** Updates internal widgets ***/
         this.dialogOption = client.getWidget(WidgetInfo.DIALOG_OPTION);
-        this.dialogOptionOptions = client.getWidget(WidgetInfo.DIALOG_OPTION_OPTIONS);
+        //this.dialogOptionOptions = client.getWidget(WidgetInfo.DIALOG_OPTION_OPTIONS);
         this.dialogSpriteText = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
         this.dialogLabel = client.getWidget(WidgetInfo.DIALOG_NPC_NAME);
         this.dialogText = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT);
