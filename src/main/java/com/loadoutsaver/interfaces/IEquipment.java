@@ -1,13 +1,11 @@
 package com.loadoutsaver.interfaces;
 
 import net.runelite.api.EquipmentInventorySlot;
-import net.runelite.api.kit.KitType;
 
-import java.util.Dictionary;
-import java.util.Optional;
+import java.util.Map;
 
 public interface IEquipment extends ISerializable<IEquipment> {
 
-    Dictionary<EquipmentInventorySlot, IItemStack> GetEquipment();
+    Map<EquipmentInventorySlot, IItemStack> GetEquipment();
 
 }
