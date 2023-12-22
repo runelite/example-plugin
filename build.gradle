@@ -26,8 +26,8 @@ sourceSets {
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.20'
-	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
 	implementation 'com.google.cloud:google-cloud-translate:2.19.0'
 	testImplementation 'junit:junit:4.12'
