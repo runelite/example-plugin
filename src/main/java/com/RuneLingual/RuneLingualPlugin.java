@@ -17,26 +17,24 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameTick;
-
-// google cloud translating
-
+import net.runelite.api.ChatMessageType;
 
 @Slf4j
 @PluginDescriptor(
 	// Plugin name shown at plugin hub
 	name = "RuneLingual",
-	description = "A translation plugin for OSRS."
+	description = "All-in-one translation plugin for OSRS."
 )
 public class RuneLingualPlugin extends Plugin
 {
 	// translation options
-	private LangCodeSelectableList targetLanguage; // defaults to en-US on startup
+	private LangCodeSelectableList targetLanguage;
 
-	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_NPC_DIALOG_TRANSCRIPT.json");
+	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_DIALOG_TRANSCRIPT.json");
 	String GAME_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_GAME_MESSAGE_TRANSCRIPT.json");
 	String TRANSCRIPT_FOLDER_PATH = new String("transcript\\");
 
-	private ChatMessageTranslator chatTranslator = new ChatMessageTranslator();
+	private ChatCapture chatTranslator;
 	private DialogTranslator dialogTranslator = new DialogTranslator();
 
 	private boolean changesDetected = false;
@@ -67,9 +65,9 @@ public class RuneLingualPlugin extends Plugin
 		chatTranslator.setLang(targetLanguage.getLangCode());
 		chatTranslator.startup();
 
-		changesDetected = true;  // TODO: change this to actual changes being detected
+		// TODO: change this to actual changes being detected
+		changesDetected = true;
 
-		//npcDialogMaster.transcript.addTranscript("Hans", "Test");
 		log.info("RuneLingual started!");
 	}
 
@@ -91,19 +89,11 @@ public class RuneLingualPlugin extends Plugin
 
 	}
 
-	@Subscribe
-	public void onChatMessage(ChatMessage event) throws Exception
-	{
-		this.chatTranslator.setMessage(event);
-		this.chatTranslator.translateAndReplace();
-	}
-
 	@Override
 	protected void shutDown() throws Exception
 	{
 		log.info("RuneLingual Stopped!");
 	}
-
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged) throws Exception
@@ -112,13 +102,15 @@ public class RuneLingualPlugin extends Plugin
 		if (newGameState == GameState.LOGGED_IN)
 		{
 			/* RESTORE PREVIOUS TRANSLATION STATE */
-			//client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Set api key: " + config.getAPIKey(), null);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "RuneLingual is running.", null);
 		} else if (newGameState == GameState.LOGIN_SCREEN) {
 			// at the login screen
+			//Widget loginScreen = client.getWidget(WidgetInfo.LOGIN_CLICK_TO_PLAY_SCREEN);
+			//log.info("no menu:" + loginScreen.getChildren());
 
-			/* TUNS OFF EVERY TRANSLATION */
-			chatTranslator.shutdown(changesDetected);
-			dialogTranslator.shutdown();
+			//chatTranslator.shutdown(changesDetected);
+			//dialogTranslator.shutdown();
+
 
 		}
 	}

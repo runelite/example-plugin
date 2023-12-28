@@ -35,7 +35,7 @@ dependencies {
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
-group = 'com.example'
+group = 'com.RuneLingual'
 version = '1.0-SNAPSHOT'
 
 tasks.withType(JavaCompile) {

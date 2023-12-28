@@ -7,8 +7,8 @@ public abstract class TranslationBuffer
     protected String selectedLang = null;
     protected String TRANSCRIPT_FOLDER_PATH = null;
 
-    protected TranscriptsDatabaseManager master = new TranscriptsDatabaseManager();
-    protected TranscriptsDatabaseManager translated = new TranscriptsDatabaseManager();
+    protected TranscriptsDatabaseManager master = new TranscriptsDatabaseManager(true);
+    protected TranscriptsDatabaseManager translated = new TranscriptsDatabaseManager(true);
 
     protected boolean hasTranslation;
     protected boolean newTranscriptsFound;

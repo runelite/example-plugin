@@ -12,6 +12,13 @@ public class TranscriptsDatabaseManager {
     public String FILE_PATH = new String();
     public TranscriptManager transcript = new TranscriptManager();
 
+    private boolean enableDebugMessages;
+
+    public TranscriptsDatabaseManager(boolean enableDebug){
+        // init
+        enableDebugMessages = enableDebug;
+    }
+
     public void saveTranscript() throws Exception {
         String filePath = FILE_PATH;
         File file = new File(filePath);
@@ -35,7 +42,8 @@ public class TranscriptsDatabaseManager {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             writer.setIndent("    ");
             gson.toJson(transcript, TranscriptManager.class, writer);
-            System.out.println("File created or accessed successfully");
+
+            if(enableDebugMessages) System.out.println("File created or accessed successfully");
         } catch (IOException e) {
             throw new Exception("Could not update transcripts on master: " + e.getMessage());
         }
@@ -57,17 +65,20 @@ public class TranscriptsDatabaseManager {
 
                     String json = jsonBuilder.toString();
                     if (json.trim().isEmpty()) {
-                        System.out.println("Empty JSON file");
+                        if(enableDebugMessages) System.out.println("Empty JSON file");
+
+
                         transcript = new TranscriptManager();
                     } else {
                         // Manually check if JSON is an object
                         if (json.startsWith("{") && json.endsWith("}")) {
                             Gson gson = new Gson();
                             transcript = gson.fromJson(json, TranscriptManager.class);
-                            System.out.println("Transcript was loaded successfully.");
-                            System.out.println("Aqui: " + transcript);
+
+                            if(enableDebugMessages) System.out.println("Transcript was loaded successfully.");
                         } else {
-                            System.out.println("Invalid JSON format. Expected an object.");
+                            if(enableDebugMessages) System.out.println("Invalid JSON format. Expected an object.");
+
                             transcript = new TranscriptManager();
                         }
                     }

@@ -1,10 +1,12 @@
 package com.RuneLingual;
 
+// runelite
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 
+// java
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -50,6 +52,9 @@ public class DialogTranslator extends TranslationBuffer
         // resets dialog control variables
         hasChat = false;
         hasTranslation = false;
+
+
+        if(this.translatedContent == null) return;
 
         if(dialogLabel != null && dialogText != null)
         {  // npc dialog
