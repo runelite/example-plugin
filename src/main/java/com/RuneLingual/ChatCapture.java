@@ -67,7 +67,7 @@ public class ChatCapture extends RuneChatTypes
             // TODO: api translation here
             if(type.equals(ChatMessageType.AUTOTYPER) && allowAUTOTYPER())
             {
-                onlineTranslateCaller(message, messageNode);
+                onlineTranslatorCaller(message, messageNode);
             } else if(type.equals(ChatMessageType.BROADCAST) && allowBROADCAST())
             {
 
@@ -208,17 +208,46 @@ public class ChatCapture extends RuneChatTypes
     
     private void localTranslatorCaller(String message, MessageNode node)
     {
-        // TODO: try except
-        String translatedMessage = onlineTranslationService.translate(message);
-        node.setValue(translatedMessage);
+        try
+        {
+            String translatedMessage = localTranslationService.translate(message);
+            node.setValue(translatedMessage);
+            
+            if(debugPrints)
+            {
+                System.out.println("Translation found! Replaced item '" + message + "'.");
+            }
+        }
+        catch (Exception e)
+        {
+            if(debugPrints)
+            {
+                String originalContents = node.getValue();
+                System.out.println("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+            }
+        }
     }
     
     private void onlineTranslatorCaller(String message, MessageNode node)
     {
-        // TODO: try except
-        String translatedMessage = onlineTranslationService.translate(message);
-        node.setValue(translatedMessage);
-        
+        try
+        {
+            String translatedMessage = onlineTranslationService.translate(message);
+            node.setValue(translatedMessage);
+            
+            if(debugPrints)
+            {
+                System.out.println("Translation found! Replaced item '" + message + "'.");
+            }
+        }
+        catch (Exception e)
+        {
+            if(debugPrints)
+            {
+                String originalContents = node.getValue();
+                System.out.println("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+            }
+        }
     }
     public void setAllowOnlineTranslations(boolean newValue) {this.allowOnlineTranslations = newValue;}
     public void setAllowOverHeads(boolean newValue) {this.allowOverHeads = newValue;}
