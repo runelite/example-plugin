@@ -1,37 +1,38 @@
 package com.RuneLingual;
 
-import com.google.protobuf.Message;
+import lombok.extern.java.Log;
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.client.eventbus.Subscribe;
 
-@FunctionalInterface
-interface TranslationHandler
-{
-    String translate(String text);
-}
+import javax.inject.Inject;
 
-public class ChatCapture extends RuneChatTypes
+public class ChatCapture
 {
     // Captures chat messages from any source
-    private Client clientReference;
+    @Inject
+    private Client client;
+    @Inject
+    private RuneLingualConfig config;
+    
     private boolean allowOnlineTranslations;
     private boolean allowOverHeads;
     private boolean debugPrints;
+    private LogHandler log;
     private TranslationHandler localTranslationService;
     private TranslationHandler onlineTranslationService;
+    private MessageReplacer overheadReplacer;
     
-    ChatCapture(
-            Client clientReference,
-            TranslationHandler localTranslator,
-            TranslationHandler onlineTranslator,
-            boolean debugPrints)
+    @Inject
+    ChatCapture(RuneLingualConfig config, Client client)
     {
-        this.clientReference = clientReference;
-        this.localTranslationService = localTranslator;
-        this.debugPrints = debugPrints;
+        this.config = config;
+        this.client = client;
+        
+        // TODO: change to false later on
+        this.debugPrints = true;
     }
     
     public boolean messageTypeRequiresKey(ChatMessageType type)
@@ -55,154 +56,197 @@ public class ChatCapture extends RuneChatTypes
         return false;
     }
     
-    @Subscribe
     public void onChatMessage(ChatMessage event) throws Exception {
         // tries to translate and replace chat messages by their given message node
         ChatMessageType type = event.getType();
         MessageNode messageNode = event.getMessageNode();
         String message = event.getMessage();
         
+        boolean allowGame = config.getAllowGame();
+        boolean allowPublic = config.getAllowPublic();
+        boolean allowClan = config.getAllowClan();
+        boolean allowFriends = config.getAllowFriends();
+        
         if(messageTypeRequiresKey(type) && allowOnlineTranslations)  // if the current translation iteration requires an api key
         {
-            // TODO: api translation here
-            if(type.equals(ChatMessageType.AUTOTYPER) && allowAUTOTYPER())
+            //TODO: fix configs here
+            if(type.equals(ChatMessageType.AUTOTYPER) && allowPublic)
             {
                 onlineTranslatorCaller(message, messageNode);
-            } else if(type.equals(ChatMessageType.BROADCAST) && allowBROADCAST())
+            }
+            else if(type.equals(ChatMessageType.BROADCAST) && allowGame)
             {
-
-            } else if(type.equals(ChatMessageType.CLAN_CHAT) && allowCLAN_CHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_CHAT) && allowClan)
             {
-
-            } else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && allowCLAN_GIM_CHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && allowClan)
             {
-
-            } else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && allowCLAN_GUEST_CHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && allowClan)
             {
-
-            } else if(type.equals(ChatMessageType.FRIENDSCHAT) && allowFRIENDSCHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.FRIENDSCHAT) && allowFriends)
             {
-
-            } else if(type.equals(ChatMessageType.MODAUTOTYPER) && allowMODAUTOTYPER())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.MODAUTOTYPER) && allowPublic)
             {
-
-            } else if(type.equals(ChatMessageType.MODCHAT) && allowMODCHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.MODCHAT) && allowPublic)
             {
-
-            } else if(type.equals(ChatMessageType.MODPRIVATECHAT) && allowMODPRIVATECHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.MODPRIVATECHAT) && allowFriends)
             {
-
-            } else if(type.equals(ChatMessageType.PRIVATECHAT) && allowPRIVATECHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.PRIVATECHAT) && allowFriends)
             {
-
-            } else if(type.equals(ChatMessageType.PRIVATECHATOUT) && allowPRIVATECHATOUT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.PRIVATECHATOUT) && allowFriends)
             {
-
-            } else if(type.equals(ChatMessageType.PUBLICCHAT) && allowPUBLICCHAT())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.PUBLICCHAT) && allowPublic)
             {
-                String translatedText;
-
-                if(allowOverHeads){
-                    // changes overhead text from players
-
+                onlineTranslatorCaller(message, messageNode);
+                if(allowOverHeads)
+                {
+                    // avoids duplicate translation requests
+                    // looks for the player that sent the message and translates it
+                    String newMessage = messageNode.getValue();
+                    overheadTranslatorCaller(message, newMessage);
                 }
-
-            } else if(type.equals(ChatMessageType.SPAM) && allowSPAM())
+            }
+            else if(type.equals(ChatMessageType.SPAM) && allowPublic)
             {
-
-            } else if(type.equals(ChatMessageType.TRADE) && allowTRADE())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.TRADE) && allowGame)
             {
-
-            } else if(type.equals(ChatMessageType.UNKNOWN) && allowUNKWNOWN())
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.UNKNOWN) && allowPublic)
             {
-
-            } else
+                onlineTranslatorCaller(message, messageNode);
+            }
+            else
             {
                 // messages whose translations were not allowed by user - do not translate these messages
+                log.log("pasou2" + event.getMessage());
             }
-        } else if(allowOnlineTranslations == false)
+        }
+        else
         {
-            // TODO: handle prefix and sufixes for player names and items
-
-            // if the given string is not found raise an exception, then add to the master database
-            if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && allowCHALREQ_CLANCHAT())
+            if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && allowGame)
             {
-                replaceOrAdd("CHALREQ_CLANCHAT");
-            } else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && allowCHALREQ_FRIENDSCHAT())
-            {
-                replaceOrAdd("CHALREQ_FRIENDSCHAT");
-            } else if(type.equals(ChatMessageType.CHALREQ_TRADE) && allowCHALREQ_TRADE())
-            {
-                replaceOrAdd("CHALREQ_TRADE");
-            } else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && allowCLAN_CREATION_INVITATION())
-            {
-                replaceOrAdd("CLAN_CREATION_INVITATION");
-            } else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && allowCLAN_GIM_FORM_GROUP())
-            {
-                replaceOrAdd("CLAN_GIM_FORM_GROUP");
-            } else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && allowCLAN_GIM_GROUP_WITH())
-            {
-                replaceOrAdd("CLAN_GIM_GROUP_WITH");
-            } else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && allowCLAN_GIM_MESSAGE())
-            {
-                replaceOrAdd("CLAN_GIM_MESSAGE");
-            } else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && allowCLAN_GUEST_MESSAGE())
-            {
-                replaceOrAdd("CLAN_GUEST_MESSAGE");
-            } else if(type.equals(ChatMessageType.CLAN_MESSAGE) && allowCLAN_MESSAGE())
-            {
-                replaceOrAdd("CLAN_MESSAGE");
-            } else if(type.equals(ChatMessageType.CONSOLE) && allowCONSOLE())
-            {
-                replaceOrAdd("CONSOLE");
-            } else if(type.equals(ChatMessageType.ENGINE) && allowENGINE())
-            {
-                replaceOrAdd("ENGINE");
-            } else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && allowFRIENDNOTIFICATION())
-            {
-                replaceOrAdd("FRIENDNOTIFICATION");
-            } else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && allowFRIENDSCHATNOTIFICATION())
-            {
-                replaceOrAdd("FRIENDSCHATNOTIFICATION");
-            } else if(type.equals(ChatMessageType.GAMEMESSAGE) && allowGAMEMESSAGE())
-            {
-                replaceOrAdd("GAMEMESSAGE");
-            } else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && allowIGNORENOTIFICATION())
-            {
-                replaceOrAdd("IGNORENOTIFICATION");
-            } else if(type.equals(ChatMessageType.ITEM_EXAMINE) && allowITEM_EXAMINE())
-            {
-                replaceOrAdd("ITEM_EXAMINE");
-            } else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && allowLOGOUTNOTIFICATION())
-            {
-                replaceOrAdd("LOGINLOGOUTNOTIFICATION");
-            } else if(type.equals(ChatMessageType.NPC_EXAMINE) && allowNPC_EXAMINE())
-            {
-                replaceOrAdd("NPC_EXAMINE");
-            } else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && allowOBJECT_EXAMINE())
-            {
-                replaceOrAdd("OBJECT_EXAMINE");
-            } else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && allowSNAPSHOTFEEDBACK())
-            {
-                replaceOrAdd("SNAPSHOTFEEDBACK");
-            } else if(type.equals(ChatMessageType.TENSECTIMEOUT) && allowTENSECTIMEOUT())
-            {
-                replaceOrAdd("TENSECTIMEOUT");
-            } else if(type.equals(ChatMessageType.TRADE_SENT) && allowTRADE_SENT())
-            {
-                replaceOrAdd("TRADE_SENT");
-            } else if(type.equals(ChatMessageType.TRADEREQ) && allowTRADEREQ())
-            {
-                replaceOrAdd("TRADEREQ");
-            } else if(type.equals(ChatMessageType.WELCOME) && allowWELCOME())
-            {
-                replaceOrAdd("WELCOME");
-            } else
-            {
-                // messages whose translations were not allowed by user - do not translate these messages
+                localTranslatorCaller(message, messageNode);
             }
-        } else {
-            // messages whose translations were not allowed by user - do not translate these messages
+            else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CHALREQ_TRADE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && allowClan)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && allowClan)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CLAN_MESSAGE) && allowClan)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.CONSOLE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.ENGINE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.GAMEMESSAGE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && allowFriends)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.ITEM_EXAMINE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.NPC_EXAMINE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.TENSECTIMEOUT) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.TRADE_SENT) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.TRADEREQ) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else if(type.equals(ChatMessageType.WELCOME) && allowGame)
+            {
+                localTranslatorCaller(message, messageNode);
+            }
+            else
+            {
+                // messages whose translations were not allowed by user
+                // do not translate these messages
+                log.log("pasou" + event.getMessage());
+            }
         }
     }
     
@@ -215,7 +259,7 @@ public class ChatCapture extends RuneChatTypes
             
             if(debugPrints)
             {
-                System.out.println("Translation found! Replaced item '" + message + "'.");
+                log.log("Translation found! Replaced item '" + message + "'.");
             }
         }
         catch (Exception e)
@@ -223,7 +267,7 @@ public class ChatCapture extends RuneChatTypes
             if(debugPrints)
             {
                 String originalContents = node.getValue();
-                System.out.println("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+                log.log("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
             }
         }
     }
@@ -237,7 +281,7 @@ public class ChatCapture extends RuneChatTypes
             
             if(debugPrints)
             {
-                System.out.println("Translation found! Replaced item '" + message + "'.");
+                log.log("Translation found! Replaced item '" + message + "'.");
             }
         }
         catch (Exception e)
@@ -245,10 +289,35 @@ public class ChatCapture extends RuneChatTypes
             if(debugPrints)
             {
                 String originalContents = node.getValue();
-                System.out.println("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+                log.log("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
             }
         }
     }
-    public void setAllowOnlineTranslations(boolean newValue) {this.allowOnlineTranslations = newValue;}
-    public void setAllowOverHeads(boolean newValue) {this.allowOverHeads = newValue;}
+    
+    private void overheadTranslatorCaller(String currentMessage, String newMessage)
+    {
+        try
+        {
+            String translatedMessage = overheadReplacer.replace(currentMessage, newMessage);
+            
+            if(debugPrints)
+            {
+                log.log("Translation found! Overhead replaced for item '" + currentMessage + "'.");
+            }
+        }
+        catch (Exception e)
+        {
+            if(debugPrints)
+            {
+                log.log("Could not replace contents for '" + currentMessage + "', exception ocurred: " + e.getMessage());
+            }
+        }
+    }
+    
+    public void setLogger(LogHandler logger) {this.log = logger;}
+    public void setOverheadReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
+    public void setOnlineTranslationService(TranslationHandler newHandler) {this.onlineTranslationService = newHandler;}
+    public void setLocalTranslationService(TranslationHandler newHandler) {this.localTranslationService = newHandler;}
+    public void setOnlineTranslations(boolean newValue) {this.allowOnlineTranslations = newValue;}
+    public void setOverHeads(boolean newValue) {this.allowOverHeads = newValue;}
 }

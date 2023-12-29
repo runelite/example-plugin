@@ -4,20 +4,18 @@ import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.OverheadTextChanged;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.ChatMessageType;
 
 @Slf4j
 @PluginDescriptor(
@@ -27,23 +25,26 @@ import net.runelite.api.ChatMessageType;
 )
 public class RuneLingualPlugin extends Plugin
 {
-	// translation options
+	@Inject
+	private Client client;
+	@Inject
+	private RuneLingualConfig config;
+	
 	private LangCodeSelectableList targetLanguage;
-
+	
 	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_DIALOG_TRANSCRIPT.json");
 	String GAME_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_GAME_MESSAGE_TRANSCRIPT.json");
 	String TRANSCRIPT_FOLDER_PATH = new String("transcript\\");
-
+	
+	@Inject
 	private ChatCapture chatTranslator;
-	private DialogTranslator dialogTranslator = new DialogTranslator();
-
+	
+	@Inject
+	private DialogCapture dialogTranslator;
+	
 	private boolean changesDetected = false;
-
-	@Inject
-	private Client client;
-
-	@Inject
-	private RuneLingualConfig config;
+	
+	public void pluginLog(String contents) {log.info(contents);}
 
 	@Override
 	protected void startUp() throws Exception
@@ -53,66 +54,39 @@ public class RuneLingualPlugin extends Plugin
 		// plugin startup
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
-
-		readConfigs();
-
-		// loading files
-		log.info("Loading transcripts...");
-
-		dialogTranslator.setLang(targetLanguage.getLangCode());
-		dialogTranslator.startup();
-		chatTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
-		chatTranslator.setLang(targetLanguage.getLangCode());
-		chatTranslator.startup();
-
-		// TODO: change this to actual changes being detected
-		changesDetected = true;
-
+		
+		chatTranslator.setLogger(this::pluginLog);
+		dialogTranslator.setLogger(this::pluginLog);
+		
 		log.info("RuneLingual started!");
 	}
-
-	@Subscribe
-	public void onOverheadTextChanged(OverheadTextChanged event)
-	{
-		//TODO: change npc overheads as they appear
-	}
-
+	
+	/*
 	@Subscribe
 	public void onGameTick(GameTick event) throws Exception
 	{
-		/***Occurs once every game tick***/
-
-		// TODO: detect player name strings in the middle of sentences to keep them intact
-		// TODO: lookup widget info for more dialog types
-		dialogTranslator.updateWidgets(client);
-		dialogTranslator.translateAndReplace(client);
-
 	}
+	*/
 
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded event) throws Exception
+	{
+		// retrieves the portion of the chatbox widget tree
+		// that may have some dialog on it and pass it forward to the dialog module
+		Widget chatbox = client.getWidget(ComponentID.CHATBOX_MESSAGES);
+		dialogTranslator.handleDialogs(chatbox);
+	}
+	
+	@Subscribe
+	public void onChatMessage(ChatMessage event) throws Exception
+	{
+		chatTranslator.onChatMessage(event);
+	}
+	
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.info("RuneLingual Stopped!");
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged) throws Exception
-	{
-		GameState newGameState = gameStateChanged.getGameState();
-		if (newGameState == GameState.LOGGED_IN)
-		{
-			/* RESTORE PREVIOUS TRANSLATION STATE */
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "RuneLingual is running.", null);
-		} else if (newGameState == GameState.LOGIN_SCREEN) {
-			// at the login screen
-			//Widget loginScreen = client.getWidget(WidgetInfo.LOGIN_CLICK_TO_PLAY_SCREEN);
-			//log.info("no menu:" + loginScreen.getChildren());
-
-			//chatTranslator.shutdown(changesDetected);
-			//dialogTranslator.shutdown();
-
-
-		}
+		log.info("RuneLingual plugin stopped!");
 	}
 
 	@Provides
@@ -120,11 +94,7 @@ public class RuneLingualPlugin extends Plugin
 	{
 		return configManager.getConfig(RuneLingualConfig.class);
 	}
-
-	/*private HashMap loadTranscript() throws Exception {
-		// loads local transcript databases
-
-	}*/
+	
 	private ChatMessage googleTranslateMessage(ChatMessage event, String langCode)
 	{
 		// on-the-fly translation for in game messages
@@ -156,55 +126,6 @@ public class RuneLingualPlugin extends Plugin
 		//event.getMessageNode().setValue("Essa mensagem só está disponível para macacos gold.");
 		*/
 		return null;
-	}
-
-	private void readConfigs() {
-		// Reads and sets translation states from config file
-
-		// translation settings - TODO: check about spam and unknown messages
-		chatTranslator.setAllowAUTOTYPER(config.getAllowPublic());
-		chatTranslator.setAllowBROADCAST(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_CLANCHAT(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_FRIENDSCHAT(config.getAllowGame());
-		chatTranslator.setAllowCHALREQ_TRADE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_GROUP_WITH(config.getAllowGame());
-		chatTranslator.setAllowCLAN_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_CREATION_INVITATION(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_GIM_FORM_GROUP(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GIM_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_GUEST_CHAT(config.getAllowClan());
-		chatTranslator.setAllowCLAN_GUEST_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCLAN_MESSAGE(config.getAllowGame());
-		chatTranslator.setAllowCONSOLE(config.getAllowGame());
-		chatTranslator.setAllowENGINE(config.getAllowGame());
-		chatTranslator.setAllowFRIENDNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowFRIENDSCHAT(config.getAllowFriends());
-		chatTranslator.setAllowFRIENDSCHATNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowGAMEMESSAGE(config.getAllowGame());
-		chatTranslator.setAllowIGNORENOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowITEM_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowLOGOUTNOTIFICATION(config.getAllowGame());
-		chatTranslator.setAllowMODAUTOTYPER(config.getAllowPublic());
-		chatTranslator.setAllowMODCHAT(config.getAllowPublic());
-		chatTranslator.setAllowMODPRIVATECHAT(config.getAllowFriends());
-		chatTranslator.setAllowNPC_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowOBJECT_EXAMINE(config.getAllowGame());
-		chatTranslator.setAllowPRIVATECHAT(config.getAllowFriends());
-		chatTranslator.setAllowPRIVATECHATOUT(config.getAllowLocal());
-		chatTranslator.setAllowPUBLICCHAT(config.getAllowPublic());
-		chatTranslator.setAllowSNAPSHOTFEEDBACK(config.getAllowGame());
-		chatTranslator.setAllowTENSECTIMEOUT(config.getAllowGame());
-		chatTranslator.setAllowTRADE(config.getAllowGame());
-		chatTranslator.setAllowTRADE_SENT(config.getAllowGame());
-		chatTranslator.setAllowTRADEREQ(config.getAllowGame());
-		chatTranslator.setAllowWELCOME(config.getAllowGame());
-
-		//dialogTranslator.setTranscriptFolder(TRANSCRIPT_FOLDER_PATH);
-		dialogTranslator.setAllowGame(config.getAllowGame());
-		dialogTranslator.setAllowName(config.getAllowName());
-
-		chatTranslator.setAllowDynamic(config.allowAPI());
 	}
 }
 
