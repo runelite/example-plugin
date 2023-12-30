@@ -45,6 +45,7 @@ public class RuneLingualPlugin extends Plugin
 	private boolean changesDetected = false;
 	
 	public void pluginLog(String contents) {log.info(contents);}
+	public String temporaryTranslator(String contents) {return "Vasco da Gama";}
 
 	@Override
 	protected void startUp() throws Exception

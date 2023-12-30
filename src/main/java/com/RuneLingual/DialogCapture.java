@@ -21,7 +21,8 @@ public class DialogCapture
     private MessageReplacer overheadReplacer;
     private TranslationHandler localTranslationService;
     private boolean debugPrints;
-    
+    private boolean logEveryTranslation;
+
     @Inject
     public DialogCapture(RuneLingualConfig config, Client client)
     {
@@ -30,15 +31,66 @@ public class DialogCapture
         
         // TODO: change to false later on
         this.debugPrints = true;
+        this.logEveryTranslation = true;
     }
     
     public void handleDialogs(Widget event)
     {
         // gets all children widgets from chatbox (other than chat messages)
         Widget[] widgetsLoaded = getAllWidgets(event);
-        
+
+        if(widgetsLoaded.length == 0)
+        {
+            if(debugPrints)
+            {
+                log.log("Empty dialog widget list.");
+            }
+            return;
+        }
+
+        // update/validate configs
+        // TODO: move this to its own private method
+        // TODO: probably needs adding more settings entries for this one
+        boolean translateNames = config.getAllowName();
+        boolean translateGame = config.getAllowGame();
+
+        // iterates through widget array
         for(Widget widget : widgetsLoaded)
         {
+            // ignores null widgets
+            if(widget == null)
+            {
+                if(debugPrints)
+                {
+                    log.log("Found empty dialog widget! Jumping to next iteration");
+                }
+                continue;
+            }
+
+            // translate widget names
+            // TODO: probably should check if widget ID is equal to something
+            // documented by ComponentID or InterfaceID
+            // such as npc names, etc
+            if(translateNames)
+            {
+                String currentName = widget.getName();
+                if(!currentName.isEmpty())
+                {
+                    String newName = localTranslationService.translate(currentName);
+                    widget.setName(newName);
+                }
+            }
+
+            // translate widget main text
+            if(translateGame)
+            {
+                String currentContents = widget.getText();
+                if(!currentContents.isEmpty())
+                {
+                    String newContents = localTranslationService.translate(currentContents);
+                    widget.setText(newContents);
+                }
+            }
         }
     }
     
@@ -49,7 +101,7 @@ public class DialogCapture
             String newMessage = localTranslationService.translate(currentMessage);
             messageNode.setValue(newMessage);
             
-            if(debugPrints)
+            if(debugPrints && logEveryTranslation)
             {
                 log.log("Dialog message '"
                     + currentMessage
