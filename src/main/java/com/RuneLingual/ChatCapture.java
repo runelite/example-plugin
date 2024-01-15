@@ -21,7 +21,7 @@ public class ChatCapture
     private boolean allowOverHeads;
     private boolean debugPrints;
     private LogHandler log;
-    private TranslationHandler localTranslationService;
+    private TranscriptManager localTranslationService;
     private TranslationHandler onlineTranslationService;
     private MessageReplacer overheadReplacer;
     
@@ -32,7 +32,7 @@ public class ChatCapture
         this.client = client;
         
         // TODO: change to false later on
-        this.debugPrints = true;
+        this.debugPrints = false;
     }
     
     public boolean messageTypeRequiresKey(ChatMessageType type)
@@ -72,51 +72,51 @@ public class ChatCapture
             //TODO: fix configs here
             if(type.equals(ChatMessageType.AUTOTYPER) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.BROADCAST) && allowGame)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_CHAT) && allowClan)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && allowClan)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && allowClan)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.FRIENDSCHAT) && allowFriends)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.MODAUTOTYPER) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.MODCHAT) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.MODPRIVATECHAT) && allowFriends)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.PRIVATECHAT) && allowFriends)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.PRIVATECHATOUT) && allowFriends)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.PUBLICCHAT) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
                 if(allowOverHeads)
                 {
                     // avoids duplicate translation requests
@@ -127,119 +127,118 @@ public class ChatCapture
             }
             else if(type.equals(ChatMessageType.SPAM) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.TRADE) && allowGame)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.UNKNOWN) && allowPublic)
             {
-                onlineTranslatorCaller(message, messageNode);
+                onlineTextTranslatorCaller(message, messageNode);
             }
             else
             {
                 // messages whose translations were not allowed by user - do not translate these messages
-                log.log("pasou2" + event.getMessage());
             }
         }
         else
         {
             if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CHALREQ_TRADE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && allowClan)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && allowClan)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CLAN_MESSAGE) && allowClan)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.CONSOLE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.ENGINE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.GAMEMESSAGE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && allowFriends)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.ITEM_EXAMINE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.NPC_EXAMINE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.TENSECTIMEOUT) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.TRADE_SENT) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.TRADEREQ) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else if(type.equals(ChatMessageType.WELCOME) && allowGame)
             {
-                localTranslatorCaller(message, messageNode);
+                localTextTranslatorCaller(message, messageNode);
             }
             else
             {
@@ -250,11 +249,11 @@ public class ChatCapture
         }
     }
     
-    private void localTranslatorCaller(String message, MessageNode node)
+    private void localTextTranslatorCaller(String message, MessageNode node)
     {
         try
         {
-            String translatedMessage = localTranslationService.translate(message);
+            String translatedMessage = localTranslationService.getTranslatedText("game", message, true);
             node.setValue(translatedMessage);
             
             if(debugPrints)
@@ -264,6 +263,22 @@ public class ChatCapture
         }
         catch (Exception e)
         {
+            if(e.getMessage() == "LineNotFound")
+            {
+                try
+                {
+                    localTranslationService.addTranscript("game", message);
+                    return;
+                }
+                catch(Exception unknownException)
+                {
+                    log.log("Could not add '"
+                        + message
+                        + "'line to transcript: "
+                        + unknownException.getMessage());
+                }
+            }
+            
             if(debugPrints)
             {
                 String originalContents = node.getValue();
@@ -272,11 +287,11 @@ public class ChatCapture
         }
     }
     
-    private void onlineTranslatorCaller(String message, MessageNode node)
+    private void onlineTextTranslatorCaller(String message, MessageNode node)
     {
         try
         {
-            String translatedMessage = onlineTranslationService.translate(message);
+            String translatedMessage = onlineTranslationService.translate("online", message);
             node.setValue(translatedMessage);
             
             if(debugPrints)
@@ -289,7 +304,7 @@ public class ChatCapture
             if(debugPrints)
             {
                 String originalContents = node.getValue();
-                log.log("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+                log.log("Could not replace contents for '" + originalContents + "', exception occurred: " + e.getMessage());
             }
         }
     }
@@ -317,7 +332,7 @@ public class ChatCapture
     public void setLogger(LogHandler logger) {this.log = logger;}
     public void setOverheadReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
     public void setOnlineTranslationService(TranslationHandler newHandler) {this.onlineTranslationService = newHandler;}
-    public void setLocalTranslationService(TranslationHandler newHandler) {this.localTranslationService = newHandler;}
+    public void setLocalTranslationService(TranscriptManager newHandler) {this.localTranslationService = newHandler;}
     public void setOnlineTranslations(boolean newValue) {this.allowOnlineTranslations = newValue;}
     public void setOverHeads(boolean newValue) {this.allowOverHeads = newValue;}
 }

@@ -4,9 +4,12 @@ import static com.RuneLingual.WidgetsUtil.getAllWidgets;
 
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
+import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DialogCapture
 {
@@ -19,11 +22,19 @@ public class DialogCapture
     
     private LogHandler log;
     private MessageReplacer overheadReplacer;
-    private TranslationHandler localTranslationService;
+    private TranscriptManager dialogTranslationService;
+    private TranscriptManager nameTranslationService;
     private boolean debugPrints;
     private boolean logEveryTranslation;
-
-    @Inject
+    
+    // item translation control
+    private boolean translateNames;
+    private boolean translateGame;
+    private boolean translateOverheads;
+    private String lastNpc;
+    private List<Widget> widgetsLoaded;
+    
+    @Inject // init
     public DialogCapture(RuneLingualConfig config, Client client)
     {
         this.client = client;
@@ -31,75 +42,123 @@ public class DialogCapture
         
         // TODO: change to false later on
         this.debugPrints = true;
-        this.logEveryTranslation = true;
+        this.logEveryTranslation = false;
+        this.translateOverheads = true;
+        this.translateNames = true;
+        
     }
     
-    public void handleDialogs(Widget event)
+    private void updateConfigs()
     {
-        // gets all children widgets from chatbox (other than chat messages)
-        Widget[] widgetsLoaded = getAllWidgets(event);
-
-        if(widgetsLoaded.length == 0)
+        this.translateNames = config.getAllowName();
+        this.translateGame = config.getAllowGame();
+    }
+    
+    public void handleDialogs()
+    {
+        // loads the chatBox widget itself
+        Widget chatBox = client.getWidget(ComponentID.CHATBOX_MESSAGES);
+        
+        // gets all children widgets from chatBox (other than chat messages)
+        List<Widget> tempWidgetList = getAllWidgets(chatBox);
+        
+        if(tempWidgetList.size() != 0 && !tempWidgetList.equals(widgetsLoaded))
         {
-            if(debugPrints)
-            {
-                log.log("Empty dialog widget list.");
-            }
+            // replaces current loaded widget list
+            widgetsLoaded = tempWidgetList;
+        }
+        else
+        {
             return;
         }
-
-        // update/validate configs
-        // TODO: move this to its own private method
-        // TODO: probably needs adding more settings entries for this one
-        boolean translateNames = config.getAllowName();
-        boolean translateGame = config.getAllowGame();
-
-        // iterates through widget array
-        for(Widget widget : widgetsLoaded)
+        
+        String currentNpc = "";
+        List<Integer> handledWidgetsIds = new ArrayList<Integer>();
+        for(Widget widget : tempWidgetList)
         {
-            // ignores null widgets
-            if(widget == null)
+            // filters by all known chat widgets types
+            // if some translation appears to be missing for some type of dialog
+            // probably something should be added or handled here
+            int widgetId = widget.getId();
+            
+            // checks if the widget was already dealt with
+            if(handledWidgetsIds.contains(widgetId))
             {
-                if(debugPrints)
-                {
-                    log.log("Found empty dialog widget! Jumping to next iteration");
-                }
+                // skips to the next interaction
                 continue;
             }
-
-            // translate widget names
-            // TODO: probably should check if widget ID is equal to something
-            // documented by ComponentID or InterfaceID
-            // such as npc names, etc
-            if(translateNames)
+            
+            if(widgetId == ComponentID.DIALOG_NPC_NAME)
             {
-                String currentName = widget.getName();
-                if(!currentName.isEmpty())
+                currentNpc = widget.getText();
+                // updates the npc name of the character that was last spoken to
+                // but first checks if the name is valid
+                if(currentNpc.length() > 0)
                 {
-                    String newName = localTranslationService.translate(currentName);
-                    widget.setName(newName);
+                    lastNpc = currentNpc;
                 }
+                
+                if(translateNames || true)
+                {
+                    String newName = localTextTranslatorCaller(currentNpc, "name", widget);
+                }
+                
+                handledWidgetsIds.add(widgetId);
             }
-
-            // translate widget main text
-            if(translateGame)
+            else if(widgetId == ComponentID.DIALOG_NPC_TEXT)
             {
-                String currentContents = widget.getText();
-                if(!currentContents.isEmpty())
+                // if no npc was read this interaction
+                // assumes the player is still speaking to the last npc
+                currentNpc = lastNpc;
+                
+                String currentText = widget.getText();
+                String newText = localTextTranslatorCaller(currentNpc, currentText, widget);
+                
+                // this should work nicely with that one plugin that
+                // propagates npc dialog as their overheads
+                if(translateOverheads)
                 {
-                    String newContents = localTranslationService.translate(currentContents);
-                    widget.setText(newContents);
+                    overheadTextReplacerCaller(currentText, newText);
                 }
+                
+                handledWidgetsIds.add(widgetId);
+            }
+            else if(widgetId == ComponentID.DIALOG_PLAYER_TEXT)
+            {
+                String currentText = widget.getText();
+                String newText = localTextTranslatorCaller("player", currentText, widget);
+                
+                // this should work nicely with that one plugin that
+                // propagates npc dialog as their overheads
+                if(translateOverheads)
+                {
+                    overheadTextReplacerCaller(currentText, newText);
+                }
+                
+                handledWidgetsIds.add(widgetId);
+            }
+            else if(widgetId == ComponentID.DIALOG_OPTION_OPTIONS)
+            {
+                String currentText = widget.getText();
+                localTextTranslatorCaller("playeroption", currentText, widget);
+            }
+            else
+            {
+                String currentText = widget.getText();
+                // unknown-source widgets
+                String newText = localTextTranslatorCaller("dialogflow", currentText, widget);
+                log.log("UNKNOWN WIDGET " + widgetId + ": " + currentText);
+                handledWidgetsIds.add(widgetId);
             }
         }
     }
     
-    private void localTranslatorCaller(String currentMessage, MessageNode messageNode)
+    private String localTextTranslatorCaller(String senderName, String currentMessage, Widget messageWidget)
     {
         try
         {
-            String newMessage = localTranslationService.translate(currentMessage);
-            messageNode.setValue(newMessage);
+            String newMessage = dialogTranslationService.getTranslatedText(senderName, currentMessage, true);
+            messageWidget.setText(newMessage);
             
             if(debugPrints && logEveryTranslation)
             {
@@ -109,9 +168,26 @@ public class DialogCapture
                     + newMessage
                     + "'.");
             }
+            return newMessage;
         }
         catch(Exception e)
         {
+            if(e.getMessage().equals("EntryNotFound") || e.getMessage().equals("LineNotFound"))
+            {
+                try
+                {
+                    //dialogTranslationService.addTranscript(senderName, currentMessage);
+                    return "";
+                }
+                catch(Exception unknownException)
+                {
+                    log.log("Could not add '"
+                        + currentMessage
+                        + "'line to transcript: "
+                        + unknownException.getMessage());
+                }
+            }
+            
             if(debugPrints)
             {
                 log.log("Could not translate dialog message '"
@@ -119,10 +195,14 @@ public class DialogCapture
                     + "'! Exception captured: "
                     + e.getMessage());
             }
+            return currentMessage;
         }
     }
-    private void overheadTranslatorCaller(String currentMessage, String newMessage)
+    private void overheadTextReplacerCaller(String currentMessage, String newMessage)
     {
+        if(true)
+            return;
+        
         try
         {
             overheadReplacer.replace(currentMessage, newMessage);
@@ -143,16 +223,7 @@ public class DialogCapture
             }
         }
     }
-    
-    private void updateConfigs()
-    {
-        // update internal settings from plugin configuration file
-        // should be handled and updated by base client
-        boolean translateGame = config.getAllowGame();
-        boolean translateNames = config.getAllowName();
-    }
-    
-    public void setLocalTranslationService(TranslationHandler newHandler) {this.localTranslationService = newHandler;}
-    public void setOverheadReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
+    public void setLocalTextTranslationService(TranscriptManager newHandler) {this.dialogTranslationService = newHandler;}
+    public void setOverheadTextReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
     public void setLogger(LogHandler logger) {this.log = logger;}
 }

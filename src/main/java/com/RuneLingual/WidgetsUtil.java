@@ -1,46 +1,69 @@
 package com.RuneLingual;
 
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetUtil;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class WidgetsUtil
 {
-	public static Widget[] getAllWidgets(Widget widget)
+	private boolean debugPrints;
+	private LogHandler logger;
+	public WidgetsUtil()
 	{
-		// Check if the widget is not null
-		if (widget != null)
+		this.debugPrints = false;
+	}
+	
+	public static List<Widget> getAllWidgets(Widget widget)
+	{
+		// Create a list to store widgets
+		List<Widget> widgetList = new ArrayList<>();
+		
+		// Call the recursive method to populate the list
+		iterateWidgetsRecursive(widget, widgetList);
+		
+		// Convert the list to an array and return
+		return widgetList;
+	}
+	
+	private static void iterateWidgetsRecursive(Widget widget, List<Widget> widgetList)
+	{
+		// Check if the widget is not null and not hidden
+		if(widget != null && !widget.isHidden())
 		{
-			// Create a list to accumulate widgets
-			List<Widget> widgetList = new ArrayList<>();
-			
-			// add the current widget to the list
-			widgetList.add(widget);
-			
-			// get the children of the widget
-			Widget[] children = widget.getChildren();
-			
-			// check if there are children before iterating
-			if (children != null)
+			// Add the widget to the list
+			if(widget.getText().length() > 0 || widget.getName().length() > 0)
 			{
-				// iterate over the children and call the recursive method for each one
-				for (Widget child : children)
-				{
-					// add the widgets from the children to the list
-					Widget[] childWidgets = getAllWidgets(child);
-					for (Widget childWidget : childWidgets)
-					{
-						widgetList.add(childWidget);
-					}
-				}
+				widgetList.add(widget);
+				
+				//System.out.println("Widget " + widget.getName() + " is not null and was added to list. " + widget.getText());
 			}
 			
-			// convert the list to an array and return
-			return widgetList.toArray(new Widget[0]);
+			Widget[] staticChildren = widget.getStaticChildren();
+			if (staticChildren != null)
+			{
+				for (Widget child : staticChildren)
+				{
+					iterateWidgetsRecursive(child, widgetList);
+				}
+			}
+			Widget[] dynamicChildren = widget.getDynamicChildren();
+			if (dynamicChildren != null)
+			{
+				for (Widget child : dynamicChildren)
+				{
+					iterateWidgetsRecursive(child, widgetList);
+				}
+			}
+			Widget[] nestedChildren = widget.getNestedChildren();
+			if (nestedChildren != null)
+			{
+				for (Widget child : nestedChildren)
+				{
+					iterateWidgetsRecursive(child, widgetList);
+				}
+			}
 		}
-		
-		// return an empty array if the input widget is null
-		return new Widget[0];
 	}
 }

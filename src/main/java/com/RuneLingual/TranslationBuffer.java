@@ -7,8 +7,8 @@ public abstract class TranslationBuffer
     protected String selectedLang = null;
     protected String TRANSCRIPT_FOLDER_PATH = null;
 
-    protected TranscriptsDatabaseManager master = new TranscriptsDatabaseManager(true);
-    protected TranscriptsDatabaseManager translated = new TranscriptsDatabaseManager(true);
+    protected TranscriptsDatabaseManager masterTranscript = new TranscriptsDatabaseManager();
+    protected TranscriptsDatabaseManager translatedTranscript = new TranscriptsDatabaseManager();
 
     protected boolean hasTranslation;
     protected boolean newTranscriptsFound;
@@ -42,11 +42,13 @@ public abstract class TranslationBuffer
     protected void setTranslationFilePath(String translationFilePath) throws Exception {
         // Requires a language to be previously set to load files
         if (this.selectedLang == null)
+        {
             throw new Exception("undefinedLang");
-
+        }
+        
         // updates folder path and open transcript files
         this.TRANSCRIPT_FOLDER_PATH = translationFilePath.toUpperCase();
 
-        String masterFilePath = "MASTER_ " + translationFilePath.toUpperCase();
+        String masterTranscriptFilePath = "master_transcript_ " + translationFilePath.toLowerCase();
     }
 }

@@ -4,18 +4,14 @@ import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-
-import net.runelite.api.events.WidgetLoaded;
-import net.runelite.api.widgets.ComponentID;
-import net.runelite.api.widgets.Widget;
+import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameTick;
+
+import java.awt.*;
 
 @Slf4j
 @PluginDescriptor(
@@ -31,21 +27,24 @@ public class RuneLingualPlugin extends Plugin
 	private RuneLingualConfig config;
 	
 	private LangCodeSelectableList targetLanguage;
+	private TranscriptsDatabaseManager dialogTranscriptManager = new TranscriptsDatabaseManager();
+	private TranscriptsDatabaseManager actionTranscriptManager = new TranscriptsDatabaseManager();
+	private TranscriptsDatabaseManager objectTranscriptManager = new TranscriptsDatabaseManager();
 	
-	String NPC_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_DIALOG_TRANSCRIPT.json");
-	String GAME_MASTER_TRANSCRIPT_FILE_NAME = new String("MASTER_GAME_MESSAGE_TRANSCRIPT.json");
-	String TRANSCRIPT_FOLDER_PATH = new String("transcript\\");
-	
+	// main modules
 	@Inject
 	private ChatCapture chatTranslator;
-	
 	@Inject
 	private DialogCapture dialogTranslator;
+	@Inject
+	private MenuCapture menuTranslator;
 	
 	private boolean changesDetected = false;
 	
-	public void pluginLog(String contents) {log.info(contents);}
-	public String temporaryTranslator(String contents) {return "Vasco da Gama";}
+	public void pluginLog(String contents)
+	{
+		log.info(contents);
+	}
 
 	@Override
 	protected void startUp() throws Exception
@@ -56,26 +55,58 @@ public class RuneLingualPlugin extends Plugin
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
 		
-		chatTranslator.setLogger(this::pluginLog);
+		/* General dialog transcript
+		* used for npc conversations action interfaces,
+		* pretty much everything that happens withing the
+		* dialog box widget
+		*/
+		dialogTranscriptManager.setLogger(this::pluginLog);
+		String dialogFilePath = "/npc_dialog_" + targetLanguage.getCode() + ".json";
+		dialogTranscriptManager.setFile(dialogFilePath);
+		dialogTranscriptManager.loadTranscripts();
+		
+		// main dialog widget manager
 		dialogTranslator.setLogger(this::pluginLog);
+		dialogTranslator.setLocalTextTranslationService(dialogTranscriptManager.transcript);
+		
+		// chat translator handles game messages, contained also by the dialog transcript
+		chatTranslator.setLogger(this::pluginLog);
+		chatTranslator.setLocalTranslationService(dialogTranscriptManager.transcript);
+		//chatTranslator.setOnlineTranslationService(this::temporaryTranslator);
+		
+		actionTranscriptManager.setLogger(this::pluginLog);
+		String actionFilePath = "/actions_" + targetLanguage.getCode() + ".json";
+		actionTranscriptManager.setFile(actionFilePath);
+		actionTranscriptManager.loadTranscripts();
+		
+		objectTranscriptManager.setLogger(this::pluginLog);
+		String objectFilePath = "/objects_" + targetLanguage.getCode() + ".json";
+		objectTranscriptManager.setFile(objectFilePath);
+		objectTranscriptManager.loadTranscripts();
+		
+		menuTranslator.setLogger(this::pluginLog);
+		menuTranslator.setActionTranslator(actionTranscriptManager.transcript);
+		menuTranslator.setNpcTranslator(dialogTranscriptManager.transcript);
+		menuTranslator.setObjectTranslator(objectTranscriptManager.transcript);
 		
 		log.info("RuneLingual started!");
 	}
 	
-	/*
 	@Subscribe
-	public void onGameTick(GameTick event) throws Exception
+	private void onBeforeRender(BeforeRender event)
 	{
+		// this should be done on the onWidgetLoaded event
+		// but something seems to change the contents right back
+		// somewhere before the rendering process actually happens
+		// so having this happen every game tick instead
+		// of every client tick is actually less resource intensive
+		dialogTranslator.handleDialogs();
 	}
-	*/
-
+	
 	@Subscribe
-	public void onWidgetLoaded(WidgetLoaded event) throws Exception
+	public void onMenuEntryAdded(MenuEntryAdded event)
 	{
-		// retrieves the portion of the chatbox widget tree
-		// that may have some dialog on it and pass it forward to the dialog module
-		Widget chatbox = client.getWidget(ComponentID.CHATBOX_MESSAGES);
-		dialogTranslator.handleDialogs(chatbox);
+		menuTranslator.handleMenuEvent(event);
 	}
 	
 	@Subscribe
@@ -84,9 +115,16 @@ public class RuneLingualPlugin extends Plugin
 		chatTranslator.onChatMessage(event);
 	}
 	
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event) throws Exception
+	{
+		//transcriptManager.saveTranscript();
+	}
+	
 	@Override
 	protected void shutDown() throws Exception
 	{
+		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
 	}
 
@@ -94,39 +132,6 @@ public class RuneLingualPlugin extends Plugin
 	RuneLingualConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(RuneLingualConfig.class);
-	}
-	
-	private ChatMessage googleTranslateMessage(ChatMessage event, String langCode)
-	{
-		// on-the-fly translation for in game messages
-		String messageContent = event.getMessage();
-		/*
-		try {
-			Detection detection = translate.detect(messageContent);
-			String detectedLanguage = detection.getLanguage();  // detected language code
-
-			Translation translation =
-					translate.translate(
-							messageContent,
-							TranslateOption.sourceLanguage(detectedLanguage),
-							TranslateOption.targetLanguage(langCode));
-
-			String newMessageText = translation.getTranslatedText();
-			String newName = String.format("%s (%s)", event.getName(),detectedLanguage);
-			ChatMessage newMessage = event;
-			newMessage.setName(newName);
-			newMessage.setMessage(newMessageText);
-
-			return newMessage;
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return event;
-		}
-
-		//event.getMessageNode().setValue();
-		//event.getMessageNode().setValue("Essa mensagem só está disponível para macacos gold.");
-		*/
-		return null;
 	}
 }
 

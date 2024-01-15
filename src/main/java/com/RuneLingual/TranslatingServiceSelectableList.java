@@ -2,9 +2,10 @@ package com.RuneLingual;
 
 import lombok.Getter;
 
-public enum TranslatingServiceSelectableList {
+public enum TranslatingServiceSelectableList
+{
     GOOGLE_TRANSLATE ("google"),
-    OPENAI_GPT ("gpt");
+    OPENAI_GPT ("openai");
 
     @Getter
     private final String serviceName;
@@ -12,6 +13,4 @@ public enum TranslatingServiceSelectableList {
     TranslatingServiceSelectableList(String code){this.serviceName = code;}
 
     public String getService(){return this.serviceName;}
-
-
 }

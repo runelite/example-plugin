@@ -4,7 +4,7 @@ import lombok.Getter;
 
 public enum LangCodeSelectableList {
     ENGLISH ("en"),
-    PORTUGUÊS_BRASILEIRO ("pt-br");
+    PORTUGUÊS_BRASILEIRO ("pt_br");
 
     @Getter
     private final String langCode;
