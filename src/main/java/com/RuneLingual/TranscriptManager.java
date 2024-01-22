@@ -62,11 +62,10 @@ public class TranscriptManager implements Serializable
             {
                 if(keepColor)
                 {
-                    
                     String prefix = getPrefix(text);
                     String suffix = getSuffix(text);
                     String output = "";
-                    System.out.println("Name key: " + nameKey + " - Text key: " + textKey + " - Prefix: " + prefix + " - Sufix: " + suffix + " - Name: " + name + " - Text: " + text);
+                
                     if(prefix != null)
                     {
                         output = prefix + npcTranscripts.get(textKey);
@@ -91,6 +90,7 @@ public class TranscriptManager implements Serializable
         // if given npc was not found on the database - adds it then returns the updated text
         throw new Exception("EntryNotFound");
     }
+    
     public String getTranslatedName(String name, boolean keepColor) throws Exception
     {
         // ensures valid access to local npc transcript
@@ -113,7 +113,6 @@ public class TranscriptManager implements Serializable
                     String prefix = getPrefix(name);
                     String suffix = getSuffix(name);
                     String output = "";
-                    System.out.println("Name key: " + nameKey + " - Text key: " + "name" + " - Prefix: " + prefix + " - Sufix: " + suffix + " - Name: " + name);
                     if(prefix != null)
                     {
                         output = prefix + npcTranscripts.get("name");
@@ -126,6 +125,15 @@ public class TranscriptManager implements Serializable
                     if(suffix != null)
                     {
                         output += suffix;
+                    }
+                    else
+                    {
+                        String suffixAlt = getSuffixAlt(name);
+                        if(suffixAlt != null)
+                        {
+                            output += suffixAlt;
+                            return output;
+                        }
                     }
                     return output;
                     }
@@ -150,6 +158,24 @@ public class TranscriptManager implements Serializable
     {
         String regex = "^(.*?)(<[^>]*>)$";
         return getRegexGroup(input, regex, 2);
+    }
+    
+    private static String getSuffixAlt(String input)
+    {
+        Pattern pattern = Pattern.compile("<[^>]*>");
+        Matcher matcher = pattern.matcher(input);
+        
+        int count = 0;
+        while (matcher.find())
+        {
+            count++;
+            if (count == 2)
+            {
+                return "<" + matcher.group().substring(1, matcher.group().length() - 1) + ">";
+            }
+        }
+        
+        return null;
     }
     
     private static String getRegexGroup(String input, String regex, int groupIndex)

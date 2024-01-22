@@ -2,7 +2,8 @@ package com.RuneLingual;
 
 import lombok.Getter;
 
-public enum LangCodeSelectableList {
+public enum LangCodeSelectableList
+{
     ENGLISH ("en"),
     PORTUGUÊS_BRASILEIRO ("pt_br");
 

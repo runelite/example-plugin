@@ -2,18 +2,29 @@ package com.RuneLingual;
 
 import net.runelite.api.*;
 import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.MenuOpened;
+import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.Widget;
 
+import javax.inject.Inject;
 import java.awt.*;
 
 public class MenuCapture
 {
+	@Inject
+	private Client client;
+	@Inject
+	private RuneLingualConfig config;
+	
 	private TranscriptManager actionTranslator;
 	private TranscriptManager npcTranslator;
 	private TranscriptManager objectTranslator;
 	private TranscriptManager itemTranslator;
 	
 	private LogHandler log;
-	private boolean debugMessages;
+	private boolean debugMessages = true;
+	
+	// TODO: as is the menu title 'Chose Options' seems to not be directly editable
 	
 	public void handleMenuEvent(MenuEntryAdded event)
 	{
@@ -25,6 +36,7 @@ public class MenuCapture
 		// some possible targets
 		NPC targetNpc = currentMenu.getNpc();
 		Player targetPlayer = currentMenu.getPlayer();
+		int targetItem = currentMenu.getItemId();
 		MenuAction menuType = currentMenu.getType();
 		
 		try
@@ -39,21 +51,15 @@ public class MenuCapture
 				}
 				catch(Exception f)
 				{
-					log.log("Could not translate player action: " + menuAction);
+					if(debugMessages)
+					{
+						log.log("Could not translate player action: " + menuAction);
+					}
 				}
 			}
 			else if(isNpcMenu(menuType))
 			{
-				// translates menu action
-				try
-				{
-					String newAction = actionTranslator.getTranslatedText("npcactions", menuAction, true);
-					event.getMenuEntry().setOption(newAction);
-				}
-				catch(Exception f)
-				{
-					log.log("Could not translate npc action: " + menuAction);
-				}
+				translateMenuAction("npcactions", event, menuAction);
 				
 				// translates npc name
 				try
@@ -66,15 +72,16 @@ public class MenuCapture
 						int levelIndicatorIndex = menuTarget.indexOf('(');
 						
 						if(levelIndicatorIndex != -1)
-						{
+						{  // npc has a combat level
 							String actualName = menuTarget.substring(0, levelIndicatorIndex);
 							String newName = npcTranslator.getTranslatedName(actualName, true);
-							newName += " (nível-" + combatLevel + ")";
+							
+							String levelIndicator = actionTranslator.getTranslatedText("npcactions", "level", true);
+							newName += " (" + levelIndicator + "-" + combatLevel + ")";
 							event.getMenuEntry().setTarget(newName);
 						}
 						else
-						{
-							// npc is attackable but does not show combat level
+						{  // npc does not have a combat level
 							String newName = npcTranslator.getTranslatedName(menuTarget, true);
 							event.getMenuEntry().setTarget(newName);
 						}
@@ -89,37 +96,27 @@ public class MenuCapture
 				}
 				catch(Exception f)
 				{
-					log.log("Could not translate npc name: " + menuTarget);
+					if(debugMessages)
+					{
+						log.log("Could not translate npc name: " + menuTarget + " - " + f.getMessage());
+					}
 				}
 				
 			}
 			else if(isObjectMenu(menuType))
 			{
-				// translates menu action
-				try
-				{
-					String newAction = actionTranslator.getTranslatedText("objectactions", menuAction, true);
-					event.getMenuEntry().setOption(newAction);
-				}
-				catch(Exception f)
-				{
-					log.log("Could not translate object action: " + menuAction);
-				}
-				
-				// translates npc name
-				try
-				{
-					String newName = objectTranslator.getTranslatedText("objects", menuTarget, true);
-					event.getMenuEntry().setTarget(newName);
-				}
-				catch(Exception f)
-				{
-					log.log("Could not translate object name: " + menuTarget);
-				}
+				translateItemName("objects", event, menuTarget);
+				translateMenuAction("objectactions", event, menuAction);
 			}
 			else if(isItemMenu(menuType))
-			{
-				// item translator
+			{  // ground item
+				translateItemName("items", event, menuTarget);
+				translateMenuAction("itemactions", event, menuAction);
+			}
+			else if(targetItem != -1)
+			{  // inventory item
+				translateItemName("items", event, menuTarget);
+				translateMenuAction("iteminterfaceactions", event, menuAction);
 			}
 			else
 			{
@@ -136,7 +133,10 @@ public class MenuCapture
 					}
 					catch(Exception f)
 					{
-						log.log("Could not translate action: " + f.getMessage());
+						if(debugMessages)
+						{
+							log.log("Could not translate action: " + f.getMessage());
+						}
 					}
 				}
 				else if(menuType.equals(MenuAction.WALK))
@@ -149,12 +149,15 @@ public class MenuCapture
 					}
 					catch(Exception f)
 					{
-						log.log("Could not translate action: " + f.getMessage());
+						if(debugMessages)
+						{
+							log.log("Could not translate action: " + f.getMessage());
+						}
 					}
 				}
 				else
 				{
-					// unknown actions
+					// other menus
 				}
 				
 				/*
@@ -176,7 +179,79 @@ public class MenuCapture
 		}
 		catch (Exception e)
 		{
-			log.log("Critical error happened while translating right click menus: " + e.getMessage());
+			if(debugMessages)
+			{
+				log.log("Critical error happened while processing right click menus: " + e.getMessage());
+			}
+		}
+	}
+	
+	private void translateItemName(String source, MenuEntryAdded entryAdded, String target)
+	{
+		if(target.length() == 0)
+		{
+			return;
+		}
+		
+		// translates item name
+		try
+		{
+			String newName = target;
+			if(source.equals("items"))
+			{
+				newName = itemTranslator.getTranslatedText(source, target, true);
+			}
+			else if(source.equals("objects"))
+			{
+				newName = objectTranslator.getTranslatedText(source, target, true);
+			}
+			
+			entryAdded.getMenuEntry().setTarget(newName);
+		}
+		catch(Exception f)
+		{
+			if(debugMessages)
+			{
+				log.log("Could not translate '"
+		            + source
+			        + "' name: "
+		            + target
+					+ " - "
+					+ f.getMessage());
+			}
+		}
+	}
+	private void translateMenuAction(String source, MenuEntryAdded entryAdded, String target)
+	{
+		// translates menu action
+		try
+		{
+			String newAction = actionTranslator.getTranslatedText(source, target, true);
+			entryAdded.getMenuEntry().setOption(newAction);
+		}
+		catch(Exception f)
+		{
+			if(!source.equals("generalactions"))
+			{
+				try
+				{
+					translateMenuAction("generalactions", entryAdded, target);
+				}
+				catch(Exception g)
+				{
+					if(debugMessages)
+					{
+						log.log("Could not translate menu '"
+					        + source
+					        + "' action: "
+					        + target
+					        + " - "
+					        + f.getMessage()
+							+ " - "
+							+ g.getMessage());
+					}
+				}
+			}
 		}
 	}
 	
@@ -308,8 +383,10 @@ public class MenuCapture
 		return false;
 	}
 	
+	public void setDebug(boolean newValue) {this.debugMessages = newValue;}
 	public void setLogger(LogHandler logger) {this.log = logger;}
 	public void setActionTranslator(TranscriptManager newTranslator) {this.actionTranslator = newTranslator;}
 	public void setNpcTranslator(TranscriptManager newTranslator) {this.npcTranslator = newTranslator;}
 	public void setObjectTranslator(TranscriptManager newTranslator) {this.objectTranslator = newTranslator;}
+	public void setItemTranslator(TranscriptManager newTranslator) {this.itemTranslator = newTranslator;}
 }

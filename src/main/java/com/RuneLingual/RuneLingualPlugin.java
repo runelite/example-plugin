@@ -5,7 +5,11 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.HashTable;
+import net.runelite.api.MenuEntry;
+import net.runelite.api.Node;
 import net.runelite.api.events.*;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -25,11 +29,12 @@ public class RuneLingualPlugin extends Plugin
 	private Client client;
 	@Inject
 	private RuneLingualConfig config;
-	
+
 	private LangCodeSelectableList targetLanguage;
 	private TranscriptsDatabaseManager dialogTranscriptManager = new TranscriptsDatabaseManager();
 	private TranscriptsDatabaseManager actionTranscriptManager = new TranscriptsDatabaseManager();
 	private TranscriptsDatabaseManager objectTranscriptManager = new TranscriptsDatabaseManager();
+	private TranscriptsDatabaseManager itemTrancriptManager = new TranscriptsDatabaseManager();
 	
 	// main modules
 	@Inject
@@ -38,6 +43,8 @@ public class RuneLingualPlugin extends Plugin
 	private DialogCapture dialogTranslator;
 	@Inject
 	private MenuCapture menuTranslator;
+	@Inject
+	private GroundItems groundItemsTranslator;
 	
 	private boolean changesDetected = false;
 	
@@ -84,10 +91,16 @@ public class RuneLingualPlugin extends Plugin
 		objectTranscriptManager.setFile(objectFilePath);
 		objectTranscriptManager.loadTranscripts();
 		
+		itemTrancriptManager.setLogger(this::pluginLog);
+		String itemFilePath = "/items_" + targetLanguage.getCode() + ".json";
+		itemTrancriptManager.setFile(itemFilePath);
+		itemTrancriptManager.loadTranscripts();
+		
 		menuTranslator.setLogger(this::pluginLog);
 		menuTranslator.setActionTranslator(actionTranscriptManager.transcript);
 		menuTranslator.setNpcTranslator(dialogTranscriptManager.transcript);
 		menuTranslator.setObjectTranslator(objectTranscriptManager.transcript);
+		menuTranslator.setItemTranslator(itemTrancriptManager.transcript);
 		
 		log.info("RuneLingual started!");
 	}
@@ -101,6 +114,12 @@ public class RuneLingualPlugin extends Plugin
 		// so having this happen every game tick instead
 		// of every client tick is actually less resource intensive
 		dialogTranslator.handleDialogs();
+	}
+	
+	@Subscribe
+	public void onItemQuantityChanged(ItemQuantityChanged itemQuantityChanged)
+	{
+		groundItemsTranslator.handleGroundItems();
 	}
 	
 	@Subscribe
