@@ -28,6 +28,7 @@ public class ExamplePlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.info("Example started!");
+		log.info("new line to commit");	
 	}
 
 	@Override
@@ -42,6 +43,7 @@ public class ExamplePlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
+
 		}
 	}
 
