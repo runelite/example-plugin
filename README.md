@@ -1,2 +1,2 @@
 # Example
-An example greeter plugin
+A counter plugin for Turael skipping
