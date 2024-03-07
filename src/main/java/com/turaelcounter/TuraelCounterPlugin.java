@@ -17,6 +17,12 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.api.Client;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.ChatMessageType;
+
+import java.awt.image.BufferedImage;
+import java.util.regex.*;
+import net.runelite.client.ui.overlay.infobox.Counter;
 
 
 @Slf4j
@@ -36,17 +42,21 @@ public class TuraelCounterPlugin extends Plugin {
 	@Inject
 	private OverlayManager overlayManager;
 
-	private int streakReset = 0;
+	@Inject
+	private TuraelCounterOverlay overlay;
+
+	public static int streakReset = 0;
 
 	private int streakVarbit = Varbits.SLAYER_TASK_STREAK;
 
-	int previousStreakValue = -1;
+	private int previousStreakValue = -1;
 
-//			client.getVarbitValue(Varbits.SLAYER_TASK_STREAK);
+	private int overlayVisible;
 
 	@Override
 	protected void startUp() throws Exception {
 		log.info("Reset Counter started");
+		overlayVisible = -1;
 	}
 
 	@Override
@@ -54,14 +64,12 @@ public class TuraelCounterPlugin extends Plugin {
 		log.info("Reset Counter ended");
 	}
 
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged) {
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN) {
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
-//			current streak value goes to 0 on streak reset
-			int currentStreakValue = client.getVarbitValue(Varbits.SLAYER_TASK_STREAK);
-			log.info("slayer streak varbit value is: " + currentStreakValue);
-		}
+	private void addOverlay()
+	{
+		overlayManager.add(overlay);
+
+//		infoBoxManager.addInfoBox(new Counter(BufferedImage img, Plugin plugin, int amount;
+
 	}
 
 	@Provides
@@ -73,43 +81,25 @@ public class TuraelCounterPlugin extends Plugin {
 
 		if (streakReset == 0) {
 			log.info("Infobox created here");
-
-//			infoBoxManager.addInfoBox(Integer.format(turaelInteractionsCounter));
+			addOverlay();
 		}
 		streakReset++;
 		log.info("Slayer streak reset. Current count is " + streakReset);
 
 	}
 
-	public void onVarbitChanged(VarbitChanged varbitChanged)
-	{
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged varbitChanged) {
 		int varbitId = varbitChanged.getVarbitId();
-		log.info("current varbit id =" + varbitId);
 
-		if (varbitId == streakVarbit)
-		{
-			log.info("varbit id is equal to streak varbit" + varbitId);
+		if (varbitId == streakVarbit) {
 			int currentStreakValue = client.getVarbitValue(Varbits.SLAYER_TASK_STREAK);
 
-			if (previousStreakValue != 0 && currentStreakValue < previousStreakValue)
-			{
+			if (previousStreakValue != 0 && currentStreakValue < previousStreakValue) {
 				updateStreakResetCount();
-				log.info("increasing reset counter");
 			}
 			previousStreakValue = currentStreakValue;
 		}
 	}
 
-//	@Subscribe
-//	public void onInteractingChanged(InteractingChanged interactingChanged)
-//	{
-//		Actor interactingNpc = client.getLocalPlayer().getInteracting();
-//
-//		//Turael ID = 401
-//		if (interactingNpc instanceof NPC && ((NPC) interactingNpc).getId() == 401)
-//		{
-//			updateStreakResetCount();
-//		}
-//	}
-//test if this changed
 }
