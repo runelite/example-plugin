@@ -13,6 +13,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.ui.overlay.infobox.Counter;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
@@ -21,13 +22,13 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.ChatMessageType;
 
 import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.util.regex.*;
-import net.runelite.client.ui.overlay.infobox.Counter;
-
 
 @Slf4j
 @PluginDescriptor(
-	name = "Turael Counter"
+	name = "Turael Counter",
+	description = "Counts streak resets"
 )
 public class TuraelCounterPlugin extends Plugin {
 	@Inject
@@ -53,22 +54,37 @@ public class TuraelCounterPlugin extends Plugin {
 
 	private int overlayVisible;
 
+	private TuraelCounterOverlay counterBox;
+
 	@Override
 	protected void startUp() throws Exception {
 		log.info("Reset Counter started");
 		overlayVisible = -1;
+		updateInfobox();
+
 	}
 
 	@Override
 	protected void shutDown() throws Exception {
 		log.info("Reset Counter ended");
+		removeInfobox();
 	}
 
-	private void addOverlay()
+	private void updateInfobox()
 	{
-		overlayManager.add(overlay);
+		removeInfobox();
+		BufferedImage image = ImageUtil.loadImageResource(getClass(), "tzkal-zuk.png");
 
-//		infoBoxManager.addInfoBox(new Counter(BufferedImage img, Plugin plugin, int amount;
+//		counterBox = new TuraelCounterOverlay(config, client, this, image);
+
+		counterBox = new TuraelCounterOverlay(this,streakReset, image );
+		infoBoxManager.addInfoBox(counterBox);
+	}
+
+	private void removeInfobox()
+	{
+			infoBoxManager.removeInfoBox(counterBox);
+			counterBox = null;
 
 	}
 
@@ -81,7 +97,7 @@ public class TuraelCounterPlugin extends Plugin {
 
 		if (streakReset == 0) {
 			log.info("Infobox created here");
-			addOverlay();
+			updateInfobox();
 		}
 		streakReset++;
 		log.info("Slayer streak reset. Current count is " + streakReset);
@@ -101,5 +117,4 @@ public class TuraelCounterPlugin extends Plugin {
 			previousStreakValue = currentStreakValue;
 		}
 	}
-
 }
