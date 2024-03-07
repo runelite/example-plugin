@@ -9,6 +9,7 @@ import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -21,6 +22,7 @@ import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.ChatMessageType;
 import net.runelite.client.game.ItemManager;
+import net.runelite.api.Skill;
 
 import java.awt.image.BufferedImage;
 import java.nio.Buffer;
@@ -46,11 +48,13 @@ public class TuraelCounterPlugin extends Plugin {
 	@Inject
 	private OverlayManager overlayManager;
 
-	@Inject
 	private TuraelStreakInfobox infobox;
 
 	@Inject
 	private ItemManager itemManager;
+
+	@Inject
+	private SkillIconManager skillIconManager;
 
 	public static int streakReset = 0;
 
@@ -63,7 +67,7 @@ public class TuraelCounterPlugin extends Plugin {
 	@Override
 	protected void startUp()
 	{
-		infoBoxManager.addInfoBox(new TuraelStreakInfobox(itemManager.getImage(ItemID.TZREKZUK), this));
+		infoBoxManager.addInfoBox(new TuraelStreakInfobox(itemManager.getImage(25912), this));
 	}
 
 	@Override
@@ -78,13 +82,7 @@ public class TuraelCounterPlugin extends Plugin {
 	}
 
 	private void updateStreakResetCount() {
-
-		if (streakReset == 0) {
-			log.info("Infobox created here");
-		}
 		streakReset++;
-		log.info("Slayer streak reset. Current count is " + streakReset);
-
 	}
 
 	@Subscribe
@@ -99,5 +97,10 @@ public class TuraelCounterPlugin extends Plugin {
 			}
 			previousStreakValue = currentStreakValue;
 		}
+	}
+
+	public int getStreakReset()
+	{
+		return streakReset;
 	}
 }

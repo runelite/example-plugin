@@ -20,12 +20,19 @@ public class TuraelStreakInfobox extends InfoBox {
     @Override
     public String getText()
     {
-        return String.valueOf(TuraelCounterPlugin.streakReset);
+        if (plugin != null)
+        {
+            return String.valueOf(plugin.getStreakReset());
+        }
+        else
+        {
+            return "n/a";
+        }
     }
 
     @Override
     public Color getTextColor() {
-        return null;
+        return Color.RED;
     }
 }
 
