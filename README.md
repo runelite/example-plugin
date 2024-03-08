@@ -8,3 +8,4 @@ Features to add:
 - Fix infobox load on turael reset
 - Track reset count between sessions
 - Calc chance of desired task
+- Store dryest value for task
