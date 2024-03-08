@@ -1,2 +1,2 @@
 # Turael Skipping Counter
-A counter plugin for Turael skipping
+A counter plugin to track drystreaks since desired slayer task
