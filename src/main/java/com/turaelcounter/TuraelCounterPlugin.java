@@ -4,8 +4,6 @@ import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -19,15 +17,10 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.api.Client;
+import net.runelite.client.game.ItemManager;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.ChatMessageType;
-import net.runelite.client.game.ItemManager;
-import net.runelite.api.VarPlayer;
-import net.runelite.api.Skill;
 
-import java.awt.image.BufferedImage;
-import java.nio.Buffer;
-import java.util.regex.*;
 
 @Slf4j
 @PluginDescriptor(
