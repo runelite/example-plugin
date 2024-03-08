@@ -13,14 +13,17 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.ui.overlay.infobox.Counter;
-import net.runelite.client.util.ImageUtil;
 import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.api.Client;
 import net.runelite.client.game.ItemManager;
+import java.util.HashSet;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.ChatMessageType;
+import net.runelite.client.util.ImageUtil;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 
 @Slf4j
 @PluginDescriptor(
@@ -55,16 +58,27 @@ public class TuraelCounterPlugin extends Plugin
 
 	private int streakVarbit = Varbits.SLAYER_TASK_STREAK;
 
-	private int zukVarbit = 4704;
-
 	private int previousStreakValue = -1;
 
 	private int overlayVisible;
+
+	private HashSet<Integer> desiredTaskSet = new HashSet<Integer>();
+
+	private boolean isStreakReset = false;
 
 	@Override
 	protected void startUp()
 	{
 //		change image based on the task user is hunting
+		desiredTaskSet.add(90);
+		desiredTaskSet.add(105);
+		desiredTaskSet.add(107);
+		desiredTaskSet.add(97);
+		desiredTaskSet.add(95);
+		desiredTaskSet.add(94);
+		desiredTaskSet.add(92);
+		desiredTaskSet.add(42);
+		desiredTaskSet.add(31);
 		infoBoxManager.addInfoBox(new TuraelStreakInfobox(itemManager.getImage(25912), this));
 	}
 
@@ -112,12 +126,19 @@ public class TuraelCounterPlugin extends Plugin
 			}
 			previousStreakValue = currentStreakValue;
 		}
-//			needs changing to match the desired task
-		if (slayerTaskCreature == 105 )
+
+		if (desiredTaskSet.contains(slayerTaskCreature) && !isStreakReset)
 		{
-			log.info("Zuk task achieved, resetting streak count");
+			log.info("Desired task achieved, resetting streak count");
 			resetStreakCounter();
+			isStreakReset = true;
 		}
+
+		if (!desiredTaskSet.contains(slayerTaskCreature))
+		{
+			isStreakReset = false;
+		}
+
 	}
 
 	public int getStreakReset()
