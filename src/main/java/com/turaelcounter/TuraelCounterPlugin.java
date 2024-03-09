@@ -7,6 +7,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -32,7 +33,6 @@ import java.util.HashSet;
 )
 public class TuraelCounterPlugin extends Plugin
 {
-
 	private Counter counter;
 	@Inject
 	private Client client;
@@ -54,7 +54,7 @@ public class TuraelCounterPlugin extends Plugin
 	@Inject
 	private SkillIconManager skillIconManager;
 
-	public static int streakReset = 0;
+	private int streakReset = 0;
 
 	private int streakVarbit = Varbits.SLAYER_TASK_STREAK;
 
@@ -69,23 +69,17 @@ public class TuraelCounterPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-//		change image based on the task user is hunting
-		desiredTaskSet.add(90);
-		desiredTaskSet.add(105);
-		desiredTaskSet.add(107);
-		desiredTaskSet.add(97);
-		desiredTaskSet.add(95);
-		desiredTaskSet.add(94);
-		desiredTaskSet.add(92);
-		desiredTaskSet.add(42);
-		desiredTaskSet.add(31);
 		infoBoxManager.addInfoBox(new TuraelStreakInfobox(itemManager.getImage(25912), this));
+		loadConfiguredTasks();
+		removeUndesiredTasks();
+		streakReset = config.streakReset();
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		infoBoxManager.removeIf(TuraelStreakInfobox.class::isInstance);
+		config.streakReset(streakReset);
 	}
 
 	@Provides
@@ -130,6 +124,7 @@ public class TuraelCounterPlugin extends Plugin
 		if (desiredTaskSet.contains(slayerTaskCreature) && !isStreakReset)
 		{
 			log.info("Desired task achieved, resetting streak count");
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", taskName + " task obtained in " + streakReset + " tasks!", null);
 			resetStreakCounter();
 			isStreakReset = true;
 		}
@@ -145,6 +140,88 @@ public class TuraelCounterPlugin extends Plugin
 	{
 		return streakReset;
 	}
+
+	public void loadConfiguredTasks()
+	{
+		if (config.isAbyssalDemonDesired()) {
+			desiredTaskSet.add(42); // Abyssal Demon task ID
+		}
+
+		if (config.isSmokeDevilDesired()) {
+			desiredTaskSet.add(95); // Smoke Devils task ID
+		}
+
+		if (config.isTzKalZukDesired()) {
+			desiredTaskSet.add(105); // TzKal-Zuk task ID
+		}
+
+		if (config.isHellhoundDesired()) {
+			desiredTaskSet.add(31); // Hellhounds task ID
+		}
+
+		if (config.isGargoyleDesired()) {
+			desiredTaskSet.add(46); // Gargoyles task ID
+		}
+
+		if (config.isLizardmenDesired()) {
+			desiredTaskSet.add(90); // Lizardmen task ID
+		}
+
+		if (config.isRevenantDesired()) {
+			desiredTaskSet.add(107); // Revenants task ID
+		}
+
+		if (config.isHydraDesired()) {
+			desiredTaskSet.add(113); // Hydras task ID
+		}
+
+	}
+
+	public void removeUndesiredTasks()
+	{
+		if (!config.isAbyssalDemonDesired())
+		{
+			desiredTaskSet.remove(42);
+		}
+
+		if (!config.isSmokeDevilDesired())
+		{
+			desiredTaskSet.remove((95));
+		}
+
+		if (!config.isTzKalZukDesired()) {
+			desiredTaskSet.remove(105); // TzKal-Zuk task ID
+		}
+
+		if (!config.isHellhoundDesired()) {
+			desiredTaskSet.remove(31); // Hellhounds task ID
+		}
+
+		if (!config.isGargoyleDesired()) {
+			desiredTaskSet.remove(46); // Gargoyles task ID
+		}
+
+		if (!config.isLizardmenDesired()) {
+			desiredTaskSet.remove(90); // Lizardmen task ID
+		}
+
+		if (!config.isRevenantDesired()) {
+			desiredTaskSet.remove(107); // Revenants task ID
+		}
+
+		if (!config.isHydraDesired()) {
+			desiredTaskSet.remove(113); // Hydras task ID
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged (ConfigChanged event)
+	{
+		loadConfiguredTasks();
+		removeUndesiredTasks();
+	}
+
+
 }
 
 //Creature ID: 105, Name: TzKal-Zuk

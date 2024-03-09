@@ -33,7 +33,22 @@ public class TuraelStreakInfobox extends InfoBox {
 
     @Override
     public Color getTextColor() {
-        return Color.RED;
+        int streakResetCount = plugin.getStreakReset();
+
+        if (streakResetCount <= 6 )
+        {
+            return Color.GREEN;
+        }
+
+        else if (streakResetCount <= 14)
+        {
+            return Color.ORANGE;
+        }
+
+        else
+        {
+            return Color.RED;
+        }
     }
 }
 
