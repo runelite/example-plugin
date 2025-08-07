@@ -24,6 +24,8 @@ dependencies {
 	testImplementation 'junit:junit:4.12'
 	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+    implementation 'com.ethanvann:packetutils:5.4'
+    implementation project(':PowerSkiller')
 }
 
 group = 'com.example'
