@@ -1,4 +1,4 @@
-package com.example;
+package com.example.PowerSkiller;
 
 import net.runelite.client.config.*;
 
@@ -53,7 +53,7 @@ public interface PowerSkillerConfig extends Config {
     @ConfigItem(
             name = "Object",
             keyName = "objectToInteract",
-            description = "Game obejct you will be interacting with",
+            description = "Game object you will be interacting with",
             position = 0
     )
     default String objectToInteract() {
@@ -62,7 +62,7 @@ public interface PowerSkillerConfig extends Config {
 
     @ConfigItem(
             name = "Expected Action",
-            keyName = "Expected Action",
+            keyName = "expectedAction",
             description = "The action you wish to do on the object",
             position = 1
     )
@@ -98,7 +98,7 @@ public interface PowerSkillerConfig extends Config {
             position = 4,
             section = tickDelaySection
     )
-    default int tickdelayMin() {
+    default int tickDelayMin() {
         return 0;
     }
 

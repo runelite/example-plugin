@@ -1,4 +1,4 @@
-package com.example;
+package com.example.PowerSkiller;
 
 import com.google.inject.Inject;
 import net.runelite.client.ui.overlay.OverlayPanel;

@@ -1,7 +1,6 @@
-package com.example;
+package com.example.PowerSkiller;
 
 import com.example.EthanApiPlugin.Collections.*;
-import com.example.EthanApiPlugin.Collections.query.TileObjectQuery;
 import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.example.InteractionApi.BankInventoryInteraction;
 import com.example.InteractionApi.InventoryInteraction;
@@ -9,6 +8,7 @@ import com.example.InteractionApi.NPCInteraction;
 import com.example.InteractionApi.TileObjectInteraction;
 import com.google.inject.Provides;
 import net.runelite.api.*;
+import net.runelite.api.GameObject;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
@@ -20,15 +20,16 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.HotkeyListener;
 
+import lombok.extern.slf4j.Slf4j;
 import com.google.inject.Inject;
 import net.runelite.client.util.Text;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.*;
 
-
+@Slf4j
 @PluginDescriptor(
-        name = "<html><font color=\"#FF9DF9\">[PP]</font> Power Skiller</html>",
+        name = "<html><font color=\"#FF9DF9\">[PP]</font>PowerSkillerPlugin</html>",
         description = "Will interact with an object and drop or bank all items when inventory is full",
         tags = {"ethan", "piggy", "skilling"}
 )
@@ -52,9 +53,11 @@ public class PowerSkillerPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
+        log.info("startUp Powerskiller");
         bankPin = false;
         keyManager.registerKeyListener(toggle);
         this.overlayManager.add(overlay);
+        log.info("Ending Startup Powerskiller");
     }
 
     @Override
@@ -69,13 +72,28 @@ public class PowerSkillerPlugin extends Plugin {
         return configManager.getConfig(PowerSkillerConfig.class);
     }
 
+    private int debugEveryXTicks = 5;
+    private int tickCounter = 0;
+
     @Subscribe
     private void onGameTick(GameTick event) {
+
+        tickCounter++;
+        state = getNextState();
+
         if (!EthanApiPlugin.loggedIn() || !started) {
             // We do an early return if the user isn't logged in
             return;
         }
         state = getNextState();
+
+
+        if (tickCounter % debugEveryXTicks == 0) {
+            log.info("[PS] state={}, invFull={}, anim={}, moving={}",
+                    state, Inventory.full(), client.getLocalPlayer().getAnimation(),
+                    EthanApiPlugin.isMoving());
+        }
+
         handleState();
     }
 
@@ -91,13 +109,13 @@ public class PowerSkillerPlugin extends Plugin {
                         TileObjectInteraction.interact(tileObject, "Bank");
                         return;
                     });
-                    /* Outdated - check to fix later.
+                      /* Outdated - check to fix later.
                     NPCs.search().withAction("Bank").nearestToPlayer().ifPresent(npc -> {
-                        if (EthanApiPlugin.pathToGoal(npc.getWorldLocation(), new HashSet<>()) != null) {
+                        if (EthanApiPlugin.pathToGoalSet(npc.getWorldLocation(), new HashSet<>(), new HashSet<>(), new HashSet<>(), null) != null) {
                             NPCInteraction.interact(npc, "Bank");
                         }
                         return;
-                    }); */
+                    });  */
                     TileObjects.search().withName("Bank chest").nearestToPlayer().ifPresent(tileObject -> {
                         TileObjectInteraction.interact(tileObject, "Use");
                         return;
@@ -124,7 +142,11 @@ public class PowerSkillerPlugin extends Plugin {
                 if (config.searchNpc()) {
                     findNpc();
                 } else {
-                    findObject();
+
+                    GameObject gameObj = findObject(config.objectToInteract());
+                    if(gameObj != null) {
+                        log.info("GameObject found: " + gameObj.getId());
+                    }
                 }
                 setTimeout();
                 break;
@@ -165,21 +187,34 @@ public class PowerSkillerPlugin extends Plugin {
         // default it'll look for an object.
         return State.FIND_OBJECT;
     }
+        // Implementation details below
+        // 1. search the runelite screen (tiles) for the GameObject input.
+        // 2. If found, return the location of the gameobject (I think) or the gameobject..
+        // check if gameobjects are unique, i.e. the location can be extracted later
+        // Handle multiple matches, i.e.
+        // 3. if not, return null
 
-    private void findObject() {
-        String objectName = config.objectToInteract();
-        if (config.useForestryTreeNotClosest() && config.expectedAction().equalsIgnoreCase("chop")) {
-            TileObjects.search().withName(objectName).nearestToPoint(getObjectWMostPlayers()).ifPresent(tileObject -> {
-                ObjectComposition comp = TileObjectQuery.getObjectComposition(tileObject);
-                TileObjectInteraction.interact(tileObject, comp.getActions()[0]);
-            });
-        } else {
-            TileObjects.search().withName(objectName).nearestToPlayer().ifPresent(tileObject -> {
-                ObjectComposition comp = TileObjectQuery.getObjectComposition(tileObject);
-                TileObjectInteraction.interact(tileObject, comp.getActions()[0]); // find the object we're looking for.  this specific example will only work if the first Action the object has is the one that interacts with it.
-                // don't *always* do this, you can manually type the possible actions. eg. "Mine", "Chop", "Cook", "Climb".
-            });
+    private GameObject findObject(String objectName) {
+        final Scene scene = client.getScene();
+
+        for (Tile[][] plane : scene.getTiles()) {
+            for (Tile[] row : plane) {
+                for (Tile tile : row) {
+                    if (tile != null) {
+                        for (GameObject obj : tile.getGameObjects()) {
+                            if (obj != null) {
+                                ObjectComposition def = client.getObjectDefinition(obj.getId());
+                                if (def.getName().equalsIgnoreCase(objectName)) {
+                                    log.info("object match! Name of object: "+ def.getName());
+                                    return obj;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+        return null; // Not found
     }
 
     /**
@@ -215,8 +250,14 @@ public class PowerSkillerPlugin extends Plugin {
 
     private void findNpc() {
         String npcName = config.objectToInteract();
+        log.info("NPCName:"+ npcName);
+        log.info("NPCs nearesttoPlayer: "+ NPCs.search().withName(npcName).nearestToPlayer());
+        log.info("NPCs search: "+ NPCs.search().withName(npcName));
         NPCs.search().withName(npcName).nearestToPlayer().ifPresent(npc -> {
+            log.info("NPC: "+ npc);
             NPCComposition comp = client.getNpcDefinition(npc.getId());
+            log.info("comp NPC: "+ comp);
+            log.info("comp.getActions(): "+ comp.getActions()[0]);
             if (Arrays.stream(comp.getActions()).anyMatch(action -> action.equalsIgnoreCase(config.expectedAction()))) {
                 NPCInteraction.interact(npc, config.expectedAction()); // For fishing spots ?
             } else {
@@ -227,6 +268,7 @@ public class PowerSkillerPlugin extends Plugin {
     }
 
     private void dropItems() {
+        System.out.println("Inside dropItems");
         List<Widget> itemsToDrop = Inventory.search()
                 .filter(item -> !shouldKeep(item.getName()) && !isTool(item.getName())).result(); // filter the inventory to only get the items we want to drop
 
@@ -277,7 +319,7 @@ public class PowerSkillerPlugin extends Plugin {
     }
 
     private void setTimeout() {
-        timeout = RandomUtils.nextInt(config.tickdelayMin(), config.tickDelayMax());
+        timeout = RandomUtils.nextInt(config.tickDelayMin(), config.tickDelayMax());
     }
 
     private boolean isTool(String name) {
