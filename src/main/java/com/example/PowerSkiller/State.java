@@ -1,4 +1,4 @@
-package com.example;
+package com.example.PowerSkiller;
 
 public enum State {
     FIND_OBJECT,
