@@ -92,6 +92,17 @@ public interface PowerSkillerConfig extends Config {
 
 
     @ConfigItem(
+            name = "Tick Delay",
+            keyName = "tickDelay",
+            description = "Slow down plugin",
+            position = 1,
+            section = tickDelaySection
+    )
+    default int tickDelay() {
+        return 0;
+    }
+
+    @ConfigItem(
             name = "Tick Delay Min",
             keyName = "tickDelayMin",
             description = "Lower bound of tick delay, can set both to 0 to remove delay",

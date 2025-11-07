@@ -3,9 +3,11 @@ package com.example.PowerSkiller;
 import com.example.EthanApiPlugin.Collections.*;
 import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.example.InteractionApi.BankInventoryInteraction;
+import com.example.EthanApiPlugin.Collections.query.TileObjectQuery;
 import com.example.InteractionApi.InventoryInteraction;
 import com.example.InteractionApi.NPCInteraction;
 import com.example.InteractionApi.TileObjectInteraction;
+import com.example.EthanApiPlugin.Collections.query.TileObjectQuery;
 import com.google.inject.Provides;
 import net.runelite.api.*;
 import net.runelite.api.GameObject;
@@ -19,12 +21,14 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.HotkeyListener;
+import ChinBreakHandler.ChinBreakHandler;
 
 import lombok.extern.slf4j.Slf4j;
 import com.google.inject.Inject;
 import net.runelite.client.util.Text;
 import org.apache.commons.lang3.RandomUtils;
 
+import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -44,6 +48,8 @@ public class PowerSkillerPlugin extends Plugin {
     private OverlayManager overlayManager;
     @Inject
     private PowerSkillerOverlay overlay;
+    @Inject
+    private ChinBreakHandler chinBreakHandler;
     State state;
     boolean started;
 
@@ -53,17 +59,18 @@ public class PowerSkillerPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
-        log.info("startUp Powerskiller");
+        chinBreakHandler.registerPlugin(this, true);
         bankPin = false;
         keyManager.registerKeyListener(toggle);
         this.overlayManager.add(overlay);
-        log.info("Ending Startup Powerskiller");
     }
+
 
     @Override
     protected void shutDown() throws Exception {
         bankPin = false;
         keyManager.unregisterKeyListener(toggle);
+        chinBreakHandler.unregisterPlugin(this);
         this.overlayManager.remove(overlay);
     }
 
@@ -85,13 +92,40 @@ public class PowerSkillerPlugin extends Plugin {
             // We do an early return if the user isn't logged in
             return;
         }
+
+
+        // DETAILED DEBUGGING
+        boolean breakActive = chinBreakHandler.isBreakActive(this);
+        Map<Plugin, Instant> activeBreaks = chinBreakHandler.getActiveBreaks();
+        Map<Plugin, Instant> plannedBreaks = chinBreakHandler.getPlannedBreaks();
+
+        if (tickCounter % 50 == 0) { // Log every 50 ticks
+            log.info("=== Break Handler Status ===");
+            log.info("isBreakActive: {}", breakActive);
+            log.info("Active breaks size: {}", activeBreaks.size());
+            log.info("Planned breaks size: {}", plannedBreaks.size());
+            log.info("This plugin in active: {}", activeBreaks.containsKey(this));
+            log.info("This plugin in planned: {}", plannedBreaks.containsKey(this));
+
+            if (!plannedBreaks.isEmpty()) {
+                for (Map.Entry<Plugin, Instant> entry : plannedBreaks.entrySet()) {
+                    log.info("Planned: {} at {}", entry.getKey().getName(), entry.getValue());
+                }
+            }
+        }
+
+        if (breakActive) {
+            log.info("Break is active, pausing plugin");
+            return;
+        }
+
         state = getNextState();
 
 
         if (tickCounter % debugEveryXTicks == 0) {
-            log.info("[PS] state={}, invFull={}, anim={}, moving={}",
+            /*log.info("[PS] state={}, invFull={}, anim={}, moving={}",
                     state, Inventory.full(), client.getLocalPlayer().getAnimation(),
-                    EthanApiPlugin.isMoving());
+                    EthanApiPlugin.isMoving()); */
         }
 
         handleState();
@@ -100,56 +134,82 @@ public class PowerSkillerPlugin extends Plugin {
     private void handleState() {
         switch (state) {
             case BANK:
+                // Handle bank PIN
                 if (Widgets.search().withId(13959169).first().isPresent()) {
                     bankPin = true;
                     return;
                 }
-                if (Widgets.search().withId(786445).first().isEmpty()) {
-                    TileObjects.search().withAction("Bank").nearestToPlayer().ifPresent(tileObject -> {
-                        TileObjectInteraction.interact(tileObject, "Bank");
-                        return;
-                    });
-                      /* Outdated - check to fix later.
-                    NPCs.search().withAction("Bank").nearestToPlayer().ifPresent(npc -> {
-                        if (EthanApiPlugin.pathToGoalSet(npc.getWorldLocation(), new HashSet<>(), new HashSet<>(), new HashSet<>(), null) != null) {
-                            NPCInteraction.interact(npc, "Bank");
+
+                // If bank is already open, deposit items
+                if (Widgets.search().withId(786445).first().isPresent()) {
+                    List<Widget> items = BankInventory.search().result();
+                    for (Widget item : items) {
+                        if (!isTool(item.getName().toLowerCase()) &&
+                                !shouldKeep(item.getName().toLowerCase())) {
+                            BankInventoryInteraction.useItem(item, "Deposit-All");
+                            return;
                         }
-                        return;
-                    });  */
-                    TileObjects.search().withName("Bank chest").nearestToPlayer().ifPresent(tileObject -> {
-                        TileObjectInteraction.interact(tileObject, "Use");
-                        return;
-                    });
-                    if (TileObjects.search().withAction("Bank").nearestToPlayer().isEmpty() && NPCs.search().withAction("Bank").nearestToPlayer().isEmpty()) {
-                        EthanApiPlugin.sendClientMessage("Bank is not found, move to an area with a bank.");
                     }
-
+                    // All items deposited, change state
+                    state = State.FIND_OBJECT; // or whatever your next state is
                     return;
+                }
 
+                // Bank not open - try to open it
+                // Try bank objects first
+                Optional<TileObject> bankObject = TileObjects.search()
+                        .withAction("Bank")
+                        .nearestToPlayer();
+
+                if (bankObject.isPresent()) {
+                    TileObjectInteraction.interact(bankObject.get(), "Bank");
+                    timeout = 5; // Wait for bank to open
+                    return;
                 }
-                List<Widget> items = BankInventory.search().result();
-                for (Widget item : items) {
-                    if (!isTool(item.getName().toLowerCase()) && !shouldKeep(item.getName().toLowerCase())) {
-                        BankInventoryInteraction.useItem(item, "Deposit-All");
-                        return;
-                    }
+
+                // Try bank chests
+                Optional<TileObject> bankChest = TileObjects.search()
+                        .withName("Bank chest")
+                        .nearestToPlayer();
+
+                if (bankChest.isPresent()) {
+                    TileObjectInteraction.interact(bankChest.get(), "Use");
+                    timeout = 5;
+                    return;
                 }
+
+            /* Uncomment when fixed
+            Optional<NPC> banker = NPCs.search()
+                .withAction("Bank")
+                .nearestToPlayer();
+
+            if (banker.isPresent()) {
+                NPCInteraction.interact(banker.get(), "Bank");
+                timeout = 5;
+                return;
+            }
+            */
+
+                // Only show error if nothing was found
+                EthanApiPlugin.sendClientMessage("Bank is not found, move to an area with a bank.");
                 break;
+
             case TIMEOUT:
                 timeout--;
+                if (timeout <= 0) {
+                    state = State.BANK; // or appropriate next state
+                }
                 break;
+
             case FIND_OBJECT:
                 if (config.searchNpc()) {
                     findNpc();
                 } else {
-
-                    GameObject gameObj = findObject(config.objectToInteract());
-                    if(gameObj != null) {
-                        log.info("GameObject found: " + gameObj.getId());
-                    }
+                    findObject();
                 }
                 setTimeout();
                 break;
+
             case DROP_ITEMS:
                 dropItems();
                 break;
@@ -158,6 +218,7 @@ public class PowerSkillerPlugin extends Plugin {
 
     private State getNextState() {
         // self-explanatory, we just return a State if the conditions are met.
+
         if (EthanApiPlugin.isMoving() || client.getLocalPlayer().getAnimation() != -1) {
             // this is to prevent clicks while animating/moving.
             return State.ANIMATING;
@@ -168,10 +229,12 @@ public class PowerSkillerPlugin extends Plugin {
             return State.MISSING_TOOLS;
         }
         if (timeout > 0) {
+            // If the timeout is above 0, we want to decrement it and return the timeout state.
             return State.TIMEOUT;
         }
 
         if (shouldBank() && Inventory.full() || (Bank.isOpen() && !isInventoryReset())) {
+            // If the user should be banking and the inventory is full, or if the bank is open and the inventory isn't reset, we want to bank.
             if (shouldBank() && !isInventoryReset()) {
                 return State.BANK;
             }
@@ -179,10 +242,8 @@ public class PowerSkillerPlugin extends Plugin {
 
         if ((isDroppingItems() && !isInventoryReset()) || !shouldBank() && Inventory.full()) {
             // if the user should be dropping items, we'll check if they're done
-            // should sit at this state til it's finished.
             return State.DROP_ITEMS;
         }
-
 
         // default it'll look for an object.
         return State.FIND_OBJECT;
@@ -194,27 +255,20 @@ public class PowerSkillerPlugin extends Plugin {
         // Handle multiple matches, i.e.
         // 3. if not, return null
 
-    private GameObject findObject(String objectName) {
-        final Scene scene = client.getScene();
-
-        for (Tile[][] plane : scene.getTiles()) {
-            for (Tile[] row : plane) {
-                for (Tile tile : row) {
-                    if (tile != null) {
-                        for (GameObject obj : tile.getGameObjects()) {
-                            if (obj != null) {
-                                ObjectComposition def = client.getObjectDefinition(obj.getId());
-                                if (def.getName().equalsIgnoreCase(objectName)) {
-                                    log.info("object match! Name of object: "+ def.getName());
-                                    return obj;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    private void findObject() {
+        String objectName = config.objectToInteract();
+        if (config.useForestryTreeNotClosest() && config.expectedAction().equalsIgnoreCase("chop")) {
+            TileObjects.search().withName(objectName).nearestToPoint(getObjectWMostPlayers()).ifPresent(tileObject -> {
+                ObjectComposition comp = TileObjectQuery.getObjectComposition(tileObject);
+                TileObjectInteraction.interact(tileObject, comp.getActions()[0]);
+            });
+        } else {
+            TileObjects.search().withName(objectName).nearestToPlayer().ifPresent(tileObject -> {
+                ObjectComposition comp = TileObjectQuery.getObjectComposition(tileObject);
+                TileObjectInteraction.interact(tileObject, comp.getActions()[0]); // find the object we're looking for.  this specific example will only work if the first Action the object has is the one that interacts with it.
+                // don't *always* do this, you can manually type the possible actions. eg. "Mine", "Chop", "Cook", "Climb".
+            });
         }
-        return null; // Not found
     }
 
     /**
@@ -250,14 +304,8 @@ public class PowerSkillerPlugin extends Plugin {
 
     private void findNpc() {
         String npcName = config.objectToInteract();
-        log.info("NPCName:"+ npcName);
-        log.info("NPCs nearesttoPlayer: "+ NPCs.search().withName(npcName).nearestToPlayer());
-        log.info("NPCs search: "+ NPCs.search().withName(npcName));
         NPCs.search().withName(npcName).nearestToPlayer().ifPresent(npc -> {
-            log.info("NPC: "+ npc);
             NPCComposition comp = client.getNpcDefinition(npc.getId());
-            log.info("comp NPC: "+ comp);
-            log.info("comp.getActions(): "+ comp.getActions()[0]);
             if (Arrays.stream(comp.getActions()).anyMatch(action -> action.equalsIgnoreCase(config.expectedAction()))) {
                 NPCInteraction.interact(npc, config.expectedAction()); // For fishing spots ?
             } else {
@@ -268,7 +316,6 @@ public class PowerSkillerPlugin extends Plugin {
     }
 
     private void dropItems() {
-        System.out.println("Inside dropItems");
         List<Widget> itemsToDrop = Inventory.search()
                 .filter(item -> !shouldKeep(item.getName()) && !isTool(item.getName())).result(); // filter the inventory to only get the items we want to drop
 
@@ -337,9 +384,21 @@ public class PowerSkillerPlugin extends Plugin {
     };
 
     private boolean shouldBank() {
-        return config.shouldBank() &&
-                (NPCs.search().withAction("Bank").first().isPresent() || TileObjects.search().withAction("Bank").first().isPresent()
-                        || TileObjects.search().withAction("Collect").first().isPresent() && !bankPin);
+        return true;
+        /*
+        boolean configShouldBank = config.shouldBank();
+        boolean tileBankPresent = TileObjects.search().withAction("Bank").nearestToPlayer().isPresent();
+        boolean tileBankChestPresent = TileObjects.search().withName("Bank chest").nearestToPlayer().isPresent();
+        boolean npcBankPresent = NPCs.search().withAction("Bank").nearestToPlayer().isPresent();
+        boolean result = configShouldBank && tileBankPresent && npcBankPresent && !bankPin;
+        /*log.info("Tileobject search first(): " + TileObjects.search().withAction("Bank").first());
+        log.info("Tileobject search neareastToPlayer(): " + TileObjects.search().withAction("Bank").nearestToPlayer());
+        log.info("Should bank? {} (config={}, tileBankPresent={}, npcBankPresent={}, bankPin={}, tileBankChestPresent={})",
+                result, configShouldBank, tileBankPresent, npcBankPresent, bankPin, tileBankChestPresent); */ /*
+        log.info("pathtogoal testing: "+ EthanApiPlugin.pathToGoalFromPlayerNoCustomTiles(new WorldPoint(3092,3246,0)));
+        EthanApiPlugin.pathToGoalFromPlayerNoCustomTiles(new WorldPoint(3092,3246,0));
+
+        return result; */
     }
 
     public void toggle() {
@@ -347,5 +406,13 @@ public class PowerSkillerPlugin extends Plugin {
             return;
         }
         started = !started;
+
+        if (started) {
+            chinBreakHandler.startPlugin(this);
+
+            // Force an immediate break for testing
+            chinBreakHandler.planBreak(this, Instant.now().plusSeconds(5));
+            log.info("Forced break planned in 5 seconds");
+        }
     }
 }

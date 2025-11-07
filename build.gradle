@@ -1,34 +1,37 @@
 plugins {
 	id 'java'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 repositories {
-	mavenLocal()
-	maven {
-		url = 'https://repo.runelite.net'
-		content {
-			includeGroupByRegex("net\\.runelite.*")
-		}
-	}
-	mavenCentral()
+    mavenLocal()  // Keep this first so it finds your local PacketUtils
+    maven {
+        url = 'https://repo.runelite.net'
+        content { includeGroupByRegex("net\\.runelite.*") }
+    }
+    mavenCentral()
+    // Remove the JitPack line since you're using local now
 }
 
 def runeLiteVersion = 'latest.release'
 
 dependencies {
-	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
+    compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.30'
-	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-	testImplementation 'junit:junit:4.12'
-	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
-	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+    testImplementation 'junit:junit:4.12'
+    testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
+    testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
     implementation 'org.slf4j:slf4j-api:1.7.36'
-    implementation 'com.ethanvann:packetutils:5.4'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    implementation 'com.ethanvann:packetutils:5.4-SNAPSHOT'
+
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.2"
     testRuntimeOnly  "org.junit.jupiter:junit-jupiter-engine:5.10.2"
     testRuntimeOnly  "org.junit.platform:junit-platform-launcher:1.10.2"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 tasks.test {
@@ -66,4 +69,7 @@ tasks.register('shadowJar', Jar) {
 	group = BasePlugin.BUILD_GROUP
 	archiveClassifier.set('shadow')
 	archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
+}
+kotlin {
+    jvmToolchain(11)
 }
