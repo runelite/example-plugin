@@ -1,5 +1,7 @@
-package com.barracudatrial;
+package com.barracudatrial.rendering;
 
+import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -11,7 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.Map;
 
-public class BarracudaTrialObjectRenderer
+public class ObjectRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
@@ -20,7 +22,7 @@ public class BarracudaTrialObjectRenderer
 
 	private Map<net.runelite.api.Point, Integer> labelCounts;
 
-	public BarracudaTrialObjectRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
+	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;

@@ -1,5 +1,7 @@
-package com.barracudatrial;
+package com.barracudatrial.rendering;
 
+import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
 import net.runelite.api.WorldView;
@@ -12,13 +14,13 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BarracudaTrialPathRenderer
+public class PathRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
 	private final BarracudaTrialConfig config;
 
-	public BarracudaTrialPathRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config)
+	public PathRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config)
 	{
 		this.client = client;
 		this.plugin = plugin;

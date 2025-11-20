@@ -1,5 +1,8 @@
 package com.barracudatrial;
 
+import com.barracudatrial.rendering.DebugRenderer;
+import com.barracudatrial.rendering.ObjectRenderer;
+import com.barracudatrial.rendering.PathRenderer;
 import net.runelite.api.Client;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
@@ -14,9 +17,9 @@ public class BarracudaTrialOverlay extends Overlay
 {
 	private final BarracudaTrialPlugin plugin;
 	private final BarracudaTrialConfig config;
-	private final BarracudaTrialPathRenderer pathRenderer;
-	private final BarracudaTrialObjectRenderer objectRenderer;
-	private final BarracudaTrialDebugRenderer debugRenderer;
+	private final PathRenderer pathRenderer;
+	private final ObjectRenderer objectRenderer;
+	private final DebugRenderer debugRenderer;
 
 	private int frameCounter = 0;
 	private Map<net.runelite.api.Point, Integer> labelCounts = new HashMap<>();
@@ -26,9 +29,9 @@ public class BarracudaTrialOverlay extends Overlay
 	{
 		this.plugin = plugin;
 		this.config = config;
-		this.pathRenderer = new BarracudaTrialPathRenderer(client, plugin, config);
-		this.objectRenderer = new BarracudaTrialObjectRenderer(client, plugin, config, modelOutlineRenderer);
-		this.debugRenderer = new BarracudaTrialDebugRenderer(client, plugin, config, modelOutlineRenderer);
+		this.pathRenderer = new PathRenderer(client, plugin, config);
+		this.objectRenderer = new ObjectRenderer(client, plugin, config, modelOutlineRenderer);
+		this.debugRenderer = new DebugRenderer(client, plugin, config, modelOutlineRenderer);
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_SCENE);
