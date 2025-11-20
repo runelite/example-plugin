@@ -6,7 +6,9 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.util.Map;
 
 public class BarracudaTrialObjectRenderer
@@ -16,7 +18,7 @@ public class BarracudaTrialObjectRenderer
 	private final BarracudaTrialConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<Point, Integer> labelCounts;
+	private Map<net.runelite.api.Point, Integer> labelCounts;
 
 	public BarracudaTrialObjectRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -26,7 +28,7 @@ public class BarracudaTrialObjectRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<Point, Integer> labelCounts)
+	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCounts)
 	{
 		this.labelCounts = labelCounts;
 	}
@@ -250,19 +252,19 @@ public class BarracudaTrialObjectRenderer
 
 	private void renderLabelAtLocalPoint(Graphics2D graphics, LocalPoint localPoint, String label, Color color, int heightOffset)
 	{
-		Point textPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, label, heightOffset);
+		net.runelite.api.Point textPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, label, heightOffset);
 		if (textPoint != null)
 		{
 			int yOffset = getAndIncrementLabelOffset(textPoint);
-			Point offsetPoint = new Point(textPoint.getX(), textPoint.getY() + yOffset);
+			net.runelite.api.Point offsetPoint = new net.runelite.api.Point(textPoint.getX(), textPoint.getY() + yOffset);
 			OverlayUtil.renderTextLocation(graphics, offsetPoint, label, color);
 		}
 	}
 
-	private int getAndIncrementLabelOffset(Point canvasPoint)
+	private int getAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
 	{
 		// Round position to nearest 10 pixels to group nearby labels
-		Point roundedPoint = new Point(
+		net.runelite.api.Point roundedPoint = new net.runelite.api.Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);

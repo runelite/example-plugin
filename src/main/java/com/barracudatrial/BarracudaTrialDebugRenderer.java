@@ -6,7 +6,10 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,7 +24,7 @@ public class BarracudaTrialDebugRenderer
 	private final BarracudaTrialConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<Point, Integer> labelCounts;
+	private Map<net.runelite.api.Point, Integer> labelCounts;
 
 	public BarracudaTrialDebugRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -31,7 +34,7 @@ public class BarracudaTrialDebugRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<Point, Integer> labelCounts)
+	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCounts)
 	{
 		this.labelCounts = labelCounts;
 	}
@@ -254,9 +257,9 @@ public class BarracudaTrialDebugRenderer
 		}
 	}
 
-	private int getAndIncrementLabelOffset(Point canvasPoint)
+	private int getAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
 	{
-		Point roundedPoint = new Point(
+		net.runelite.api.Point roundedPoint = new net.runelite.api.Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);

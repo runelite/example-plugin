@@ -2,12 +2,13 @@ package com.barracudatrial;
 
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
-import net.runelite.api.Point;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,8 +97,8 @@ public class BarracudaTrialPathRenderer
 			return;
 		}
 
-		Point fromCanvas = Perspective.localToCanvas(client, fromLocal, from.getPlane(), 0);
-		Point toCanvas = Perspective.localToCanvas(client, toLocal, to.getPlane(), 0);
+		net.runelite.api.Point fromCanvas = Perspective.localToCanvas(client, fromLocal, from.getPlane(), 0);
+		net.runelite.api.Point toCanvas = Perspective.localToCanvas(client, toLocal, to.getPlane(), 0);
 
 		if (fromCanvas == null || toCanvas == null)
 		{
@@ -162,8 +163,8 @@ public class BarracudaTrialPathRenderer
 				continue;
 			}
 
-			Point p1 = Perspective.localToCanvas(client, lp1, wp1.getPlane(), 0);
-			Point p2 = Perspective.localToCanvas(client, lp2, wp2.getPlane(), 0);
+			net.runelite.api.Point p1 = Perspective.localToCanvas(client, lp1, wp1.getPlane(), 0);
+			net.runelite.api.Point p2 = Perspective.localToCanvas(client, lp2, wp2.getPlane(), 0);
 
 			if (p1 == null || p2 == null)
 			{

@@ -1,12 +1,12 @@
 package com.barracudatrial;
 
 import net.runelite.api.Client;
-import net.runelite.api.Point;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import javax.inject.Inject;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +19,7 @@ public class BarracudaTrialOverlay extends Overlay
 	private final BarracudaTrialDebugRenderer debugRenderer;
 
 	private int frameCounter = 0;
-	private Map<Point, Integer> labelCounts = new HashMap<>();
+	private Map<net.runelite.api.Point, Integer> labelCounts = new HashMap<>();
 
 	@Inject
 	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
