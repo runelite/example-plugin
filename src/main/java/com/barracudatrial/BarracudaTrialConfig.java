@@ -56,7 +56,7 @@ public interface BarracudaTrialConfig extends Config
 	)
 	default boolean showOptimalPath()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
