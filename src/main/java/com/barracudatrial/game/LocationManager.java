@@ -8,7 +8,7 @@ import net.runelite.api.coords.WorldPoint;
  * Manages rum locations and exclusion zone calculations for Barracuda Trial
  */
 @Slf4j
-public class LocationManager
+public class LocationManager implements PathPlanner.LocationHelper
 {
 	private final Client client;
 	private final State state;
