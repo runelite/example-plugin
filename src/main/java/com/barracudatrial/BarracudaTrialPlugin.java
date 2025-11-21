@@ -61,7 +61,7 @@ public class BarracudaTrialPlugin extends Plugin
 	{
 		log.info("Barracuda Trial plugin stopped!");
 		overlayManager.remove(overlay);
-		gameState.reset();
+		gameState.resetAllTemporaryState();
 		gameState.clearPersistentStorage();
 	}
 
