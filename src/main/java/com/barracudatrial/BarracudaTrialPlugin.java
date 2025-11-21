@@ -112,7 +112,7 @@ public class BarracudaTrialPlugin extends Plugin
 			if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
 			{
 				gameState.setTicksSinceLastPathRecalc(0);
-				pathPlanner.recalculateOptimalPath("periodic (game tick)");
+				pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
 			}
 		}
 
@@ -136,7 +136,7 @@ public class BarracudaTrialPlugin extends Plugin
 		{
 			log.debug("Rum collected! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(true);
-			pathPlanner.recalculateOptimalPath("chat: rum collected");
+			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum collected");
 		}
 		else if (chatMessage.startsWith("You deliver the rum shipment"))
 		{
@@ -150,7 +150,7 @@ public class BarracudaTrialPlugin extends Plugin
 			gameState.getLostSuppliesForCurrentLap().clear();
 			gameState.getLostSuppliesForFutureLaps().clear();
 
-			pathPlanner.recalculateOptimalPath("chat: rum delivered");
+			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum delivered");
 		}
 	}
 
