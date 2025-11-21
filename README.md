@@ -1,6 +1,6 @@
 # Barracuda Trial Plugin
 
-A RuneLite plugin for Barracuda Trials. Displays an optimal path to collect lost supplies in order, highlights lightning clouds and their danger zones, shows rocks and speed boost areas, and tracks rum pickup locations. Path calculation uses A* pathfinding and considers boat position, turning costs, obstacles, and speed boosts. Configurable colors and display options for all overlays.
+A RuneLite plugin for Barracuda Trials. Displays an optimal path to collect lost supplies in order, highlights lightning clouds and their danger zones, shows rocks and speed boost areas, and tracks rum pickup locations. Path calculation uses A\* pathfinding and considers boat position, turning costs, obstacles, and speed boosts. Configurable colors and display options for all overlays.
 
 ![Barracuda Trial Example](docs/barracuda_trial_example.png)
 
@@ -40,7 +40,7 @@ We attempt to solve these problems using a combination of algorithms:
 - **Multi-lap optimization**: We try multiple partitioning strategies to distribute supplies across laps, testing different spatial clustering and distribution approaches to find the arrangement with the lowest total estimated cost
 - **Supply collection ordering**: For each lap, we use **Nearest Neighbor** greedy selection followed by **2-Opt local search** to attempt to solve the traveling salesman problem of visiting all assigned supplies efficiently
 - **Strategic distance estimation**: We precompute approximate distances between all supply pairs using straight-line distances with penalty multipliers for paths that cross obstacles or dangerous areas
-- **Tactical pathfinding**: We use **A* pathfinding** (configured as Dijkstra to handle negative costs from speed boosts) to navigate the actual tile-by-tile path between waypoints while avoiding rocks, clouds, and the exclusion zone
+- **Tactical pathfinding**: We use **A\* pathfinding** (configured as Dijkstra to handle negative costs from speed boosts) to navigate the actual tile-by-tile path between waypoints while avoiding rocks, clouds, and the exclusion zone
 - **Adaptive replanning**: As supplies are discovered during sailing, we attempt to reform the plan dynamically - typically having complete information after the first lap to optimize the remaining laps
 
 The goal is to balance long-term strategic planning (which laps collect which supplies) with short-term tactical navigation (avoiding moving obstacles) while adapting to the gradually-revealed supply locations.
