@@ -37,7 +37,7 @@ public class ObjectRenderer
 
 	public void renderLostSupplies(Graphics2D graphics)
 	{
-		for (GameObject lostSupplyObject : plugin.getLostSupplies())
+		for (GameObject lostSupplyObject : plugin.getGameState().getLostSupplies())
 		{
 			String debugLabel = null;
 			if (config.showIDs())
@@ -50,7 +50,7 @@ public class ObjectRenderer
 
 	public void renderLightningClouds(Graphics2D graphics)
 	{
-		for (NPC cloudNpc : plugin.getLightningClouds())
+		for (NPC cloudNpc : plugin.getGameState().getLightningClouds())
 		{
 			int currentAnimation = cloudNpc.getAnimation();
 
@@ -75,7 +75,7 @@ public class ObjectRenderer
 
 	public void renderRocks(Graphics2D graphics)
 	{
-		for (GameObject rockObject : plugin.getRocks())
+		for (GameObject rockObject : plugin.getGameState().getRocks())
 		{
 			String debugLabel = null;
 			if (config.showIDs())
@@ -88,7 +88,7 @@ public class ObjectRenderer
 
 	public void renderSpeedBoosts(Graphics2D graphics)
 	{
-		for (GameObject speedBoostObject : plugin.getSpeedBoosts())
+		for (GameObject speedBoostObject : plugin.getGameState().getSpeedBoosts())
 		{
 			String debugLabel = null;
 			if (config.showIDs())
@@ -103,10 +103,10 @@ public class ObjectRenderer
 	{
 		Color rumHighlightColor = config.rumLocationColor();
 
-		boolean isCarryingRum = plugin.isHasRumOnUs();
+		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
 		if (isCarryingRum)
 		{
-			WorldPoint rumDropoffLocation = plugin.getRumReturnLocation();
+			WorldPoint rumDropoffLocation = plugin.getGameState().getRumReturnLocation();
 			if (rumDropoffLocation != null)
 			{
 				renderRumLocationHighlight(graphics, rumDropoffLocation, rumHighlightColor);
@@ -114,7 +114,7 @@ public class ObjectRenderer
 		}
 		else
 		{
-			WorldPoint rumPickupLocation = plugin.getRumPickupLocation();
+			WorldPoint rumPickupLocation = plugin.getGameState().getRumPickupLocation();
 			if (rumPickupLocation != null)
 			{
 				renderRumLocationHighlight(graphics, rumPickupLocation, rumHighlightColor);

@@ -29,13 +29,13 @@ public class PathRenderer
 
 	public void renderOptimalPath(Graphics2D graphics, int frameCounterForTracerAnimation)
 	{
-		WorldPoint boatLocation = plugin.getBoatLocation();
+		WorldPoint boatLocation = plugin.getGameState().getBoatLocation();
 		if (boatLocation == null)
 		{
 			return;
 		}
 
-		List<WorldPoint> currentSegmentPath = plugin.getCurrentSegmentPath();
+		List<WorldPoint> currentSegmentPath = plugin.getGameState().getCurrentSegmentPath();
 		if (currentSegmentPath.isEmpty())
 		{
 			return;

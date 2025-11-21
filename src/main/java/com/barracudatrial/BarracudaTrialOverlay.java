@@ -44,7 +44,7 @@ public class BarracudaTrialOverlay extends Overlay
 		currentFrameNumber++;
 		screenPositionLabelCounts.clear();
 
-		if (!plugin.isInTrialArea())
+		if (!plugin.getGameState().isInTrialArea())
 		{
 			return null;
 		}

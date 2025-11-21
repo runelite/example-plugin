@@ -61,10 +61,10 @@ public class DebugRenderer
 			return;
 		}
 
-		int exclusionZoneMinX = plugin.getExclusionZoneMinX();
-		int exclusionZoneMaxX = plugin.getExclusionZoneMaxX();
-		int exclusionZoneMinY = plugin.getExclusionZoneMinY();
-		int exclusionZoneMaxY = plugin.getExclusionZoneMaxY();
+		int exclusionZoneMinX = plugin.getGameState().getExclusionZoneMinX();
+		int exclusionZoneMaxX = plugin.getGameState().getExclusionZoneMaxX();
+		int exclusionZoneMinY = plugin.getGameState().getExclusionZoneMinY();
+		int exclusionZoneMaxY = plugin.getGameState().getExclusionZoneMaxY();
 
 		Color exclusionZoneColor = new Color(255, 0, 255, 60);
 
@@ -173,35 +173,35 @@ public class DebugRenderer
 		List<String> debugLines = new ArrayList<>();
 
 		debugLines.add("=== BARRACUDA TRIAL DEBUG ===");
-		debugLines.add(String.format("Lap: %d / %d", plugin.getCurrentLap() + 1, plugin.getRumsNeeded()));
-		debugLines.add(String.format("Planned Laps: %d", plugin.getPlannedLaps().size()));
-		debugLines.add(String.format("Lost Supplies Visible: %d", plugin.getLostSupplies().size()));
-		debugLines.add(String.format("Crates: %d / %d", plugin.getCratesCollected(), plugin.getCratesTotal()));
-		debugLines.add(String.format("Rum: %d / %d", plugin.getRumsCollected(), plugin.getRumsNeeded()));
-		debugLines.add(String.format("Current Path: %d points", plugin.getCurrentSegmentPath().size()));
-		debugLines.add(String.format("Next Path: %d points", plugin.getNextSegmentPath().size()));
+		debugLines.add(String.format("Lap: %d / %d", plugin.getGameState().getCurrentLap() + 1, plugin.getGameState().getRumsNeeded()));
+		debugLines.add(String.format("Planned Laps: %d", plugin.getGameState().getPlannedLaps().size()));
+		debugLines.add(String.format("Lost Supplies Visible: %d", plugin.getGameState().getLostSupplies().size()));
+		debugLines.add(String.format("Crates: %d / %d", plugin.getGameState().getCratesCollected(), plugin.getGameState().getCratesTotal()));
+		debugLines.add(String.format("Rum: %d / %d", plugin.getGameState().getRumsCollected(), plugin.getGameState().getRumsNeeded()));
+		debugLines.add(String.format("Current Path: %d points", plugin.getGameState().getCurrentSegmentPath().size()));
+		debugLines.add(String.format("Next Path: %d points", plugin.getGameState().getNextSegmentPath().size()));
 		debugLines.add("");
 		debugLines.add("--- Performance (ms) ---");
-		debugLines.add(String.format("Total Game Tick: %d ms", plugin.getLastTotalGameTickTimeMs()));
-		debugLines.add(String.format("  Lost Supplies Update: %d ms", plugin.getLastLostSuppliesUpdateTimeMs()));
-		debugLines.add(String.format("  Cloud Update: %d ms", plugin.getLastCloudUpdateTimeMs()));
-		debugLines.add(String.format("  Rock Update: %d ms", plugin.getLastRockUpdateTimeMs()));
-		debugLines.add(String.format("  Path Planning: %d ms", plugin.getLastPathPlanningTimeMs()));
-		debugLines.add(String.format("  A* Pathfinding: %d ms", plugin.getLastAStarTimeMs()));
-		debugLines.add(String.format("Last Path Recalc: %s", plugin.getLastPathRecalcCaller()));
+		debugLines.add(String.format("Total Game Tick: %d ms", plugin.getGameState().getLastTotalGameTickTimeMs()));
+		debugLines.add(String.format("  Lost Supplies Update: %d ms", plugin.getGameState().getLastLostSuppliesUpdateTimeMs()));
+		debugLines.add(String.format("  Cloud Update: %d ms", plugin.getGameState().getLastCloudUpdateTimeMs()));
+		debugLines.add(String.format("  Rock Update: %d ms", plugin.getGameState().getLastRockUpdateTimeMs()));
+		debugLines.add(String.format("  Path Planning: %d ms", plugin.getGameState().getLastPathPlanningTimeMs()));
+		debugLines.add(String.format("  A* Pathfinding: %d ms", plugin.getGameState().getLastAStarTimeMs()));
+		debugLines.add(String.format("Last Path Recalc: %s", plugin.getGameState().getLastPathRecalcCaller()));
 		debugLines.add("");
 		debugLines.add("--- Visible Objects ---");
-		debugLines.add(String.format("Lightning Clouds: %d", plugin.getLightningClouds().size()));
-		debugLines.add(String.format("Rocks (visible): %d", plugin.getRocks().size()));
-		debugLines.add(String.format("Speed Boosts (visible): %d", plugin.getSpeedBoosts().size()));
+		debugLines.add(String.format("Lightning Clouds: %d", plugin.getGameState().getLightningClouds().size()));
+		debugLines.add(String.format("Rocks (visible): %d", plugin.getGameState().getRocks().size()));
+		debugLines.add(String.format("Speed Boosts (visible): %d", plugin.getGameState().getSpeedBoosts().size()));
 		debugLines.add(String.format("All Rocks (debug scan): %d", plugin.getAllRocksInScene().size()));
 		debugLines.add("");
 		debugLines.add("--- Persistent Storage ---");
-		debugLines.add(String.format("Known Rock Locations: %d", plugin.getKnownRockLocations().size()));
-		debugLines.add(String.format("Known Speed Boosts: %d", plugin.getKnownSpeedBoostLocations().size()));
-		debugLines.add(String.format("Known Supply Spawns: %d", plugin.getKnownLostSuppliesSpawnLocations().size()));
+		debugLines.add(String.format("Known Rock Locations: %d", plugin.getGameState().getKnownRockLocations().size()));
+		debugLines.add(String.format("Known Speed Boosts: %d", plugin.getGameState().getKnownSpeedBoostLocations().size()));
+		debugLines.add(String.format("Known Supply Spawns: %d", plugin.getGameState().getKnownLostSuppliesSpawnLocations().size()));
 
-		WorldPoint boatCurrentLocation = plugin.getBoatLocation();
+		WorldPoint boatCurrentLocation = plugin.getGameState().getBoatLocation();
 		if (boatCurrentLocation != null)
 		{
 			debugLines.add("");
@@ -218,8 +218,8 @@ public class DebugRenderer
 
 	private void appendRumLocationDebugInfo(List<String> debugLines)
 	{
-		WorldPoint rumPickupLocation = plugin.getRumPickupLocation();
-		WorldPoint rumReturnLocation = plugin.getRumReturnLocation();
+		WorldPoint rumPickupLocation = plugin.getGameState().getRumPickupLocation();
+		WorldPoint rumReturnLocation = plugin.getGameState().getRumReturnLocation();
 
 		if (rumPickupLocation != null)
 		{

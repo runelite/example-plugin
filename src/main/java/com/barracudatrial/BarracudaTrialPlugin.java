@@ -2,6 +2,7 @@ package com.barracudatrial;
 
 import com.barracudatrial.game.*;
 import com.google.inject.Provides;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
@@ -35,6 +36,7 @@ public class BarracudaTrialPlugin extends Plugin
 	@Inject
 	private BarracudaTrialOverlay overlay;
 
+	@Getter
 	private final State gameState = new State();
 
 	private SceneScanner sceneScanner;
@@ -154,46 +156,6 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 	}
 
-	public boolean isInTrialArea()
-	{
-		return gameState.isInTrialArea();
-	}
-
-	public java.util.Set<GameObject> getLostSupplies()
-	{
-		return gameState.getLostSupplies();
-	}
-
-	public java.util.Set<NPC> getLightningClouds()
-	{
-		return gameState.getLightningClouds();
-	}
-
-	public java.util.Set<GameObject> getRocks()
-	{
-		return gameState.getRocks();
-	}
-
-	public java.util.Set<GameObject> getSpeedBoosts()
-	{
-		return gameState.getSpeedBoosts();
-	}
-
-	public List<WorldPoint> getOptimalPath()
-	{
-		return gameState.getOptimalPath();
-	}
-
-	public WorldPoint getRumPickupLocation()
-	{
-		return gameState.getRumPickupLocation();
-	}
-
-	public WorldPoint getRumReturnLocation()
-	{
-		return gameState.getRumReturnLocation();
-	}
-
 	public WorldPoint getPathfindingPickupLocation()
 	{
 		return locationManager.getPathfindingPickupLocation();
@@ -204,129 +166,9 @@ public class BarracudaTrialPlugin extends Plugin
 		return locationManager.getPathfindingDropoffLocation();
 	}
 
-	public int getRumsCollected()
-	{
-		return gameState.getRumsCollected();
-	}
-
-	public int getRumsNeeded()
-	{
-		return gameState.getRumsNeeded();
-	}
-
-	public int getCratesCollected()
-	{
-		return gameState.getCratesCollected();
-	}
-
-	public int getCratesTotal()
-	{
-		return gameState.getCratesTotal();
-	}
-
 	public int getCratesRemaining()
 	{
 		return gameState.getCratesTotal() - gameState.getCratesCollected();
-	}
-
-	public boolean isHasRumOnUs()
-	{
-		return gameState.isHasRumOnUs();
-	}
-
-	public WorldPoint getBoatLocation()
-	{
-		return gameState.getBoatLocation();
-	}
-
-	public int getCurrentLap()
-	{
-		return gameState.getCurrentLap();
-	}
-
-	public List<List<WorldPoint>> getPlannedLaps()
-	{
-		return gameState.getPlannedLaps();
-	}
-
-	public List<WorldPoint> getCurrentSegmentPath()
-	{
-		return gameState.getCurrentSegmentPath();
-	}
-
-	public List<WorldPoint> getNextSegmentPath()
-	{
-		return gameState.getNextSegmentPath();
-	}
-
-	public long getLastAStarTimeMs()
-	{
-		return gameState.getLastAStarTimeMs();
-	}
-
-	public long getLastLostSuppliesUpdateTimeMs()
-	{
-		return gameState.getLastLostSuppliesUpdateTimeMs();
-	}
-
-	public long getLastCloudUpdateTimeMs()
-	{
-		return gameState.getLastCloudUpdateTimeMs();
-	}
-
-	public long getLastPathPlanningTimeMs()
-	{
-		return gameState.getLastPathPlanningTimeMs();
-	}
-
-	public long getLastRockUpdateTimeMs()
-	{
-		return gameState.getLastRockUpdateTimeMs();
-	}
-
-	public long getLastTotalGameTickTimeMs()
-	{
-		return gameState.getLastTotalGameTickTimeMs();
-	}
-
-	public String getLastPathRecalcCaller()
-	{
-		return gameState.getLastPathRecalcCaller();
-	}
-
-	public java.util.Set<WorldPoint> getKnownRockLocations()
-	{
-		return gameState.getKnownRockLocations();
-	}
-
-	public java.util.Set<WorldPoint> getKnownSpeedBoostLocations()
-	{
-		return gameState.getKnownSpeedBoostLocations();
-	}
-
-	public java.util.Set<WorldPoint> getKnownLostSuppliesSpawnLocations()
-	{
-		return gameState.getKnownLostSuppliesSpawnLocations();
-	}
-
-	public int getExclusionZoneMinX()
-	{
-		return gameState.getExclusionZoneMinX();
-	}
-
-	public int getExclusionZoneMaxX()
-	{
-		return gameState.getExclusionZoneMaxX();
-	}
-
-	public int getExclusionZoneMinY()
-	{
-		return gameState.getExclusionZoneMinY();
-	}
-
-	public int getExclusionZoneMaxY()
-	{
-		return gameState.getExclusionZoneMaxY();
 	}
 
 	public boolean isPointInExclusionZone(WorldPoint point)
