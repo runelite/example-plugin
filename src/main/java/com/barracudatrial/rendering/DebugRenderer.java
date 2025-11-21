@@ -23,16 +23,14 @@ public class DebugRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	private Map<Point, Integer> labelCountsByCanvasPosition;
 
-	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
+	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.cachedConfig = cachedConfig;
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
@@ -43,6 +41,7 @@ public class DebugRenderer
 
 	public void renderDebugInfo(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		renderExclusionZoneVisualization(graphics);
 
 		if (cachedConfig.isShowIDs())

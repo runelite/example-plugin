@@ -19,17 +19,16 @@ public class PathRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final CachedConfig cachedConfig;
 
-	public PathRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig)
+	public PathRenderer(Client client, BarracudaTrialPlugin plugin)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.cachedConfig = cachedConfig;
 	}
 
 	public void renderOptimalPath(Graphics2D graphics, int frameCounterForTracerAnimation)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		WorldPoint boatLocation = plugin.getGameState().getBoatLocation();
 		if (boatLocation == null)
 		{

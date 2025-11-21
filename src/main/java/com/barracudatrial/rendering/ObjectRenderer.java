@@ -17,16 +17,14 @@ public class ObjectRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	private Map<Point, Integer> labelCountsByCanvasPosition;
 
-	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
+	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.cachedConfig = cachedConfig;
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
@@ -37,6 +35,7 @@ public class ObjectRenderer
 
 	public void renderLostSupplies(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		for (GameObject lostSupplyObject : plugin.getGameState().getLostSupplies())
 		{
 			String debugLabel = null;
@@ -50,6 +49,7 @@ public class ObjectRenderer
 
 	public void renderLightningClouds(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		for (NPC cloudNpc : plugin.getGameState().getLightningClouds())
 		{
 			int currentAnimation = cloudNpc.getAnimation();
@@ -75,6 +75,7 @@ public class ObjectRenderer
 
 	public void renderRocks(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		for (GameObject rockObject : plugin.getGameState().getRocks())
 		{
 			String debugLabel = null;
@@ -88,6 +89,7 @@ public class ObjectRenderer
 
 	public void renderSpeedBoosts(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		for (GameObject speedBoostObject : plugin.getGameState().getSpeedBoosts())
 		{
 			String debugLabel = null;
@@ -101,6 +103,7 @@ public class ObjectRenderer
 
 	public void renderRumLocations(Graphics2D graphics)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		Color rumHighlightColor = cachedConfig.getRumLocationColor();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
@@ -188,6 +191,7 @@ public class ObjectRenderer
 
 	private void renderCloudDangerAreaOnGround(Graphics2D graphics, NPC cloudNpc, Color dangerAreaColor)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		LocalPoint cloudCenterPoint = cloudNpc.getLocalLocation();
 		if (cloudCenterPoint == null)
 		{
