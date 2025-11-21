@@ -1,6 +1,7 @@
 package com.barracudatrial.game;
 
 import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.CachedConfig;
 import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import com.barracudatrial.pathfinding.MultiLapOptimizer;
@@ -21,14 +22,14 @@ public class PathPlanner
 {
 	private final Client client;
 	private final State state;
-	private final BarracudaTrialConfig config;
+	private final CachedConfig cachedConfig;
 	private final LocationHelper locationHelper;
 
-	public PathPlanner(Client client, State state, BarracudaTrialConfig config, LocationHelper locationHelper)
+	public PathPlanner(Client client, State state, CachedConfig cachedConfig, LocationHelper locationHelper)
 	{
 		this.client = client;
 		this.state = state;
-		this.config = config;
+		this.cachedConfig = cachedConfig;
 		this.locationHelper = locationHelper;
 	}
 
@@ -58,9 +59,9 @@ public class PathPlanner
 			return;
 		}
 
-		long multiLapPlanningStartTime = config.debugMode() ? System.currentTimeMillis() : 0;
+		long multiLapPlanningStartTime = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		planOptimalMultiLapRoute();
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			state.setLastPathPlanningTimeMs(System.currentTimeMillis() - multiLapPlanningStartTime);
 		}
@@ -89,10 +90,10 @@ public class PathPlanner
 				waypointsForCurrentLap.add(locationHelper.getPathfindingDropoffLocation());
 			}
 
-			long aStarStartTime = config.debugMode() ? System.currentTimeMillis() : 0;
+			long aStarStartTime = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 			List<WorldPoint> expandedCurrentSegmentPath = expandStrategicWaypointsWithTacticalAStar(state.getBoatLocation(), waypointsForCurrentLap);
 			state.setCurrentSegmentPath(expandedCurrentSegmentPath);
-			if (config.debugMode())
+			if (cachedConfig.isDebugMode())
 			{
 				state.setLastAStarTimeMs(System.currentTimeMillis() - aStarStartTime);
 			}
@@ -151,7 +152,7 @@ public class PathPlanner
 		state.getLostSuppliesForCurrentLap().clear();
 		state.getLostSuppliesForFutureLaps().clear();
 
-		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
+		boolean shouldPreferWestStartDirection = cachedConfig.getStartingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
 		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
 			shouldPreferWestStartDirection,
@@ -258,7 +259,7 @@ public class PathPlanner
 			return;
 		}
 
-		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
+		boolean shouldPreferWestStartDirection = cachedConfig.getStartingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
 		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
 			shouldPreferWestStartDirection,
@@ -389,7 +390,7 @@ public class PathPlanner
 		WorldPoint currentPathfindingPosition = startLocation;
 		int maximumAStarSearchDistance = 100;
 
-		int numberOfWaypointsToExpandWithAStar = Math.min(config.pathLookahead(), strategicWaypoints.size());
+		int numberOfWaypointsToExpandWithAStar = Math.min(cachedConfig.getPathLookahead(), strategicWaypoints.size());
 
 		for (int waypointIndex = 0; waypointIndex < numberOfWaypointsToExpandWithAStar; waypointIndex++)
 		{

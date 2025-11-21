@@ -1,6 +1,6 @@
 package com.barracudatrial.rendering;
 
-import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
@@ -18,13 +18,13 @@ public class PathRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final BarracudaTrialConfig config;
+	private final CachedConfig cachedConfig;
 
-	public PathRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config)
+	public PathRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.config = config;
+		this.cachedConfig = cachedConfig;
 	}
 
 	public void renderOptimalPath(Graphics2D graphics, int frameCounterForTracerAnimation)
@@ -41,7 +41,7 @@ public class PathRenderer
 			return;
 		}
 
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			drawDebugWaypointLines(graphics, currentSegmentPath, boatLocation);
 		}
@@ -67,7 +67,7 @@ public class PathRenderer
 		WorldPoint previousWaypoint = startLocation;
 		for (WorldPoint waypoint : waypoints)
 		{
-			globalSegmentOffset = drawInterpolatedSegment(graphics, previousWaypoint, waypoint, config.pathColor(), totalSegmentsInPath, globalSegmentOffset, frameCounterForTracerAnimation);
+			globalSegmentOffset = drawInterpolatedSegment(graphics, previousWaypoint, waypoint, cachedConfig.getPathColor(), totalSegmentsInPath, globalSegmentOffset, frameCounterForTracerAnimation);
 			previousWaypoint = waypoint;
 		}
 	}
@@ -154,10 +154,10 @@ public class PathRenderer
 			return globalSegmentOffset;
 		}
 
-		boolean isTracerEnabled = config.showPathTracer() && pathColor.equals(config.pathColor());
+		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
 		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
 
-		graphics.setStroke(new BasicStroke(config.pathWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
 		for (int i = 0; i < segmentCountInThisLine; i++)
 		{
@@ -181,7 +181,7 @@ public class PathRenderer
 			}
 
 			int globalSegmentIndexForAnimation = globalSegmentOffset + i;
-			Color segmentColor = (globalSegmentIndexForAnimation == globalTracerPosition) ? config.tracerColor() : pathColor;
+			Color segmentColor = (globalSegmentIndexForAnimation == globalTracerPosition) ? cachedConfig.getTracerColor() : pathColor;
 
 			graphics.setColor(segmentColor);
 			graphics.drawLine(segmentStartCanvas.getX(), segmentStartCanvas.getY(), segmentEndCanvas.getX(), segmentEndCanvas.getY());

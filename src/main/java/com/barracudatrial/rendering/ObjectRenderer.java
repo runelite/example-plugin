@@ -1,6 +1,6 @@
 package com.barracudatrial.rendering;
 
-import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -17,16 +17,16 @@ public class ObjectRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final BarracudaTrialConfig config;
+	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
 
-	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
+	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.config = config;
+		this.cachedConfig = cachedConfig;
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
@@ -40,11 +40,11 @@ public class ObjectRenderer
 		for (GameObject lostSupplyObject : plugin.getGameState().getLostSupplies())
 		{
 			String debugLabel = null;
-			if (config.showIDs())
+			if (cachedConfig.isShowIDs())
 			{
 				debugLabel = buildObjectLabelWithImpostorInfo(lostSupplyObject, "Lost Supplies");
 			}
-			renderGameObjectWithHighlight(graphics, lostSupplyObject, config.lostSuppliesColor(), config.showLostSuppliesTile(), debugLabel);
+			renderGameObjectWithHighlight(graphics, lostSupplyObject, cachedConfig.getLostSuppliesColor(), cachedConfig.isShowLostSuppliesTile(), debugLabel);
 		}
 	}
 
@@ -60,12 +60,12 @@ public class ObjectRenderer
 				continue;
 			}
 
-			Color dangerousCloudColor = config.cloudColor();
+			Color dangerousCloudColor = cachedConfig.getCloudColor();
 
 			renderCloudDangerAreaOnGround(graphics, cloudNpc, dangerousCloudColor);
 
 			String debugLabel = null;
-			if (config.showIDs())
+			if (cachedConfig.isShowIDs())
 			{
 				debugLabel = String.format("Cloud (ID: %d, Anim: %d)", cloudNpc.getId(), cloudNpc.getAnimation());
 			}
@@ -78,11 +78,11 @@ public class ObjectRenderer
 		for (GameObject rockObject : plugin.getGameState().getRocks())
 		{
 			String debugLabel = null;
-			if (config.showIDs())
+			if (cachedConfig.isShowIDs())
 			{
 				debugLabel = buildObjectLabelWithImpostorInfo(rockObject, "Rock");
 			}
-			renderGameObjectWithHighlight(graphics, rockObject, config.rockColor(), true, debugLabel);
+			renderGameObjectWithHighlight(graphics, rockObject, cachedConfig.getRockColor(), true, debugLabel);
 		}
 	}
 
@@ -91,17 +91,17 @@ public class ObjectRenderer
 		for (GameObject speedBoostObject : plugin.getGameState().getSpeedBoosts())
 		{
 			String debugLabel = null;
-			if (config.showIDs())
+			if (cachedConfig.isShowIDs())
 			{
 				debugLabel = buildObjectLabelWithImpostorInfo(speedBoostObject, "Speed Boost");
 			}
-			renderGameObjectWithHighlight(graphics, speedBoostObject, config.speedBoostColor(), true, debugLabel);
+			renderGameObjectWithHighlight(graphics, speedBoostObject, cachedConfig.getSpeedBoostColor(), true, debugLabel);
 		}
 	}
 
 	public void renderRumLocations(Graphics2D graphics)
 	{
-		Color rumHighlightColor = config.rumLocationColor();
+		Color rumHighlightColor = cachedConfig.getRumLocationColor();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
 		if (isCarryingRum)
@@ -194,7 +194,7 @@ public class ObjectRenderer
 			return;
 		}
 
-		int dangerRadiusInTiles = config.cloudDangerRadius();
+		int dangerRadiusInTiles = cachedConfig.getCloudDangerRadius();
 
 		for (int dx = -dangerRadiusInTiles; dx <= dangerRadiusInTiles; dx++)
 		{

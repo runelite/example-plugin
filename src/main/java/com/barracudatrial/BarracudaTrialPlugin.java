@@ -9,6 +9,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -39,6 +40,9 @@ public class BarracudaTrialPlugin extends Plugin
 	@Getter
 	private final State gameState = new State();
 
+	@Getter
+	private CachedConfig cachedConfig;
+
 	private SceneScanner sceneScanner;
 	private ObjectTracker objectTracker;
 	private LocationManager locationManager;
@@ -51,11 +55,13 @@ public class BarracudaTrialPlugin extends Plugin
 		log.info("Barracuda Trial plugin started!");
 		overlayManager.add(overlay);
 
+		cachedConfig = new CachedConfig(config);
+
 		sceneScanner = new SceneScanner(client);
 		objectTracker = new ObjectTracker(client, gameState, sceneScanner);
 		locationManager = new LocationManager(client, gameState, sceneScanner);
 		progressTracker = new ProgressTracker(client, gameState);
-		pathPlanner = new PathPlanner(client, gameState, config, locationManager);
+		pathPlanner = new PathPlanner(client, gameState, cachedConfig, locationManager);
 	}
 
 	@Override
@@ -70,37 +76,37 @@ public class BarracudaTrialPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		long gameTickStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
+		long gameTickStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 
 		progressTracker.checkIfPlayerIsInTrialArea();
 		objectTracker.updatePlayerBoatLocation();
 
-		long cloudUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
+		long cloudUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateLightningCloudTracking();
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			gameState.setLastCloudUpdateTimeMs(System.currentTimeMillis() - cloudUpdateStartTimeMs);
 		}
 
 		locationManager.updateRumLocations();
 
-		long rockUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
+		long rockUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateRocksAndSpeedBoosts();
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			gameState.setLastRockUpdateTimeMs(System.currentTimeMillis() - rockUpdateStartTimeMs);
 		}
 
 		progressTracker.updateTrialProgressFromWidgets();
 
-		long lostSuppliesUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
+		long lostSuppliesUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateLostSuppliesTracking();
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			gameState.setLastLostSuppliesUpdateTimeMs(System.currentTimeMillis() - lostSuppliesUpdateStartTimeMs);
 		}
 
-		if (config.showIDs())
+		if (cachedConfig.isShowIDs())
 		{
 			objectTracker.updateAllRocksInScene();
 		}
@@ -118,7 +124,7 @@ public class BarracudaTrialPlugin extends Plugin
 			}
 		}
 
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			gameState.setLastTotalGameTickTimeMs(System.currentTimeMillis() - gameTickStartTimeMs);
 		}
@@ -153,6 +159,23 @@ public class BarracudaTrialPlugin extends Plugin
 			gameState.getLostSuppliesForFutureLaps().clear();
 
 			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum delivered");
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (!event.getGroup().equals("barracudatrial"))
+		{
+			return;
+		}
+
+		cachedConfig.updateCache();
+
+		// Recalculate path when starting direction config changes
+		if (event.getKey().equals("startingDirection") && gameState.isInTrialArea())
+		{
+			pathPlanner.recalculateOptimalPathFromCurrentState("config: starting direction changed");
 		}
 	}
 

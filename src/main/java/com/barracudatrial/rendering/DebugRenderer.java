@@ -1,6 +1,6 @@
 package com.barracudatrial.rendering;
 
-import com.barracudatrial.BarracudaTrialConfig;
+import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -23,16 +23,16 @@ public class DebugRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final BarracudaTrialConfig config;
+	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
 
-	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
+	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.config = config;
+		this.cachedConfig = cachedConfig;
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
@@ -45,7 +45,7 @@ public class DebugRenderer
 	{
 		renderExclusionZoneVisualization(graphics);
 
-		if (config.showIDs())
+		if (cachedConfig.isShowIDs())
 		{
 			renderAllRocksInSceneWithLabels(graphics);
 		}

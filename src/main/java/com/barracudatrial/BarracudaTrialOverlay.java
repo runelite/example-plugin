@@ -16,7 +16,6 @@ import java.util.Map;
 public class BarracudaTrialOverlay extends Overlay
 {
 	private final BarracudaTrialPlugin plugin;
-	private final BarracudaTrialConfig config;
 	private final PathRenderer pathRenderer;
 	private final ObjectRenderer objectRenderer;
 	private final DebugRenderer debugRenderer;
@@ -28,10 +27,9 @@ public class BarracudaTrialOverlay extends Overlay
 	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.plugin = plugin;
-		this.config = config;
-		this.pathRenderer = new PathRenderer(client, plugin, config);
-		this.objectRenderer = new ObjectRenderer(client, plugin, config, modelOutlineRenderer);
-		this.debugRenderer = new DebugRenderer(client, plugin, config, modelOutlineRenderer);
+		this.pathRenderer = new PathRenderer(client, plugin, plugin.getCachedConfig());
+		this.objectRenderer = new ObjectRenderer(client, plugin, plugin.getCachedConfig(), modelOutlineRenderer);
+		this.debugRenderer = new DebugRenderer(client, plugin, plugin.getCachedConfig(), modelOutlineRenderer);
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_SCENE);
@@ -53,37 +51,39 @@ public class BarracudaTrialOverlay extends Overlay
 		objectRenderer.setLabelCounts(screenPositionLabelCounts);
 		debugRenderer.setLabelCounts(screenPositionLabelCounts);
 
-		if (config.showOptimalPath())
+		CachedConfig cachedConfig = plugin.getCachedConfig();
+
+		if (cachedConfig.isShowOptimalPath())
 		{
 			pathRenderer.renderOptimalPath(graphics, currentFrameNumber);
 		}
 
-		if (config.highlightLostSupplies())
+		if (cachedConfig.isHighlightLostSupplies())
 		{
 			objectRenderer.renderLostSupplies(graphics);
 		}
 
-		if (config.highlightClouds())
+		if (cachedConfig.isHighlightClouds())
 		{
 			objectRenderer.renderLightningClouds(graphics);
 		}
 
-		if (config.highlightRocks())
+		if (cachedConfig.isHighlightRocks())
 		{
 			objectRenderer.renderRocks(graphics);
 		}
 
-		if (config.highlightSpeedBoosts())
+		if (cachedConfig.isHighlightSpeedBoosts())
 		{
 			objectRenderer.renderSpeedBoosts(graphics);
 		}
 
-		if (config.highlightRumLocations())
+		if (cachedConfig.isHighlightRumLocations())
 		{
 			objectRenderer.renderRumLocations(graphics);
 		}
 
-		if (config.debugMode())
+		if (cachedConfig.isDebugMode())
 		{
 			debugRenderer.renderDebugInfo(graphics);
 		}
