@@ -70,17 +70,17 @@ public class BarracudaTrialPlugin extends Plugin
 	{
 		long gameTickStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 
-		progressTracker.checkTrialArea();
-		objectTracker.updateBoatLocation();
+		progressTracker.checkIfPlayerIsInTrialArea();
+		objectTracker.updatePlayerBoatLocation();
 
 		long cloudUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
-		objectTracker.updateCloudTracking();
+		objectTracker.updateLightningCloudTracking();
 		if (config.debugMode())
 		{
 			gameState.setLastCloudUpdateTimeMs(System.currentTimeMillis() - cloudUpdateStartTimeMs);
 		}
 
-		locationManager.updateRumObjects();
+		locationManager.updateRumLocations();
 
 		long rockUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateRocksAndSpeedBoosts();
@@ -89,10 +89,10 @@ public class BarracudaTrialPlugin extends Plugin
 			gameState.setLastRockUpdateTimeMs(System.currentTimeMillis() - rockUpdateStartTimeMs);
 		}
 
-		progressTracker.updateTrialProgress();
+		progressTracker.updateTrialProgressFromWidgets();
 
 		long lostSuppliesUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
-		objectTracker.updateLostSupplies();
+		objectTracker.updateLostSuppliesTracking();
 		if (config.debugMode())
 		{
 			gameState.setLastLostSuppliesUpdateTimeMs(System.currentTimeMillis() - lostSuppliesUpdateStartTimeMs);
@@ -100,7 +100,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 		if (config.showIDs())
 		{
-			objectTracker.updateAllRocks();
+			objectTracker.updateAllRocksInScene();
 		}
 
 		// Recalculate path periodically to account for moving clouds
@@ -331,7 +331,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 	public boolean isPointInExclusionZone(WorldPoint point)
 	{
-		return locationManager.isInExclusionZone(point);
+		return locationManager.isPointInsideExclusionZone(point);
 	}
 
 	public List<GameObject> getAllRocksInScene()
