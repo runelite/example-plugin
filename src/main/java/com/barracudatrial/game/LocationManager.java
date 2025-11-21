@@ -3,6 +3,7 @@ package com.barracudatrial.game;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.ObjectID;
 
 /**
  * Manages rum locations and exclusion zone calculations for Barracuda Trial
@@ -14,10 +15,10 @@ public class LocationManager implements PathPlanner.LocationHelper
 	private final State state;
 	private final SceneScanner sceneScanner;
 
-	private static final int RUM_RETURN_BASE_OBJECT_ID = 59237;
-	private static final int RUM_RETURN_IMPOSTOR_ID = 59239;
-	private static final int RUM_PICKUP_BASE_OBJECT_ID = 59240;
-	private static final int RUM_PICKUP_IMPOSTOR_ID = 59242;
+	private static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available
+	private static final int RUM_RETURN_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
+	private static final int RUM_PICKUP_BASE_OBJECT_ID = 59240; // No constant available
+	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
 
 	private static final int PICKUP_OFFSET_X = 24;
 	private static final int PICKUP_OFFSET_Y = -128;

@@ -2,22 +2,18 @@ package com.barracudatrial.game;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
 
 /**
  * Handles widget parsing and progress tracking for Barracuda Trial
- * Tracks rum collection, crate collection, and trial area state
+ * Tracks rum collection, lost supplies collection, and trial area state
  */
 @Slf4j
 public class ProgressTracker
 {
 	private final Client client;
 	private final State state;
-
-	private static final int BARRACUDA_TRIALS_HUD = 931;
-	private static final int WIDGET_BT_HUD = 3;
-	private static final int WIDGET_RUM_PROGRESS = 24;
-	private static final int WIDGET_CRATE_PROGRESS = 25;
 
 	public ProgressTracker(Client client, State state)
 	{
@@ -31,7 +27,7 @@ public class ProgressTracker
 	 */
 	public boolean checkIfPlayerIsInTrialArea()
 	{
-		Widget barracudaTrialHudWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_BT_HUD);
+		Widget barracudaTrialHudWidget = client.getWidget(InterfaceID.SailingBtHud.BARRACUDA_TRIALS);
 
 		boolean wasInTrialAreaBefore = state.isInTrialArea();
 		boolean isInTrialAreaNow = barracudaTrialHudWidget != null && !barracudaTrialHudWidget.isHidden();
@@ -64,18 +60,18 @@ public class ProgressTracker
 			return false;
 		}
 
-		Widget rumProgressWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_RUM_PROGRESS);
+		Widget rumProgressWidget = client.getWidget(InterfaceID.SailingBtHud.BT_TRACKER_PROGRESS);
 		if (rumProgressWidget != null && !rumProgressWidget.isHidden())
 		{
 			String rumProgressText = rumProgressWidget.getText();
 			parseRumProgressText(rumProgressText);
 		}
 
-		Widget crateProgressWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_CRATE_PROGRESS);
-		if (crateProgressWidget != null && !crateProgressWidget.isHidden())
+		Widget lostSuppliesProgressWidget = client.getWidget(InterfaceID.SailingBtHud.BT_OPTIONAL_PROGRESS);
+		if (lostSuppliesProgressWidget != null && !lostSuppliesProgressWidget.isHidden())
 		{
-			String crateProgressText = crateProgressWidget.getText();
-			parseCrateProgressText(crateProgressText);
+			String lostSuppliesProgressText = lostSuppliesProgressWidget.getText();
+			parselostSuppliesProgressText(lostSuppliesProgressText);
 		}
 
 		if (state.getLastKnownDifficulty() > 0 && state.getRumsNeeded() > 0
@@ -116,25 +112,25 @@ public class ProgressTracker
 		}
 	}
 
-	private void parseCrateProgressText(String crateProgressText)
+	private void parselostSuppliesProgressText(String lostSuppliesProgressText)
 	{
 		try
 		{
-			String[] parts = crateProgressText.split("/");
+			String[] parts = lostSuppliesProgressText.split("/");
 			if (parts.length == 2)
 			{
-				state.setCratesCollected(Integer.parseInt(parts[0].trim()));
-				state.setCratesTotal(Integer.parseInt(parts[1].trim()));
+				state.setLostSuppliesCollected(Integer.parseInt(parts[0].trim()));
+				state.setlostSuppliesTotal(Integer.parseInt(parts[1].trim()));
 			}
 		}
 		catch (NumberFormatException e)
 		{
-			log.debug("Failed to parse crate progress: {}", crateProgressText);
+			log.debug("Failed to parse lost supplies progress: {}", lostSuppliesProgressText);
 		}
 	}
 
-	public int calculateRemainingCrates()
+	public int calculateRemainingLostSupplies()
 	{
-		return state.getCratesTotal() - state.getCratesCollected();
+		return state.getlostSuppliesTotal() - state.getLostSuppliesCollected();
 	}
 }

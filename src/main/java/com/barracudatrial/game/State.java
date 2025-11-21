@@ -5,6 +5,9 @@ import lombok.Setter;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.NpcID;
+import net.runelite.api.gameval.ObjectID;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,15 +19,12 @@ import java.util.Set;
  */
 public class State
 {
-	// Constants - Widget IDs
-	public static final int BARRACUDA_TRIALS_HUD = 931;
-	public static final int WIDGET_BT_HUD = 3;
-	public static final int WIDGET_RUM_PROGRESS = 24;
-	public static final int WIDGET_CRATE_PROGRESS = 25;
+	// Constants - Widget IDs (kept for backwards compatibility, prefer using InterfaceID.SailingBtHud directly)
+	public static final int BARRACUDA_TRIALS_HUD = InterfaceID.SAILING_BT_HUD;
 
 	// Constants - NPC IDs
-	public static final int LIGHTNING_CLOUD_IDLE = 15490;
-	public static final int LIGHTNING_CLOUD_ATTACKING = 15491;
+	public static final int LIGHTNING_CLOUD_IDLE = NpcID.SAILING_SEA_STORMY_CLOUD;
+	public static final int LIGHTNING_CLOUD_ATTACKING = NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE;
 
 	// Constants - Animations
 	public static final int CLOUD_ANIM_HARMLESS = -1;
@@ -37,10 +37,10 @@ public class State
 	public static final int PATH_RECALC_INTERVAL = 2;
 
 	// Constants - Object IDs
-	public static final int RUM_RETURN_BASE_OBJECT_ID = 59237;
-	public static final int RUM_RETURN_IMPOSTOR_ID = 59239;
-	public static final int RUM_PICKUP_BASE_OBJECT_ID = 59240;
-	public static final int RUM_PICKUP_IMPOSTOR_ID = 59242;
+	public static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available
+	public static final int RUM_RETURN_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
+	public static final int RUM_PICKUP_BASE_OBJECT_ID = 59240; // No constant available
+	public static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
 
 	// Constants - Offsets
 	public static final int PICKUP_OFFSET_X = 24;
@@ -81,10 +81,10 @@ public class State
 	private int rumsNeeded = 0;
 
 	@Getter @Setter
-	private int cratesCollected = 0;
+	private int lostSuppliesCollected = 0;
 
 	@Getter @Setter
-	private int cratesTotal = 0;
+	private int lostSuppliesTotal = 0;
 
 	@Getter @Setter
 	private int previousRumCount = 0;
@@ -182,8 +182,8 @@ public class State
 		rumReturnLocation = null;
 		rumsCollected = 0;
 		rumsNeeded = 0;
-		cratesCollected = 0;
-		cratesTotal = 0;
+		lostSuppliesCollected = 0;
+		lostSuppliesTotal = 0;
 		previousRumCount = 0;
 		hasRumOnUs = false;
 		boatLocation = null;

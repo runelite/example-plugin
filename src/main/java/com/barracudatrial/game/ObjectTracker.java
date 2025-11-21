@@ -3,6 +3,8 @@ package com.barracudatrial.game;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.NpcID;
+import net.runelite.api.gameval.ObjectID;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,24 +20,25 @@ public class ObjectTracker
 	private final State state;
 	private final SceneScanner sceneScanner;
 
-	private static final int LIGHTNING_CLOUD_IDLE = 15490;
-	private static final int LIGHTNING_CLOUD_ATTACKING = 15491;
+	private static final int LIGHTNING_CLOUD_IDLE = NpcID.SAILING_SEA_STORMY_CLOUD;
+	private static final int LIGHTNING_CLOUD_ATTACKING = NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE;
 
 	// Lost supplies use a multiloc/impostor system: the active impostor (59244) indicates collectible state
+	// Most IDs don't have constants, only 59244 has ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES
 	private static final Set<Integer> LOST_SUPPLIES_BASE_IDS = Set.of(
-		59240, 59241, 59242, 59243, 59244, 59245, 59246, 59247, 59248, 59249,
+		59240, 59241, 59242, 59243, ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES, 59245, 59246, 59247, 59248, 59249,
 		59250, 59251, 59252, 59253, 59254, 59255, 59256, 59257, 59258, 59259, 59260,
 		59261, 59262, 59263, 59264, 59265, 59266, 59267, 59268, 59269, 59270
 	);
-	private static final int LOST_SUPPLIES_IMPOSTOR_ID = 59244;
+	private static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
 
+	// Most rock IDs don't have constants available
 	private static final Set<Integer> ROCK_IDS = Set.of(
 		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444, 60453
 	);
 
-	// 2x speed boost
 	private static final Set<Integer> SPEED_BOOST_IDS = Set.of(
-		60352
+		ObjectID.SAILING_RAPIDS_STRONG
 	);
 
 	public ObjectTracker(Client client, State state, SceneScanner sceneScanner)

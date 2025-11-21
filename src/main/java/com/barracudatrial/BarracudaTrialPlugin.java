@@ -189,9 +189,9 @@ public class BarracudaTrialPlugin extends Plugin
 		return locationManager.getPathfindingDropoffLocation();
 	}
 
-	public int getCratesRemaining()
+	public int getLostSuppliesRemaining()
 	{
-		return gameState.getCratesTotal() - gameState.getCratesCollected();
+		return gameState.getlostSuppliesTotal() - gameState.getLostSuppliesCollected();
 	}
 
 	public boolean isPointInExclusionZone(WorldPoint point)
