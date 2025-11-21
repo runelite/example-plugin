@@ -14,7 +14,6 @@ public class ProgressTracker
 	private final Client client;
 	private final State state;
 
-	// Widget IDs
 	private static final int BARRACUDA_TRIALS_HUD = 931;
 	private static final int WIDGET_BT_HUD = 3;
 	private static final int WIDGET_RUM_PROGRESS = 24;
@@ -30,22 +29,21 @@ public class ProgressTracker
 	 * Checks if the player is in the trial area by checking HUD widget visibility
 	 * @return true if trial area state changed
 	 */
-	public boolean checkTrialArea()
+	public boolean checkIfPlayerIsInTrialArea()
 	{
-		// Check if Barracuda Trial HUD widget is visible
-		Widget hudWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_BT_HUD);
+		Widget barracudaTrialHudWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_BT_HUD);
 
-		boolean wasInTrialArea = state.isInTrialArea();
-		boolean nowInTrialArea = hudWidget != null && !hudWidget.isHidden();
+		boolean wasInTrialAreaBefore = state.isInTrialArea();
+		boolean isInTrialAreaNow = barracudaTrialHudWidget != null && !barracudaTrialHudWidget.isHidden();
 
-		state.setInTrialArea(nowInTrialArea);
+		state.setInTrialArea(isInTrialAreaNow);
 
-		if (!wasInTrialArea && nowInTrialArea)
+		if (!wasInTrialAreaBefore && isInTrialAreaNow)
 		{
 			log.debug("Entered Barracuda Trial");
 			return true;
 		}
-		else if (wasInTrialArea && !nowInTrialArea)
+		else if (wasInTrialAreaBefore && !isInTrialAreaNow)
 		{
 			log.debug("Left Barracuda Trial");
 			return true;
@@ -59,62 +57,53 @@ public class ProgressTracker
 	 * Detects difficulty changes and triggers state reset when needed
 	 * @return true if rum count increased
 	 */
-	public boolean updateTrialProgress()
+	public boolean updateTrialProgressFromWidgets()
 	{
 		if (!state.isInTrialArea())
 		{
 			return false;
 		}
 
-		// Parse rum progress widget (format: "0 / 1")
-		Widget rumWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_RUM_PROGRESS);
-		if (rumWidget != null && !rumWidget.isHidden())
+		Widget rumProgressWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_RUM_PROGRESS);
+		if (rumProgressWidget != null && !rumProgressWidget.isHidden())
 		{
-			String rumText = rumWidget.getText();
-			parseRumProgress(rumText);
+			String rumProgressText = rumProgressWidget.getText();
+			parseRumProgressText(rumProgressText);
 		}
 
-		// Parse crate progress widget
-		Widget crateWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_CRATE_PROGRESS);
-		if (crateWidget != null && !crateWidget.isHidden())
+		Widget crateProgressWidget = client.getWidget(BARRACUDA_TRIALS_HUD, WIDGET_CRATE_PROGRESS);
+		if (crateProgressWidget != null && !crateProgressWidget.isHidden())
 		{
-			String crateText = crateWidget.getText();
-			parseCrateProgress(crateText);
+			String crateProgressText = crateProgressWidget.getText();
+			parseCrateProgressText(crateProgressText);
 		}
 
-		// Detect difficulty change - clear persistent storage if rumsNeeded changes
 		if (state.getLastKnownDifficulty() > 0 && state.getRumsNeeded() > 0
 			&& state.getRumsNeeded() != state.getLastKnownDifficulty())
 		{
 			log.info("Difficulty changed from {} to {} rums - clearing persistent storage",
 				state.getLastKnownDifficulty(), state.getRumsNeeded());
 			state.clearPersistentStorage();
-			state.setCurrentLap(0); // Reset lap counter
+			state.setCurrentLap(0);
 		}
 		state.setLastKnownDifficulty(state.getRumsNeeded());
 
-		// Detect when rum count increases - need to return rum to north
-		boolean rumCountIncreased = false;
-		if (state.getRumsCollected() > state.getLastRumCount())
+		boolean didRumCountIncrease = false;
+		if (state.getRumsCollected() > state.getPreviousRumCount())
 		{
 			log.debug("Rum collected! Need to return to north");
-			rumCountIncreased = true;
+			didRumCountIncrease = true;
 		}
-		state.setLastRumCount(state.getRumsCollected());
+		state.setPreviousRumCount(state.getRumsCollected());
 
-		return rumCountIncreased;
+		return didRumCountIncrease;
 	}
 
-	/**
-	 * Parses rum progress widget text
-	 * Format: "0 / 1" (collected / needed)
-	 */
-	private void parseRumProgress(String text)
+	private void parseRumProgressText(String rumProgressText)
 	{
-		// Format: "0 / 1"
 		try
 		{
-			String[] parts = text.split("/");
+			String[] parts = rumProgressText.split("/");
 			if (parts.length == 2)
 			{
 				state.setRumsCollected(Integer.parseInt(parts[0].trim()));
@@ -123,20 +112,15 @@ public class ProgressTracker
 		}
 		catch (NumberFormatException e)
 		{
-			log.debug("Failed to parse rum progress: {}", text);
+			log.debug("Failed to parse rum progress: {}", rumProgressText);
 		}
 	}
 
-	/**
-	 * Parses crate progress widget text
-	 * Format: "2 / 14" (collected / total)
-	 */
-	private void parseCrateProgress(String text)
+	private void parseCrateProgressText(String crateProgressText)
 	{
-		// Format: "2 / 14" (collected / total)
 		try
 		{
-			String[] parts = text.split("/");
+			String[] parts = crateProgressText.split("/");
 			if (parts.length == 2)
 			{
 				state.setCratesCollected(Integer.parseInt(parts[0].trim()));
@@ -145,14 +129,11 @@ public class ProgressTracker
 		}
 		catch (NumberFormatException e)
 		{
-			log.debug("Failed to parse crate progress: {}", text);
+			log.debug("Failed to parse crate progress: {}", crateProgressText);
 		}
 	}
 
-	/**
-	 * Returns the number of crates still remaining to collect
-	 */
-	public int getCratesRemaining()
+	public int calculateRemainingCrates()
 	{
 		return state.getCratesTotal() - state.getCratesCollected();
 	}

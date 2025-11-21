@@ -14,24 +14,22 @@ public class LocationManager implements PathPlanner.LocationHelper
 	private final State state;
 	private final SceneScanner sceneScanner;
 
-	// Rum object IDs
 	private static final int RUM_RETURN_BASE_OBJECT_ID = 59237;
 	private static final int RUM_RETURN_IMPOSTOR_ID = 59239;
 	private static final int RUM_PICKUP_BASE_OBJECT_ID = 59240;
 	private static final int RUM_PICKUP_IMPOSTOR_ID = 59242;
 
-	// Location offsets (constant across all trials)
 	private static final int PICKUP_OFFSET_X = 24;
 	private static final int PICKUP_OFFSET_Y = -128;
 
-	// Exclusion zone offsets (the center island area we circle around)
 	private static final int EXCLUSION_MIN_X_OFFSET = 47;
 	private static final int EXCLUSION_MAX_X_OFFSET = 102;
 	private static final int EXCLUSION_MIN_Y_OFFSET = -51;
 	private static final int EXCLUSION_MAX_Y_OFFSET = 12;
 
-	// Pathfinding offsets (actual pickup/dropoff are impassable)
+	// Actual pickup is impassable, so we target 2 tiles north
 	private static final int PATHFINDING_PICKUP_OFFSET_Y = 2;
+	// Actual dropoff is impassable, so we target 2 tiles south
 	private static final int PATHFINDING_DROPOFF_OFFSET_Y = -2;
 
 	public LocationManager(Client client, State state, SceneScanner sceneScanner)
@@ -45,21 +43,17 @@ public class LocationManager implements PathPlanner.LocationHelper
 	 * Updates rum locations by searching WorldEntity scenes
 	 * Should be called every game tick while in trial area
 	 */
-	public void updateRumObjects()
+	public void updateRumLocations()
 	{
 		if (!state.isInTrialArea())
 		{
 			return;
 		}
 
-		updateRumLocationsBySearch();
+		searchForRumLocationsInWorldEntities();
 	}
 
-	/**
-	 * Searches for both rum location objects (return and pickup) in WorldEntity scenes
-	 * Updates both locations when found
-	 */
-	private void updateRumLocationsBySearch()
+	private void searchForRumLocationsInWorldEntities()
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -67,7 +61,6 @@ public class LocationManager implements PathPlanner.LocationHelper
 			return;
 		}
 
-		// Rum objects are on WorldEntity boats, so only check those
 		Player localPlayer = client.getLocalPlayer();
 		if (localPlayer == null || localPlayer.getWorldView() == null)
 		{
@@ -93,40 +86,35 @@ public class LocationManager implements PathPlanner.LocationHelper
 				continue;
 			}
 
-			// Scan this WorldEntity scene for rum locations
-			scanSceneForRumLocations(entityScene);
+			scanSceneForRumReturnAndPickupLocations(entityScene);
 		}
 	}
 
-	/**
-	 * Scans a scene for rum location objects (base ID 59237 or 59240)
-	 * Updates rumReturnLocation and rumPickupLocation when found
-	 */
-	private void scanSceneForRumLocations(Scene scene)
+	private void scanSceneForRumReturnAndPickupLocations(Scene scene)
 	{
-		Tile[][][] tiles = scene.getTiles();
-		if (tiles == null)
+		Tile[][][] tileArray = scene.getTiles();
+		if (tileArray == null)
 		{
 			return;
 		}
 
-		for (int plane = 0; plane < tiles.length; plane++)
+		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
 		{
-			if (tiles[plane] == null)
+			if (tileArray[planeIndex] == null)
 			{
 				continue;
 			}
 
-			for (int x = 0; x < tiles[plane].length; x++)
+			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
 			{
-				if (tiles[plane][x] == null)
+				if (tileArray[planeIndex][xIndex] == null)
 				{
 					continue;
 				}
 
-				for (int y = 0; y < tiles[plane][x].length; y++)
+				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
 				{
-					Tile tile = tiles[plane][x][y];
+					Tile tile = tileArray[planeIndex][xIndex][yIndex];
 					if (tile == null)
 					{
 						continue;
@@ -140,67 +128,62 @@ public class LocationManager implements PathPlanner.LocationHelper
 						}
 
 						int objectId = gameObject.getId();
-						boolean isReturn = false;
-						boolean isPickup = false;
+						boolean isRumReturnObject = false;
+						boolean isRumPickupObject = false;
 
-						// Check base IDs
 						if (objectId == RUM_RETURN_BASE_OBJECT_ID)
 						{
-							isReturn = true;
+							isRumReturnObject = true;
 						}
 						else if (objectId == RUM_PICKUP_BASE_OBJECT_ID)
 						{
-							isPickup = true;
+							isRumPickupObject = true;
 						}
 
-						// Check impostor IDs
-						if (!isReturn && !isPickup)
+						if (!isRumReturnObject && !isRumPickupObject)
 						{
 							try
 							{
-								ObjectComposition comp = client.getObjectDefinition(objectId);
-								if (comp != null)
+								ObjectComposition objectComposition = client.getObjectDefinition(objectId);
+								if (objectComposition != null)
 								{
-									ObjectComposition impostor = comp.getImpostor();
-									if (impostor != null)
+									ObjectComposition activeImpostor = objectComposition.getImpostor();
+									if (activeImpostor != null)
 									{
-										int impostorId = impostor.getId();
+										int impostorId = activeImpostor.getId();
 										if (impostorId == RUM_RETURN_IMPOSTOR_ID)
 										{
-											isReturn = true;
+											isRumReturnObject = true;
 										}
 										else if (impostorId == RUM_PICKUP_IMPOSTOR_ID)
 										{
-											isPickup = true;
+											isRumPickupObject = true;
 										}
 									}
 								}
 							}
 							catch (Exception e)
 							{
-								// Ignore impostor check failures
 							}
 						}
 
-						// Update locations when found
-						if (isReturn)
+						if (isRumReturnObject)
 						{
-							WorldPoint newLocation = gameObject.getWorldLocation();
-							if (state.getRumReturnLocation() == null || !state.getRumReturnLocation().equals(newLocation))
+							WorldPoint rumReturnWorldLocation = gameObject.getWorldLocation();
+							if (state.getRumReturnLocation() == null || !state.getRumReturnLocation().equals(rumReturnWorldLocation))
 							{
-								state.setRumReturnLocation(newLocation);
-								log.info("Found rum return location: {}", newLocation);
-								// Calculate exclusion zone from return location
-								calculateExclusionZone(newLocation);
+								state.setRumReturnLocation(rumReturnWorldLocation);
+								log.info("Found rum return location: {}", rumReturnWorldLocation);
+								calculateExclusionZoneBounds(rumReturnWorldLocation);
 							}
 						}
-						else if (isPickup)
+						else if (isRumPickupObject)
 						{
-							WorldPoint newLocation = gameObject.getWorldLocation();
-							if (state.getRumPickupLocation() == null || !state.getRumPickupLocation().equals(newLocation))
+							WorldPoint rumPickupWorldLocation = gameObject.getWorldLocation();
+							if (state.getRumPickupLocation() == null || !state.getRumPickupLocation().equals(rumPickupWorldLocation))
 							{
-								state.setRumPickupLocation(newLocation);
-								log.info("Found rum pickup location: {}", newLocation);
+								state.setRumPickupLocation(rumPickupWorldLocation);
+								log.info("Found rum pickup location: {}", rumPickupWorldLocation);
 							}
 						}
 					}
@@ -215,37 +198,33 @@ public class LocationManager implements PathPlanner.LocationHelper
 	 */
 	public void initializeTrialLocations()
 	{
-		// Scan the scene for rum return object (ID 59239)
-		// Everything else is calculated relative to this anchor point
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			log.debug("Cannot initialize trial locations - no world view");
 			return;
 		}
 
-		Scene scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
 			log.debug("Cannot initialize trial locations - no scene");
 			return;
 		}
 
-		// Scan for rum locations (return base 59237/impostor 59239, pickup base 59240/impostor 59242)
-		updateRumLocationsBySearch();
+		searchForRumLocationsInWorldEntities();
 	}
 
 	/**
 	 * Calculates exclusion zone boundaries from rum return location
 	 * The exclusion zone is the center island area we circle around
 	 */
-	private void calculateExclusionZone(WorldPoint rumReturnLoc)
+	private void calculateExclusionZoneBounds(WorldPoint rumReturnWorldLocation)
 	{
-		// Calculate exclusion zone boundaries relative to return location
-		int exclusionZoneMinX = rumReturnLoc.getX() + EXCLUSION_MIN_X_OFFSET;
-		int exclusionZoneMaxX = rumReturnLoc.getX() + EXCLUSION_MAX_X_OFFSET;
-		int exclusionZoneMinY = rumReturnLoc.getY() + EXCLUSION_MIN_Y_OFFSET;
-		int exclusionZoneMaxY = rumReturnLoc.getY() + EXCLUSION_MAX_Y_OFFSET;
+		int exclusionZoneMinX = rumReturnWorldLocation.getX() + EXCLUSION_MIN_X_OFFSET;
+		int exclusionZoneMaxX = rumReturnWorldLocation.getX() + EXCLUSION_MAX_X_OFFSET;
+		int exclusionZoneMinY = rumReturnWorldLocation.getY() + EXCLUSION_MIN_Y_OFFSET;
+		int exclusionZoneMaxY = rumReturnWorldLocation.getY() + EXCLUSION_MAX_Y_OFFSET;
 
 		state.setExclusionZoneMinX(exclusionZoneMinX);
 		state.setExclusionZoneMaxX(exclusionZoneMaxX);
@@ -260,71 +239,63 @@ public class LocationManager implements PathPlanner.LocationHelper
 	 * Checks if a point is inside the center exclusion zone
 	 * We want to path AROUND this area, never through it
 	 */
-	public boolean isInExclusionZone(WorldPoint point)
+	public boolean isPointInsideExclusionZone(WorldPoint worldPoint)
 	{
-		return point.getX() >= state.getExclusionZoneMinX()
-			&& point.getX() <= state.getExclusionZoneMaxX()
-			&& point.getY() >= state.getExclusionZoneMinY()
-			&& point.getY() <= state.getExclusionZoneMaxY();
+		return worldPoint.getX() >= state.getExclusionZoneMinX()
+			&& worldPoint.getX() <= state.getExclusionZoneMaxX()
+			&& worldPoint.getY() >= state.getExclusionZoneMinY()
+			&& worldPoint.getY() <= state.getExclusionZoneMaxY();
 	}
 
-	/**
-	 * Calculates the distance from a point to the nearest edge of the exclusion zone
-	 * Returns 0 if the point is inside the zone
-	 */
-	public double getDistanceToExclusionZone(WorldPoint point)
+	public double calculateDistanceFromPointToExclusionZone(WorldPoint worldPoint)
 	{
-		int x = point.getX();
-		int y = point.getY();
+		int pointX = worldPoint.getX();
+		int pointY = worldPoint.getY();
 
-		// If inside the zone, return 0
-		if (isInExclusionZone(point))
+		if (isPointInsideExclusionZone(worldPoint))
 		{
 			return 0;
 		}
 
-		// Calculate distance to nearest edge
-		double distanceX;
-		if (x < state.getExclusionZoneMinX())
+		double distanceToExclusionZoneInXDirection;
+		if (pointX < state.getExclusionZoneMinX())
 		{
-			distanceX = state.getExclusionZoneMinX() - x;
+			distanceToExclusionZoneInXDirection = state.getExclusionZoneMinX() - pointX;
 		}
-		else if (x > state.getExclusionZoneMaxX())
+		else if (pointX > state.getExclusionZoneMaxX())
 		{
-			distanceX = x - state.getExclusionZoneMaxX();
+			distanceToExclusionZoneInXDirection = pointX - state.getExclusionZoneMaxX();
 		}
 		else
 		{
-			distanceX = 0; // X is within the zone's X range
+			distanceToExclusionZoneInXDirection = 0;
 		}
 
-		double distanceY;
-		if (y < state.getExclusionZoneMinY())
+		double distanceToExclusionZoneInYDirection;
+		if (pointY < state.getExclusionZoneMinY())
 		{
-			distanceY = state.getExclusionZoneMinY() - y;
+			distanceToExclusionZoneInYDirection = state.getExclusionZoneMinY() - pointY;
 		}
-		else if (y > state.getExclusionZoneMaxY())
+		else if (pointY > state.getExclusionZoneMaxY())
 		{
-			distanceY = y - state.getExclusionZoneMaxY();
+			distanceToExclusionZoneInYDirection = pointY - state.getExclusionZoneMaxY();
 		}
 		else
 		{
-			distanceY = 0; // Y is within the zone's Y range
+			distanceToExclusionZoneInYDirection = 0;
 		}
 
-		// Return the minimum distance (edge distance, not diagonal)
-		if (distanceX == 0)
+		if (distanceToExclusionZoneInXDirection == 0)
 		{
-			return distanceY;
+			return distanceToExclusionZoneInYDirection;
 		}
-		else if (distanceY == 0)
+		else if (distanceToExclusionZoneInYDirection == 0)
 		{
-			return distanceX;
+			return distanceToExclusionZoneInXDirection;
 		}
 		else
 		{
-			// Point is diagonal to the zone - return Euclidean distance
-			return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+			return Math.sqrt(distanceToExclusionZoneInXDirection * distanceToExclusionZoneInXDirection + distanceToExclusionZoneInYDirection * distanceToExclusionZoneInYDirection);
 		}
 	}
 

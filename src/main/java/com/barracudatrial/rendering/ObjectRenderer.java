@@ -20,7 +20,7 @@ public class ObjectRenderer
 	private final BarracudaTrialConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<net.runelite.api.Point, Integer> labelCounts;
+	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
 
 	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -30,208 +30,199 @@ public class ObjectRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCounts)
+	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition)
 	{
-		this.labelCounts = labelCounts;
+		this.labelCountsByCanvasPosition = labelCountsByCanvasPosition;
 	}
 
 	public void renderLostSupplies(Graphics2D graphics)
 	{
-		for (GameObject supply : plugin.getLostSupplies())
+		for (GameObject lostSupplyObject : plugin.getLostSupplies())
 		{
-			String label = null;
+			String debugLabel = null;
 			if (config.showIDs())
 			{
-				label = getObjectLabelWithImpostor(supply, "Lost Supplies");
+				debugLabel = buildObjectLabelWithImpostorInfo(lostSupplyObject, "Lost Supplies");
 			}
-			renderGameObject(graphics, supply, config.lostSuppliesColor(), config.showLostSuppliesTile(), label);
+			renderGameObjectWithHighlight(graphics, lostSupplyObject, config.lostSuppliesColor(), config.showLostSuppliesTile(), debugLabel);
 		}
 	}
 
 	public void renderLightningClouds(Graphics2D graphics)
 	{
-		for (NPC cloud : plugin.getLightningClouds())
+		for (NPC cloudNpc : plugin.getLightningClouds())
 		{
-			int animation = cloud.getAnimation();
+			int currentAnimation = cloudNpc.getAnimation();
 
-			// Only render dangerous clouds
-			if (plugin.isCloudSafe(animation))
+			boolean isCloudSafe = plugin.isCloudSafe(currentAnimation);
+			if (isCloudSafe)
 			{
 				continue;
 			}
 
-			Color cloudColor = config.cloudColor();
+			Color dangerousCloudColor = config.cloudColor();
 
-			// Draw danger area for dangerous clouds
-			renderCloudDangerArea(graphics, cloud, cloudColor);
+			renderCloudDangerAreaOnGround(graphics, cloudNpc, dangerousCloudColor);
 
-			// Draw the cloud itself
-			String label = null;
+			String debugLabel = null;
 			if (config.showIDs())
 			{
-				label = String.format("Cloud (ID: %d, Anim: %d)", cloud.getId(), cloud.getAnimation());
+				debugLabel = String.format("Cloud (ID: %d, Anim: %d)", cloudNpc.getId(), cloudNpc.getAnimation());
 			}
-			renderNPC(graphics, cloud, cloudColor, true, label);
+			renderNpcWithHighlight(graphics, cloudNpc, dangerousCloudColor, true, debugLabel);
 		}
 	}
 
 	public void renderRocks(Graphics2D graphics)
 	{
-		for (GameObject rock : plugin.getRocks())
+		for (GameObject rockObject : plugin.getRocks())
 		{
-			String label = null;
+			String debugLabel = null;
 			if (config.showIDs())
 			{
-				label = getObjectLabelWithImpostor(rock, "Rock");
+				debugLabel = buildObjectLabelWithImpostorInfo(rockObject, "Rock");
 			}
-			renderGameObject(graphics, rock, config.rockColor(), true, label);
+			renderGameObjectWithHighlight(graphics, rockObject, config.rockColor(), true, debugLabel);
 		}
 	}
 
 	public void renderSpeedBoosts(Graphics2D graphics)
 	{
-		for (GameObject speedBoost : plugin.getSpeedBoosts())
+		for (GameObject speedBoostObject : plugin.getSpeedBoosts())
 		{
-			String label = null;
+			String debugLabel = null;
 			if (config.showIDs())
 			{
-				label = getObjectLabelWithImpostor(speedBoost, "Speed Boost");
+				debugLabel = buildObjectLabelWithImpostorInfo(speedBoostObject, "Speed Boost");
 			}
-			renderGameObject(graphics, speedBoost, config.speedBoostColor(), true, label);
+			renderGameObjectWithHighlight(graphics, speedBoostObject, config.speedBoostColor(), true, debugLabel);
 		}
 	}
 
 	public void renderRumLocations(Graphics2D graphics)
 	{
-		Color rumColor = config.rumLocationColor();
+		Color rumHighlightColor = config.rumLocationColor();
 
-		// Highlight the active rum location based on whether we're carrying rum
-		if (plugin.isHasRumOnUs())
+		boolean isCarryingRum = plugin.isHasRumOnUs();
+		if (isCarryingRum)
 		{
-			// Carrying rum - highlight dropoff location
-			WorldPoint returnLocation = plugin.getRumReturnLocation();
-			if (returnLocation != null)
+			WorldPoint rumDropoffLocation = plugin.getRumReturnLocation();
+			if (rumDropoffLocation != null)
 			{
-				renderRumLocation(graphics, returnLocation, rumColor);
+				renderRumLocationHighlight(graphics, rumDropoffLocation, rumHighlightColor);
 			}
 		}
 		else
 		{
-			// Not carrying rum - highlight pickup location
-			WorldPoint pickupLocation = plugin.getRumPickupLocation();
-			if (pickupLocation != null)
+			WorldPoint rumPickupLocation = plugin.getRumPickupLocation();
+			if (rumPickupLocation != null)
 			{
-				renderRumLocation(graphics, pickupLocation, rumColor);
+				renderRumLocationHighlight(graphics, rumPickupLocation, rumHighlightColor);
 			}
 		}
 	}
 
-	private void renderRumLocation(Graphics2D graphics, WorldPoint rumLocation, Color rumColor)
+	private void renderRumLocationHighlight(Graphics2D graphics, WorldPoint rumLocationPoint, Color highlightColor)
 	{
-		GameObject rumObject = findGameObjectAt(rumLocation);
-		if (rumObject != null)
+		GameObject rumObjectAtLocation = findGameObjectAtWorldPoint(rumLocationPoint);
+		if (rumObjectAtLocation != null)
 		{
-			renderGameObject(graphics, rumObject, rumColor, true, null);
+			renderGameObjectWithHighlight(graphics, rumObjectAtLocation, highlightColor, true, null);
 		}
 		else
 		{
-			// Fallback: highlight just the tile if object not found
-			renderTileAtWorldPoint(graphics, rumLocation, rumColor);
+			renderTileHighlightAtWorldPoint(graphics, rumLocationPoint, highlightColor);
 		}
 	}
 
-	private void renderGameObject(Graphics2D graphics, GameObject gameObject, Color color, boolean showTile, String label)
+	private void renderGameObjectWithHighlight(Graphics2D graphics, GameObject gameObject, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
 	{
-		LocalPoint localPoint = gameObject.getLocalLocation();
-		if (localPoint == null)
+		LocalPoint objectLocalPoint = gameObject.getLocalLocation();
+		if (objectLocalPoint == null)
 		{
 			return;
 		}
 
-		// Highlight tile
-		if (showTile)
+		if (shouldHighlightTile)
 		{
-			Polygon poly = Perspective.getCanvasTilePoly(client, localPoint);
-			if (poly != null)
+			Polygon tilePolygon = Perspective.getCanvasTilePoly(client, objectLocalPoint);
+			if (tilePolygon != null)
 			{
-				OverlayUtil.renderPolygon(graphics, poly, color);
+				OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
 			}
 		}
 
-		// Highlight model
-		modelOutlineRenderer.drawOutline(gameObject, 2, color, 4);
+		modelOutlineRenderer.drawOutline(gameObject, 2, highlightColor, 4);
 
-		// Draw label
-		if (label != null)
+		if (debugLabel != null)
 		{
-			renderLabelAtLocalPoint(graphics, localPoint, label, color, 0);
+			renderLabelAtLocalPoint(graphics, objectLocalPoint, debugLabel, highlightColor, 0);
 		}
 	}
 
-	private void renderNPC(Graphics2D graphics, NPC npc, Color color, boolean showTile, String label)
+	private void renderNpcWithHighlight(Graphics2D graphics, NPC npc, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
 	{
-		LocalPoint localPoint = npc.getLocalLocation();
-		if (localPoint == null)
+		LocalPoint npcLocalPoint = npc.getLocalLocation();
+		if (npcLocalPoint == null)
 		{
 			return;
 		}
 
-		// Highlight tile
-		if (showTile)
+		if (shouldHighlightTile)
 		{
-			Polygon poly = Perspective.getCanvasTilePoly(client, localPoint);
-			if (poly != null)
+			Polygon tilePolygon = Perspective.getCanvasTilePoly(client, npcLocalPoint);
+			if (tilePolygon != null)
 			{
-				OverlayUtil.renderPolygon(graphics, poly, color);
+				OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
 			}
 		}
 
-		// Highlight model
-		modelOutlineRenderer.drawOutline(npc, 2, color, 4);
+		modelOutlineRenderer.drawOutline(npc, 2, highlightColor, 4);
 
-		// Draw label
-		if (label != null)
+		if (debugLabel != null)
 		{
-			renderLabelAtLocalPoint(graphics, localPoint, label, color, npc.getLogicalHeight() + 40);
+			int heightOffsetAboveNpc = npc.getLogicalHeight() + 40;
+			renderLabelAtLocalPoint(graphics, npcLocalPoint, debugLabel, highlightColor, heightOffsetAboveNpc);
 		}
 	}
 
-	private void renderCloudDangerArea(Graphics2D graphics, NPC npc, Color color)
+	private void renderCloudDangerAreaOnGround(Graphics2D graphics, NPC cloudNpc, Color dangerAreaColor)
 	{
-		LocalPoint center = npc.getLocalLocation();
-		if (center == null)
+		LocalPoint cloudCenterPoint = cloudNpc.getLocalLocation();
+		if (cloudCenterPoint == null)
 		{
 			return;
 		}
 
-		int radius = config.cloudDangerRadius();
+		int dangerRadiusInTiles = config.cloudDangerRadius();
 
-		for (int dx = -radius; dx <= radius; dx++)
+		for (int dx = -dangerRadiusInTiles; dx <= dangerRadiusInTiles; dx++)
 		{
-			for (int dy = -radius; dy <= radius; dy++)
+			for (int dy = -dangerRadiusInTiles; dy <= dangerRadiusInTiles; dy++)
 			{
-				if (dx * dx + dy * dy <= radius * radius)
+				boolean isTileWithinCircle = (dx * dx + dy * dy <= dangerRadiusInTiles * dangerRadiusInTiles);
+				if (isTileWithinCircle)
 				{
-					LocalPoint point = new LocalPoint(
-						center.getX() + dx * Perspective.LOCAL_TILE_SIZE,
-						center.getY() + dy * Perspective.LOCAL_TILE_SIZE
+					LocalPoint tilePoint = new LocalPoint(
+						cloudCenterPoint.getX() + dx * Perspective.LOCAL_TILE_SIZE,
+						cloudCenterPoint.getY() + dy * Perspective.LOCAL_TILE_SIZE
 					);
 
-					Polygon poly = Perspective.getCanvasTilePoly(client, point);
-					if (poly != null)
+					Polygon tilePolygon = Perspective.getCanvasTilePoly(client, tilePoint);
+					if (tilePolygon != null)
 					{
-						Color areaColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 30);
-						graphics.setColor(areaColor);
-						graphics.fill(poly);
-						graphics.setColor(color);
-						graphics.draw(poly);
+						Color transparentFillColor = new Color(dangerAreaColor.getRed(), dangerAreaColor.getGreen(), dangerAreaColor.getBlue(), 30);
+						graphics.setColor(transparentFillColor);
+						graphics.fill(tilePolygon);
+						graphics.setColor(dangerAreaColor);
+						graphics.draw(tilePolygon);
 					}
 				}
 			}
 		}
 	}
 
-	private void renderTileAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color color)
+	private void renderTileHighlightAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color highlightColor)
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -239,110 +230,109 @@ public class ObjectRenderer
 			return;
 		}
 
-		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
-		if (localPoint == null)
+		LocalPoint tileLocalPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
+		if (tileLocalPoint == null)
 		{
 			return;
 		}
 
-		Polygon poly = Perspective.getCanvasTilePoly(client, localPoint);
-		if (poly != null)
+		Polygon tilePolygon = Perspective.getCanvasTilePoly(client, tileLocalPoint);
+		if (tilePolygon != null)
 		{
-			OverlayUtil.renderPolygon(graphics, poly, color);
+			OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
 		}
 	}
 
-	private void renderLabelAtLocalPoint(Graphics2D graphics, LocalPoint localPoint, String label, Color color, int heightOffset)
+	private void renderLabelAtLocalPoint(Graphics2D graphics, LocalPoint localPoint, String labelText, Color labelColor, int heightOffsetInPixels)
 	{
-		net.runelite.api.Point textPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, label, heightOffset);
-		if (textPoint != null)
+		net.runelite.api.Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, labelText, heightOffsetInPixels);
+		if (labelCanvasPoint != null)
 		{
-			int yOffset = getAndIncrementLabelOffset(textPoint);
-			net.runelite.api.Point offsetPoint = new net.runelite.api.Point(textPoint.getX(), textPoint.getY() + yOffset);
-			OverlayUtil.renderTextLocation(graphics, offsetPoint, label, color);
+			int yOffsetToAvoidLabelOverlap = calculateAndIncrementLabelOffset(labelCanvasPoint);
+			net.runelite.api.Point adjustedCanvasPoint = new net.runelite.api.Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
+			OverlayUtil.renderTextLocation(graphics, adjustedCanvasPoint, labelText, labelColor);
 		}
 	}
 
-	private int getAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
+	private int calculateAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
 	{
-		// Round position to nearest 10 pixels to group nearby labels
-		net.runelite.api.Point roundedPoint = new net.runelite.api.Point(
+		net.runelite.api.Point roundedCanvasPoint = new net.runelite.api.Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);
 
-		int count = labelCounts.getOrDefault(roundedPoint, 0);
-		labelCounts.put(roundedPoint, count + 1);
+		int existingLabelCount = labelCountsByCanvasPosition.getOrDefault(roundedCanvasPoint, 0);
+		labelCountsByCanvasPosition.put(roundedCanvasPoint, existingLabelCount + 1);
 
-		// 15 pixels per label to prevent overlap
-		return count * 15;
+		int pixelsPerLabel = 15;
+		return existingLabelCount * pixelsPerLabel;
 	}
 
-	private String getObjectLabelWithImpostor(GameObject obj, String typeName)
+	private String buildObjectLabelWithImpostorInfo(GameObject gameObject, String typeName)
 	{
-		ObjectComposition comp = client.getObjectDefinition(obj.getId());
+		ObjectComposition objectComposition = client.getObjectDefinition(gameObject.getId());
 
-		String name;
+		String displayName;
 		if (typeName != null)
 		{
-			name = typeName;
+			displayName = typeName;
 		}
-		else if (comp != null && comp.getName() != null)
+		else if (objectComposition != null && objectComposition.getName() != null)
 		{
-			name = comp.getName();
+			displayName = objectComposition.getName();
 		}
 		else
 		{
-			name = "Unknown";
+			displayName = "Unknown";
 		}
 
-		StringBuilder label = new StringBuilder();
-		label.append(name).append(" (ID: ").append(obj.getId());
+		StringBuilder labelBuilder = new StringBuilder();
+		labelBuilder.append(displayName).append(" (ID: ").append(gameObject.getId());
 
-		if (comp != null)
+		if (objectComposition != null)
 		{
-			int[] impostorIds = comp.getImpostorIds();
-			if (impostorIds != null && impostorIds.length > 0)
+			int[] impostorIds = objectComposition.getImpostorIds();
+			boolean hasImpostorIds = (impostorIds != null && impostorIds.length > 0);
+			if (hasImpostorIds)
 			{
-				ObjectComposition impostor = comp.getImpostor();
-				if (impostor != null)
+				ObjectComposition impostorComposition = objectComposition.getImpostor();
+				if (impostorComposition != null)
 				{
-					label.append(", Imp: ").append(impostor.getId());
+					labelBuilder.append(", Imp: ").append(impostorComposition.getId());
 				}
 			}
 		}
 
-		label.append(")");
-		return label.toString();
+		labelBuilder.append(")");
+		return labelBuilder.toString();
 	}
 
-	private GameObject findGameObjectAt(WorldPoint worldPoint)
+	private GameObject findGameObjectAtWorldPoint(WorldPoint worldPoint)
 	{
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			return null;
 		}
 
-		var scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
 			return null;
 		}
 
-		LocalPoint localPoint = LocalPoint.fromWorld(worldView, worldPoint);
+		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
 		if (localPoint == null)
 		{
 			return null;
 		}
 
-		var tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+		Tile tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
 		if (tile == null)
 		{
 			return null;
 		}
 
-		// Return first non-null GameObject on tile
 		for (GameObject gameObject : tile.getGameObjects())
 		{
 			if (gameObject != null)

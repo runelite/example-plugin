@@ -24,27 +24,24 @@ public class SceneScanner
 	 */
 	public List<GameObject> scanForGameObjects(Predicate<GameObject> filter)
 	{
-		List<GameObject> results = new ArrayList<>();
+		List<GameObject> matchingGameObjects = new ArrayList<>();
 
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
-			return results;
+			return matchingGameObjects;
 		}
 
-		Scene scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
-			return results;
+			return matchingGameObjects;
 		}
 
-		// Scan regular tiles
-		scanTileArray(scene.getTiles(), filter, results);
+		scanTileArrayForGameObjects(scene.getTiles(), filter, matchingGameObjects);
+		scanTileArrayForGameObjects(scene.getExtendedTiles(), filter, matchingGameObjects);
 
-		// Scan extended tiles
-		scanTileArray(scene.getExtendedTiles(), filter, results);
-
-		return results;
+		return matchingGameObjects;
 	}
 
 	/**
@@ -52,52 +49,49 @@ public class SceneScanner
 	 */
 	public List<NPC> scanForNPCs(Predicate<NPC> filter)
 	{
-		List<NPC> results = new ArrayList<>();
+		List<NPC> matchingNPCs = new ArrayList<>();
 
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
-			return results;
+			return matchingNPCs;
 		}
 
-		for (NPC npc : worldView.npcs())
+		for (NPC npc : topLevelWorldView.npcs())
 		{
 			if (npc != null && filter.test(npc))
 			{
-				results.add(npc);
+				matchingNPCs.add(npc);
 			}
 		}
 
-		return results;
+		return matchingNPCs;
 	}
 
-	/**
-	 * Helper to scan a tile array for GameObjects
-	 */
-	private void scanTileArray(Tile[][][] tiles, Predicate<GameObject> filter, List<GameObject> results)
+	private void scanTileArrayForGameObjects(Tile[][][] tileArray, Predicate<GameObject> filter, List<GameObject> matchingGameObjects)
 	{
-		if (tiles == null)
+		if (tileArray == null)
 		{
 			return;
 		}
 
-		for (int plane = 0; plane < tiles.length; plane++)
+		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
 		{
-			if (tiles[plane] == null)
+			if (tileArray[planeIndex] == null)
 			{
 				continue;
 			}
 
-			for (int x = 0; x < tiles[plane].length; x++)
+			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
 			{
-				if (tiles[plane][x] == null)
+				if (tileArray[planeIndex][xIndex] == null)
 				{
 					continue;
 				}
 
-				for (int y = 0; y < tiles[plane][x].length; y++)
+				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
 				{
-					Tile tile = tiles[plane][x][y];
+					Tile tile = tileArray[planeIndex][xIndex][yIndex];
 					if (tile == null)
 					{
 						continue;
@@ -107,7 +101,7 @@ public class SceneScanner
 					{
 						if (gameObject != null && filter.test(gameObject))
 						{
-							results.add(gameObject);
+							matchingGameObjects.add(gameObject);
 						}
 					}
 				}
@@ -118,39 +112,38 @@ public class SceneScanner
 	/**
 	 * Finds a GameObject at a specific WorldPoint
 	 */
-	public GameObject findGameObjectAt(WorldPoint worldPoint)
+	public GameObject findGameObjectAtWorldPoint(WorldPoint worldPoint)
 	{
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			return null;
 		}
 
-		Scene scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
 			return null;
 		}
 
-		net.runelite.api.coords.LocalPoint localPoint = net.runelite.api.coords.LocalPoint.fromWorld(worldView, worldPoint);
+		net.runelite.api.coords.LocalPoint localPoint = net.runelite.api.coords.LocalPoint.fromWorld(topLevelWorldView, worldPoint);
 		if (localPoint == null)
 		{
 			return null;
 		}
 
-		Tile[][][] tiles = scene.getTiles();
-		if (tiles == null || worldPoint.getPlane() >= tiles.length)
+		Tile[][][] tileArray = scene.getTiles();
+		if (tileArray == null || worldPoint.getPlane() >= tileArray.length)
 		{
 			return null;
 		}
 
-		Tile tile = tiles[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+		Tile tile = tileArray[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
 		if (tile == null)
 		{
 			return null;
 		}
 
-		// Return first non-null GameObject
 		for (GameObject gameObject : tile.getGameObjects())
 		{
 			if (gameObject != null)

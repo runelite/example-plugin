@@ -35,10 +35,8 @@ public class BarracudaTrialPlugin extends Plugin
 	@Inject
 	private BarracudaTrialOverlay overlay;
 
-	// State holder
-	private final State state = new State();
+	private final State gameState = new State();
 
-	// Helper classes
 	private SceneScanner sceneScanner;
 	private ObjectTracker objectTracker;
 	private LocationManager locationManager;
@@ -51,12 +49,11 @@ public class BarracudaTrialPlugin extends Plugin
 		log.info("Barracuda Trial plugin started!");
 		overlayManager.add(overlay);
 
-		// Initialize helper classes
 		sceneScanner = new SceneScanner(client);
-		objectTracker = new ObjectTracker(client, state, sceneScanner);
-		locationManager = new LocationManager(client, state, sceneScanner);
-		progressTracker = new ProgressTracker(client, state);
-		pathPlanner = new PathPlanner(client, state, config, locationManager);
+		objectTracker = new ObjectTracker(client, gameState, sceneScanner);
+		locationManager = new LocationManager(client, gameState, sceneScanner);
+		progressTracker = new ProgressTracker(client, gameState);
+		pathPlanner = new PathPlanner(client, gameState, config, locationManager);
 	}
 
 	@Override
@@ -64,145 +61,137 @@ public class BarracudaTrialPlugin extends Plugin
 	{
 		log.info("Barracuda Trial plugin stopped!");
 		overlayManager.remove(overlay);
-		state.reset();
-		state.clearPersistentStorage();
+		gameState.reset();
+		gameState.clearPersistentStorage();
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		long tickStart = config.debugMode() ? System.currentTimeMillis() : 0;
+		long gameTickStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 
-		// Check trial area and update state
 		progressTracker.checkTrialArea();
 		objectTracker.updateBoatLocation();
 
-		// Update cloud tracking
-		long cloudStart = config.debugMode() ? System.currentTimeMillis() : 0;
+		long cloudUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateCloudTracking();
 		if (config.debugMode())
 		{
-			state.setLastCloudUpdateTimeMs(System.currentTimeMillis() - cloudStart);
+			gameState.setLastCloudUpdateTimeMs(System.currentTimeMillis() - cloudUpdateStartTimeMs);
 		}
 
-		// Update rum locations
 		locationManager.updateRumObjects();
 
-		// Update rocks and speed boosts
-		long rockStart = config.debugMode() ? System.currentTimeMillis() : 0;
+		long rockUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateRocksAndSpeedBoosts();
 		if (config.debugMode())
 		{
-			state.setLastRockUpdateTimeMs(System.currentTimeMillis() - rockStart);
+			gameState.setLastRockUpdateTimeMs(System.currentTimeMillis() - rockUpdateStartTimeMs);
 		}
 
-		// Update trial progress
 		progressTracker.updateTrialProgress();
 
-		// Update lost supplies
-		long lostSuppliesStart = config.debugMode() ? System.currentTimeMillis() : 0;
+		long lostSuppliesUpdateStartTimeMs = config.debugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateLostSupplies();
 		if (config.debugMode())
 		{
-			state.setLastLostSuppliesUpdateTimeMs(System.currentTimeMillis() - lostSuppliesStart);
+			gameState.setLastLostSuppliesUpdateTimeMs(System.currentTimeMillis() - lostSuppliesUpdateStartTimeMs);
 		}
 
-		// Update all rocks for debug mode
 		if (config.showIDs())
 		{
 			objectTracker.updateAllRocks();
 		}
 
 		// Recalculate path periodically to account for moving clouds
-		if (state.isInTrialArea())
+		if (gameState.isInTrialArea())
 		{
-			int ticksSince = state.getTicksSinceLastPathRecalc() + 1;
-			state.setTicksSinceLastPathRecalc(ticksSince);
+			int ticksSinceLastPathRecalculation = gameState.getTicksSinceLastPathRecalc() + 1;
+			gameState.setTicksSinceLastPathRecalc(ticksSinceLastPathRecalculation);
 
-			if (ticksSince >= State.PATH_RECALC_INTERVAL)
+			if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
 			{
-				state.setTicksSinceLastPathRecalc(0);
+				gameState.setTicksSinceLastPathRecalc(0);
 				pathPlanner.recalculateOptimalPath("periodic (game tick)");
 			}
 		}
 
 		if (config.debugMode())
 		{
-			state.setLastTotalGameTickTimeMs(System.currentTimeMillis() - tickStart);
+			gameState.setLastTotalGameTickTimeMs(System.currentTimeMillis() - gameTickStartTimeMs);
 		}
 	}
 
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (!state.isInTrialArea())
+		if (!gameState.isInTrialArea())
 		{
 			return;
 		}
 
-		String message = event.getMessage();
+		String chatMessage = event.getMessage();
 
-		if (message.startsWith("You collect the rum shipment"))
+		if (chatMessage.startsWith("You collect the rum shipment"))
 		{
-			log.debug("Rum collected! Message: {}", message);
-			state.setHasRumOnUs(true);
+			log.debug("Rum collected! Message: {}", chatMessage);
+			gameState.setHasRumOnUs(true);
 			pathPlanner.recalculateOptimalPath("chat: rum collected");
 		}
-		else if (message.startsWith("You deliver the rum shipment"))
+		else if (chatMessage.startsWith("You deliver the rum shipment"))
 		{
-			log.debug("Rum delivered! Message: {}", message);
-			state.setHasRumOnUs(false);
+			log.debug("Rum delivered! Message: {}", chatMessage);
+			gameState.setHasRumOnUs(false);
 
-			int newLap = state.getCurrentLap() + 1;
-			state.setCurrentLap(newLap);
-			log.debug("Advanced to lap {}", newLap);
+			int nextLapNumber = gameState.getCurrentLap() + 1;
+			gameState.setCurrentLap(nextLapNumber);
+			log.debug("Advanced to lap {}", nextLapNumber);
 
-			state.getLostSuppliesForCurrentLap().clear();
-			state.getLostSuppliesForFutureLaps().clear();
+			gameState.getLostSuppliesForCurrentLap().clear();
+			gameState.getLostSuppliesForFutureLaps().clear();
 
 			pathPlanner.recalculateOptimalPath("chat: rum delivered");
 		}
 	}
 
-	// Getter methods for overlay (delegate to state)
 	public boolean isInTrialArea()
 	{
-		return state.isInTrialArea();
+		return gameState.isInTrialArea();
 	}
 
 	public java.util.Set<GameObject> getLostSupplies()
 	{
-		return state.getLostSupplies();
+		return gameState.getLostSupplies();
 	}
 
 	public java.util.Set<NPC> getLightningClouds()
 	{
-		return state.getLightningClouds();
+		return gameState.getLightningClouds();
 	}
 
 	public java.util.Set<GameObject> getRocks()
 	{
-		return state.getRocks();
+		return gameState.getRocks();
 	}
 
 	public java.util.Set<GameObject> getSpeedBoosts()
 	{
-		return state.getSpeedBoosts();
+		return gameState.getSpeedBoosts();
 	}
 
 	public List<WorldPoint> getOptimalPath()
 	{
-		return state.getOptimalPath();
+		return gameState.getOptimalPath();
 	}
 
 	public WorldPoint getRumPickupLocation()
 	{
-		return state.getRumPickupLocation();
+		return gameState.getRumPickupLocation();
 	}
 
 	public WorldPoint getRumReturnLocation()
 	{
-		return state.getRumReturnLocation();
+		return gameState.getRumReturnLocation();
 	}
 
 	public WorldPoint getPathfindingPickupLocation()
@@ -217,127 +206,127 @@ public class BarracudaTrialPlugin extends Plugin
 
 	public int getRumsCollected()
 	{
-		return state.getRumsCollected();
+		return gameState.getRumsCollected();
 	}
 
 	public int getRumsNeeded()
 	{
-		return state.getRumsNeeded();
+		return gameState.getRumsNeeded();
 	}
 
 	public int getCratesCollected()
 	{
-		return state.getCratesCollected();
+		return gameState.getCratesCollected();
 	}
 
 	public int getCratesTotal()
 	{
-		return state.getCratesTotal();
+		return gameState.getCratesTotal();
 	}
 
 	public int getCratesRemaining()
 	{
-		return state.getCratesTotal() - state.getCratesCollected();
+		return gameState.getCratesTotal() - gameState.getCratesCollected();
 	}
 
 	public boolean isHasRumOnUs()
 	{
-		return state.isHasRumOnUs();
+		return gameState.isHasRumOnUs();
 	}
 
 	public WorldPoint getBoatLocation()
 	{
-		return state.getBoatLocation();
+		return gameState.getBoatLocation();
 	}
 
 	public int getCurrentLap()
 	{
-		return state.getCurrentLap();
+		return gameState.getCurrentLap();
 	}
 
 	public List<List<WorldPoint>> getPlannedLaps()
 	{
-		return state.getPlannedLaps();
+		return gameState.getPlannedLaps();
 	}
 
 	public List<WorldPoint> getCurrentSegmentPath()
 	{
-		return state.getCurrentSegmentPath();
+		return gameState.getCurrentSegmentPath();
 	}
 
 	public List<WorldPoint> getNextSegmentPath()
 	{
-		return state.getNextSegmentPath();
+		return gameState.getNextSegmentPath();
 	}
 
 	public long getLastAStarTimeMs()
 	{
-		return state.getLastAStarTimeMs();
+		return gameState.getLastAStarTimeMs();
 	}
 
 	public long getLastLostSuppliesUpdateTimeMs()
 	{
-		return state.getLastLostSuppliesUpdateTimeMs();
+		return gameState.getLastLostSuppliesUpdateTimeMs();
 	}
 
 	public long getLastCloudUpdateTimeMs()
 	{
-		return state.getLastCloudUpdateTimeMs();
+		return gameState.getLastCloudUpdateTimeMs();
 	}
 
 	public long getLastPathPlanningTimeMs()
 	{
-		return state.getLastPathPlanningTimeMs();
+		return gameState.getLastPathPlanningTimeMs();
 	}
 
 	public long getLastRockUpdateTimeMs()
 	{
-		return state.getLastRockUpdateTimeMs();
+		return gameState.getLastRockUpdateTimeMs();
 	}
 
 	public long getLastTotalGameTickTimeMs()
 	{
-		return state.getLastTotalGameTickTimeMs();
+		return gameState.getLastTotalGameTickTimeMs();
 	}
 
 	public String getLastPathRecalcCaller()
 	{
-		return state.getLastPathRecalcCaller();
+		return gameState.getLastPathRecalcCaller();
 	}
 
 	public java.util.Set<WorldPoint> getKnownRockLocations()
 	{
-		return state.getKnownRockLocations();
+		return gameState.getKnownRockLocations();
 	}
 
 	public java.util.Set<WorldPoint> getKnownSpeedBoostLocations()
 	{
-		return state.getKnownSpeedBoostLocations();
+		return gameState.getKnownSpeedBoostLocations();
 	}
 
 	public java.util.Set<WorldPoint> getKnownLostSuppliesSpawnLocations()
 	{
-		return state.getKnownLostSuppliesSpawnLocations();
+		return gameState.getKnownLostSuppliesSpawnLocations();
 	}
 
 	public int getExclusionZoneMinX()
 	{
-		return state.getExclusionZoneMinX();
+		return gameState.getExclusionZoneMinX();
 	}
 
 	public int getExclusionZoneMaxX()
 	{
-		return state.getExclusionZoneMaxX();
+		return gameState.getExclusionZoneMaxX();
 	}
 
 	public int getExclusionZoneMinY()
 	{
-		return state.getExclusionZoneMinY();
+		return gameState.getExclusionZoneMinY();
 	}
 
 	public int getExclusionZoneMaxY()
 	{
-		return state.getExclusionZoneMaxY();
+		return gameState.getExclusionZoneMaxY();
 	}
 
 	public boolean isPointInExclusionZone(WorldPoint point)
@@ -347,7 +336,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 	public List<GameObject> getAllRocksInScene()
 	{
-		return new java.util.ArrayList<>(state.getAllRocksInScene());
+		return new java.util.ArrayList<>(gameState.getAllRocksInScene());
 	}
 
 	public boolean isCloudSafe(int animationId)

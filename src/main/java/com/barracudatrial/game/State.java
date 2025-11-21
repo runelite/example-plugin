@@ -32,7 +32,7 @@ public class State
 	public static final int CLOUD_ANIM_DANGEROUS = 8877;
 	public static final int CLOUD_ANIM_ATTACKING = 13141;
 
-	// Constants - Gameplay
+	// Can pick up lost supplies from 2 tiles away
 	public static final int LOST_SUPPLIES_PICKUP_RANGE = 2;
 	public static final int PATH_RECALC_INTERVAL = 2;
 
@@ -50,11 +50,9 @@ public class State
 	public static final int EXCLUSION_MIN_Y_OFFSET = -51;
 	public static final int EXCLUSION_MAX_Y_OFFSET = 12;
 
-	// Trial area state
 	@Getter @Setter
 	private boolean inTrialArea = false;
 
-	// Game objects
 	@Getter
 	private final Set<GameObject> lostSupplies = new HashSet<>();
 
@@ -70,14 +68,12 @@ public class State
 	@Getter
 	private final Set<GameObject> allRocksInScene = new HashSet<>();
 
-	// Rum locations
 	@Getter @Setter
 	private WorldPoint rumPickupLocation = null;
 
 	@Getter @Setter
 	private WorldPoint rumReturnLocation = null;
 
-	// Progress tracking
 	@Getter @Setter
 	private int rumsCollected = 0;
 
@@ -91,7 +87,7 @@ public class State
 	private int cratesTotal = 0;
 
 	@Getter @Setter
-	private int lastRumCount = 0;
+	private int previousRumCount = 0;
 
 	@Getter @Setter
 	private boolean hasRumOnUs = false;
@@ -99,14 +95,12 @@ public class State
 	@Getter @Setter
 	private int lastKnownDifficulty = 0;
 
-	// Player state
 	@Getter @Setter
 	private WorldPoint boatLocation = null;
 
 	@Getter @Setter
 	private int currentLap = 0;
 
-	// Path planning
 	@Getter @Setter
 	private List<WorldPoint> optimalPath = new ArrayList<>();
 
@@ -119,7 +113,6 @@ public class State
 	@Getter @Setter
 	private List<WorldPoint> nextSegmentPath = new ArrayList<>();
 
-	// Lap-specific supply assignments
 	@Getter
 	private final Set<GameObject> remainingLostSupplies = new HashSet<>();
 
@@ -129,7 +122,6 @@ public class State
 	@Getter
 	private final Set<GameObject> lostSuppliesForFutureLaps = new HashSet<>();
 
-	// Performance metrics
 	@Getter @Setter
 	private long lastAStarTimeMs = 0;
 
@@ -151,7 +143,6 @@ public class State
 	@Getter @Setter
 	private String lastPathRecalcCaller = "none";
 
-	// Persistent storage (survives between laps)
 	@Getter
 	private final Set<WorldPoint> knownRockLocations = new HashSet<>();
 
@@ -161,11 +152,9 @@ public class State
 	@Getter
 	private final Set<WorldPoint> knownLostSuppliesSpawnLocations = new HashSet<>();
 
-	// Path recalc tracking
 	@Getter @Setter
 	private int ticksSinceLastPathRecalc = 0;
 
-	// Exclusion zone bounds
 	@Getter @Setter
 	private int exclusionZoneMinX = 0;
 
@@ -181,7 +170,7 @@ public class State
 	/**
 	 * Clears all temporary state (called when leaving trial area)
 	 */
-	public void reset()
+	public void resetAllTemporaryState()
 	{
 		inTrialArea = false;
 		lostSupplies.clear();
@@ -195,7 +184,7 @@ public class State
 		rumsNeeded = 0;
 		cratesCollected = 0;
 		cratesTotal = 0;
-		lastRumCount = 0;
+		previousRumCount = 0;
 		hasRumOnUs = false;
 		boatLocation = null;
 		currentLap = 0;

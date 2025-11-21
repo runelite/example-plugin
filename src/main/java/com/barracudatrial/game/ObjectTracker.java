@@ -18,7 +18,6 @@ public class ObjectTracker
 	private final State state;
 	private final SceneScanner sceneScanner;
 
-	// Object IDs
 	private static final int LIGHTNING_CLOUD_IDLE = 15490;
 	private static final int LIGHTNING_CLOUD_ATTACKING = 15491;
 
@@ -50,7 +49,7 @@ public class ObjectTracker
 	 * Updates lightning cloud tracking by scanning all NPCs
 	 * Spawn/despawn events are unreliable, so we actively scan instead
 	 */
-	public void updateCloudTracking()
+	public void updateLightningCloudTracking()
 	{
 		if (!state.isInTrialArea())
 		{
@@ -58,25 +57,23 @@ public class ObjectTracker
 			return;
 		}
 
-		// Actively scan for lightning cloud NPCs instead of relying on spawn/despawn events
 		state.getLightningClouds().clear();
 
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			return;
 		}
 
-		// Scan all NPCs in the world view
-		for (NPC npc : worldView.npcs())
+		for (NPC npc : topLevelWorldView.npcs())
 		{
 			if (npc == null)
 			{
 				continue;
 			}
 
-			int id = npc.getId();
-			if (id == LIGHTNING_CLOUD_IDLE || id == LIGHTNING_CLOUD_ATTACKING)
+			int npcId = npc.getId();
+			if (npcId == LIGHTNING_CLOUD_IDLE || npcId == LIGHTNING_CLOUD_ATTACKING)
 			{
 				state.getLightningClouds().add(npc);
 			}
@@ -99,63 +96,55 @@ public class ObjectTracker
 		state.getRocks().clear();
 		state.getSpeedBoosts().clear();
 
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			return;
 		}
 
-		Scene scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
 			return;
 		}
 
-		scanSceneForRocksAndBoosts(scene);
+		scanSceneForRocksAndSpeedBoosts(scene);
 	}
 
-	/**
-	 * Scans a scene for rocks and speed boosts
-	 */
-	private void scanSceneForRocksAndBoosts(Scene scene)
+	private void scanSceneForRocksAndSpeedBoosts(Scene scene)
 	{
-		// Check regular tiles
-		Tile[][][] tiles = scene.getTiles();
-		if (tiles != null)
+		Tile[][][] regularTiles = scene.getTiles();
+		if (regularTiles != null)
 		{
-			scanTilesForRocksAndBoosts(tiles);
+			scanTileArrayForRocksAndSpeedBoosts(regularTiles);
 		}
 
-		// Check extended tiles
 		Tile[][][] extendedTiles = scene.getExtendedTiles();
 		if (extendedTiles != null)
 		{
-			scanTilesForRocksAndBoosts(extendedTiles);
+			scanTileArrayForRocksAndSpeedBoosts(extendedTiles);
 		}
 	}
 
-	/**
-	 * Helper method to scan a tile array for rocks and speed boosts
-	 */
-	private void scanTilesForRocksAndBoosts(Tile[][][] tiles)
+	private void scanTileArrayForRocksAndSpeedBoosts(Tile[][][] tileArray)
 	{
-		for (int plane = 0; plane < tiles.length; plane++)
+		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
 		{
-			if (tiles[plane] == null)
+			if (tileArray[planeIndex] == null)
 			{
 				continue;
 			}
 
-			for (int x = 0; x < tiles[plane].length; x++)
+			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
 			{
-				if (tiles[plane][x] == null)
+				if (tileArray[planeIndex][xIndex] == null)
 				{
 					continue;
 				}
 
-				for (int y = 0; y < tiles[plane][x].length; y++)
+				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
 				{
-					Tile tile = tiles[plane][x][y];
+					Tile tile = tileArray[planeIndex][xIndex][yIndex];
 					if (tile == null)
 					{
 						continue;
@@ -168,14 +157,14 @@ public class ObjectTracker
 							continue;
 						}
 
-						int id = gameObject.getId();
+						int objectId = gameObject.getId();
 
-						if (ROCK_IDS.contains(id))
+						if (ROCK_IDS.contains(objectId))
 						{
 							state.getRocks().add(gameObject);
 							state.getKnownRockLocations().add(gameObject.getWorldLocation());
 						}
-						else if (SPEED_BOOST_IDS.contains(id))
+						else if (SPEED_BOOST_IDS.contains(objectId))
 						{
 							state.getSpeedBoosts().add(gameObject);
 							state.getKnownSpeedBoostLocations().add(gameObject.getWorldLocation());
@@ -190,7 +179,7 @@ public class ObjectTracker
 	 * Updates all rocks in scene for debug/ID display purposes
 	 * Includes both known rocks and potential unknown obstacle objects
 	 */
-	public void updateAllRocks()
+	public void updateAllRocksInScene()
 	{
 		if (!state.isInTrialArea())
 		{
@@ -198,20 +187,19 @@ public class ObjectTracker
 			return;
 		}
 
-		// Scan entire scene for all GameObjects that might be rocks
 		state.getAllRocksInScene().clear();
 
 		Scene scene = client.getScene();
-		Tile[][][] tiles = scene.getTiles();
-		int plane = client.getPlane();
+		Tile[][][] tileArray = scene.getTiles();
+		int currentPlane = client.getPlane();
 
-		if (tiles != null && tiles[plane] != null)
+		if (tileArray != null && tileArray[currentPlane] != null)
 		{
-			for (int x = 0; x < tiles[plane].length; x++)
+			for (int xIndex = 0; xIndex < tileArray[currentPlane].length; xIndex++)
 			{
-				for (int y = 0; y < tiles[plane][x].length; y++)
+				for (int yIndex = 0; yIndex < tileArray[currentPlane][xIndex].length; yIndex++)
 				{
-					Tile tile = tiles[plane][x][y];
+					Tile tile = tileArray[currentPlane][xIndex][yIndex];
 					if (tile == null)
 					{
 						continue;
@@ -223,50 +211,46 @@ public class ObjectTracker
 						continue;
 					}
 
-					for (GameObject obj : gameObjects)
+					for (GameObject gameObject : gameObjects)
 					{
-						if (obj == null)
+						if (gameObject == null)
 						{
 							continue;
 						}
 
-						int id = obj.getId();
+						int objectId = gameObject.getId();
 
-						// Known rocks
-						if (ROCK_IDS.contains(id))
+						if (ROCK_IDS.contains(objectId))
 						{
-							state.getAllRocksInScene().add(obj);
+							state.getAllRocksInScene().add(gameObject);
 							continue;
 						}
 
-						// Look for potential unknown rocks - objects that could be obstacles
-						// Exclude known IDs (lost supplies, speed boosts, rum objects)
-						if (LOST_SUPPLIES_BASE_IDS.contains(id) || id == LOST_SUPPLIES_IMPOSTOR_ID)
+						if (LOST_SUPPLIES_BASE_IDS.contains(objectId) || objectId == LOST_SUPPLIES_IMPOSTOR_ID)
 						{
 							continue;
 						}
-						if (SPEED_BOOST_IDS.contains(id))
+						if (SPEED_BOOST_IDS.contains(objectId))
 						{
 							continue;
 						}
-						if (id == State.RUM_RETURN_BASE_OBJECT_ID || id == State.RUM_RETURN_IMPOSTOR_ID ||
-							id == State.RUM_PICKUP_BASE_OBJECT_ID || id == State.RUM_PICKUP_IMPOSTOR_ID)
+						if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID ||
+							objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
 						{
 							continue;
 						}
 
-						// Check if object has a name containing "rock" or similar obstacle keywords
-						ObjectComposition comp = client.getObjectDefinition(id);
-						if (comp != null)
+						ObjectComposition objectComposition = client.getObjectDefinition(objectId);
+						if (objectComposition != null)
 						{
-							String name = comp.getName();
-							if (name != null)
+							String objectName = objectComposition.getName();
+							if (objectName != null)
 							{
-								String nameLower = name.toLowerCase();
-								if (nameLower.contains("rock") || nameLower.contains("boulder") ||
-									nameLower.contains("obstacle") || nameLower.contains("debris"))
+								String objectNameLowerCase = objectName.toLowerCase();
+								if (objectNameLowerCase.contains("rock") || objectNameLowerCase.contains("boulder") ||
+									objectNameLowerCase.contains("obstacle") || objectNameLowerCase.contains("debris"))
 								{
-									state.getAllRocksInScene().add(obj);
+									state.getAllRocksInScene().add(gameObject);
 								}
 							}
 						}
@@ -280,14 +264,14 @@ public class ObjectTracker
 	 * Updates lost supplies by scanning the scene
 	 * Returns true if supplies changed (requiring path recalculation)
 	 */
-	public boolean updateLostSupplies()
+	public boolean updateLostSuppliesTracking()
 	{
 		if (!state.isInTrialArea())
 		{
 			return false;
 		}
 
-		Set<GameObject> newLostSupplies = new HashSet<>();
+		Set<GameObject> newlyFoundLostSupplies = new HashSet<>();
 
 		Scene scene = client.getScene();
 		if (scene == null)
@@ -295,86 +279,71 @@ public class ObjectTracker
 			return false;
 		}
 
-		scanSceneForLostSupplies(scene, newLostSupplies);
+		scanSceneForLostSupplies(scene, newlyFoundLostSupplies);
 
-		if (!state.getLostSupplies().equals(newLostSupplies))
+		if (!state.getLostSupplies().equals(newlyFoundLostSupplies))
 		{
 			state.getLostSupplies().clear();
-			state.getLostSupplies().addAll(newLostSupplies);
-			updateLostSuppliesAssignments(newLostSupplies);
-			return true; // Supplies changed
+			state.getLostSupplies().addAll(newlyFoundLostSupplies);
+			updateLostSuppliesLapAssignments(newlyFoundLostSupplies);
+			return true;
 		}
 
-		return false; // No change
+		return false;
 	}
 
-	/**
-	 * Updates lap-specific supply assignments when supplies change
-	 */
-	private void updateLostSuppliesAssignments(Set<GameObject> newLostSupplies)
+	private void updateLostSuppliesLapAssignments(Set<GameObject> newlyFoundLostSupplies)
 	{
-		// Remove supplies that no longer exist from our tracking sets
-		state.getLostSuppliesForCurrentLap().retainAll(newLostSupplies);
-		state.getLostSuppliesForFutureLaps().retainAll(newLostSupplies);
+		state.getLostSuppliesForCurrentLap().retainAll(newlyFoundLostSupplies);
+		state.getLostSuppliesForFutureLaps().retainAll(newlyFoundLostSupplies);
 	}
 
-	/**
-	 * Scans scene for lost supplies
-	 */
-	public void scanSceneForLostSupplies(Scene scene, Set<GameObject> newLostSupplies)
+	public void scanSceneForLostSupplies(Scene scene, Set<GameObject> newlyFoundLostSupplies)
 	{
-		// Check regular tiles
-		Tile[][][] tiles = scene.getTiles();
-		if (tiles != null)
+		Tile[][][] regularTiles = scene.getTiles();
+		if (regularTiles != null)
 		{
-			scanTilesForLostSupplies(tiles, newLostSupplies);
+			scanTileArrayForLostSupplies(regularTiles, newlyFoundLostSupplies);
 		}
 
-		// Check extended tiles
 		Tile[][][] extendedTiles = scene.getExtendedTiles();
 		if (extendedTiles != null)
 		{
-			scanTilesForLostSupplies(extendedTiles, newLostSupplies);
+			scanTileArrayForLostSupplies(extendedTiles, newlyFoundLostSupplies);
 		}
 	}
 
-	/**
-	 * Helper method to scan a tile array for lost supplies
-	 */
-	private void scanTilesForLostSupplies(Tile[][][] tiles, Set<GameObject> newLostSupplies)
+	private void scanTileArrayForLostSupplies(Tile[][][] tileArray, Set<GameObject> newlyFoundLostSupplies)
 	{
-		for (int plane = 0; plane < tiles.length; plane++)
+		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
 		{
-			if (tiles[plane] == null)
+			if (tileArray[planeIndex] == null)
 			{
 				continue;
 			}
 
-			for (int x = 0; x < tiles[plane].length; x++)
+			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
 			{
-				if (tiles[plane][x] == null)
+				if (tileArray[planeIndex][xIndex] == null)
 				{
 					continue;
 				}
 
-				for (int y = 0; y < tiles[plane][x].length; y++)
+				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
 				{
-					Tile tile = tiles[plane][x][y];
+					Tile tile = tileArray[planeIndex][xIndex][yIndex];
 					if (tile == null)
 					{
 						continue;
 					}
 
-					processLostSupplyTile(tile, newLostSupplies);
+					processLostSupplyTile(tile, newlyFoundLostSupplies);
 				}
 			}
 		}
 	}
 
-	/**
-	 * Processes a single tile for lost supply objects
-	 */
-	public void processLostSupplyTile(Tile tile, Set<GameObject> newLostSupplies)
+	public void processLostSupplyTile(Tile tile, Set<GameObject> newlyFoundLostSupplies)
 	{
 		GameObject[] gameObjects = tile.getGameObjects();
 		if (gameObjects == null)
@@ -382,30 +351,30 @@ public class ObjectTracker
 			return;
 		}
 
-		for (GameObject obj : gameObjects)
+		for (GameObject gameObject : gameObjects)
 		{
-			if (obj == null)
+			if (gameObject == null)
 			{
 				continue;
 			}
 
-			if (!LOST_SUPPLIES_BASE_IDS.contains(obj.getId()))
+			if (!LOST_SUPPLIES_BASE_IDS.contains(gameObject.getId()))
 			{
 				continue;
 			}
 
-			WorldPoint supplyLocation = obj.getWorldLocation();
+			WorldPoint supplyWorldLocation = gameObject.getWorldLocation();
 
-			boolean isNew = state.getKnownLostSuppliesSpawnLocations().add(supplyLocation);
-			if (isNew)
+			boolean isNewSpawnLocation = state.getKnownLostSuppliesSpawnLocations().add(supplyWorldLocation);
+			if (isNewSpawnLocation)
 			{
 				log.debug("Discovered supply spawn location at {}, total known: {}",
-					supplyLocation, state.getKnownLostSuppliesSpawnLocations().size());
+					supplyWorldLocation, state.getKnownLostSuppliesSpawnLocations().size());
 			}
 
-			if (isLostSupplyCollectible(obj))
+			if (isLostSupplyCurrentlyCollectible(gameObject))
 			{
-				newLostSupplies.add(obj);
+				newlyFoundLostSupplies.add(gameObject);
 			}
 		}
 	}
@@ -414,37 +383,32 @@ public class ObjectTracker
 	 * Checks if a lost supply object is in collectible state
 	 * Uses the multiloc/impostor system to determine collectibility
 	 */
-	public boolean isLostSupplyCollectible(GameObject obj)
+	public boolean isLostSupplyCurrentlyCollectible(GameObject gameObject)
 	{
 		try
 		{
-			ObjectComposition comp = client.getObjectDefinition(obj.getId());
-			if (comp == null)
+			ObjectComposition objectComposition = client.getObjectDefinition(gameObject.getId());
+			if (objectComposition == null)
 			{
 				return false;
 			}
 
-			// Check if this has impostor IDs
-			int[] impostorIds = comp.getImpostorIds();
+			int[] impostorIds = objectComposition.getImpostorIds();
 			if (impostorIds == null)
 			{
-				// Not a multiloc - check if ID is directly 59244
-				return obj.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
+				return gameObject.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
 			}
 
-			// Get the active impostor
-			ObjectComposition impostor = comp.getImpostor();
-			if (impostor == null)
+			ObjectComposition activeImpostor = objectComposition.getImpostor();
+			if (activeImpostor == null)
 			{
 				return false;
 			}
 
-			// Check if active impostor is 59244
-			return impostor.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
+			return activeImpostor.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
 		}
 		catch (Exception e)
 		{
-			// Error getting composition or impostor
 			return false;
 		}
 	}
@@ -453,7 +417,7 @@ public class ObjectTracker
 	 * Updates the boat location (player's boat WorldEntity)
 	 * Falls back to player location if boat cannot be found
 	 */
-	public void updateBoatLocation()
+	public void updatePlayerBoatLocation()
 	{
 		if (!state.isInTrialArea())
 		{
@@ -470,18 +434,15 @@ public class ObjectTracker
 
 		try
 		{
-			// Get the player's WorldView ID (the boat they're in)
 			WorldView playerWorldView = localPlayer.getWorldView();
 			if (playerWorldView == null)
 			{
-				// Fallback to player location if not in a boat
 				state.setBoatLocation(localPlayer.getWorldLocation());
 				return;
 			}
 
-			int worldViewId = playerWorldView.getId();
+			int playerWorldViewId = playerWorldView.getId();
 
-			// Get the boat's WorldEntity from the top-level world view
 			WorldView topLevelWorldView = client.getTopLevelWorldView();
 			if (topLevelWorldView == null)
 			{
@@ -489,19 +450,17 @@ public class ObjectTracker
 				return;
 			}
 
-			WorldEntity worldEntity = topLevelWorldView.worldEntities().byIndex(worldViewId);
-			if (worldEntity == null)
+			WorldEntity boatWorldEntity = topLevelWorldView.worldEntities().byIndex(playerWorldViewId);
+			if (boatWorldEntity == null)
 			{
-				// Fallback to player location
 				state.setBoatLocation(localPlayer.getWorldLocation());
 				return;
 			}
 
-			// Convert the boat's LocalLocation to WorldPoint
-			var localLocation = worldEntity.getLocalLocation();
-			if (localLocation != null)
+			var boatLocalLocation = boatWorldEntity.getLocalLocation();
+			if (boatLocalLocation != null)
 			{
-				state.setBoatLocation(WorldPoint.fromLocalInstance(client, localLocation));
+				state.setBoatLocation(WorldPoint.fromLocalInstance(client, boatLocalLocation));
 			}
 			else
 			{
@@ -510,7 +469,6 @@ public class ObjectTracker
 		}
 		catch (Exception e)
 		{
-			// Fallback to player location on any error
 			state.setBoatLocation(localPlayer.getWorldLocation());
 			log.debug("Error getting boat location: {}", e.getMessage());
 		}

@@ -129,7 +129,7 @@ public class MultiLapOptimizer
 				}
 
 				List<WorldPoint> supplyRoute = nearestNeighbor.findRoute(startPosition, lapSupplies, distanceMatrix, preferWestStart);
-				supplyRoute = twoOpt.improve(supplyRoute, startPosition, distanceMatrix);
+				supplyRoute = twoOpt.improveRoute(supplyRoute, startPosition, distanceMatrix);
 
 				RouteWithCost result = insertPickupOptimally(supplyRoute, startPosition, rumPickupLocation, rumReturnLocation, distanceMatrix);
 

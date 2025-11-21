@@ -26,7 +26,7 @@ public class DebugRenderer
 	private final BarracudaTrialConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<net.runelite.api.Point, Integer> labelCounts;
+	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
 
 	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -36,24 +36,24 @@ public class DebugRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCounts)
+	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition)
 	{
-		this.labelCounts = labelCounts;
+		this.labelCountsByCanvasPosition = labelCountsByCanvasPosition;
 	}
 
 	public void renderDebugInfo(Graphics2D graphics)
 	{
-		renderExclusionZone(graphics);
+		renderExclusionZoneVisualization(graphics);
 
 		if (config.showIDs())
 		{
-			renderAllRocksInScene(graphics);
+			renderAllRocksInSceneWithLabels(graphics);
 		}
 
-		renderDebugText(graphics);
+		renderDebugTextOverlay(graphics);
 	}
 
-	private void renderExclusionZone(Graphics2D graphics)
+	private void renderExclusionZoneVisualization(Graphics2D graphics)
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -61,272 +61,269 @@ public class DebugRenderer
 			return;
 		}
 
-		int minX = plugin.getExclusionZoneMinX();
-		int maxX = plugin.getExclusionZoneMaxX();
-		int minY = plugin.getExclusionZoneMinY();
-		int maxY = plugin.getExclusionZoneMaxY();
+		int exclusionZoneMinX = plugin.getExclusionZoneMinX();
+		int exclusionZoneMaxX = plugin.getExclusionZoneMaxX();
+		int exclusionZoneMinY = plugin.getExclusionZoneMinY();
+		int exclusionZoneMaxY = plugin.getExclusionZoneMaxY();
 
-		Color exclusionColor = new Color(255, 0, 255, 60);
+		Color exclusionZoneColor = new Color(255, 0, 255, 60);
 
-		for (int x = minX; x <= maxX; x++)
+		for (int x = exclusionZoneMinX; x <= exclusionZoneMaxX; x++)
 		{
-			for (int y = minY; y <= maxY; y++)
+			for (int y = exclusionZoneMinY; y <= exclusionZoneMaxY; y++)
 			{
-				WorldPoint wp = new WorldPoint(x, y, 0);
+				WorldPoint tileWorldPoint = new WorldPoint(x, y, 0);
 
-				if (plugin.isPointInExclusionZone(wp))
+				boolean isTileInExclusionZone = plugin.isPointInExclusionZone(tileWorldPoint);
+				if (isTileInExclusionZone)
 				{
-					LocalPoint lp = LocalPoint.fromWorld(topLevelWorldView, wp);
+					LocalPoint tileLocalPoint = LocalPoint.fromWorld(topLevelWorldView, tileWorldPoint);
 
-					if (lp != null)
+					if (tileLocalPoint != null)
 					{
-						Polygon poly = Perspective.getCanvasTilePoly(client, lp);
-						if (poly != null)
+						Polygon tilePolygon = Perspective.getCanvasTilePoly(client, tileLocalPoint);
+						if (tilePolygon != null)
 						{
-							OverlayUtil.renderPolygon(graphics, poly, exclusionColor);
+							OverlayUtil.renderPolygon(graphics, tilePolygon, exclusionZoneColor);
 						}
 					}
 				}
 			}
 		}
 
-		// Render label at center of exclusion zone
-		WorldPoint center = new WorldPoint((minX + maxX) / 2, (minY + maxY) / 2, 0);
-		LocalPoint centerLocal = LocalPoint.fromWorld(topLevelWorldView, center);
-		if (centerLocal != null)
+		WorldPoint exclusionZoneCenterPoint = new WorldPoint((exclusionZoneMinX + exclusionZoneMaxX) / 2, (exclusionZoneMinY + exclusionZoneMaxY) / 2, 0);
+		LocalPoint centerLocalPoint = LocalPoint.fromWorld(topLevelWorldView, exclusionZoneCenterPoint);
+		if (centerLocalPoint != null)
 		{
-			Point textPoint = Perspective.getCanvasTextLocation(client, graphics, centerLocal, "EXCLUSION ZONE", 0);
-			if (textPoint != null)
+			Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, centerLocalPoint, "EXCLUSION ZONE", 0);
+			if (labelCanvasPoint != null)
 			{
-				OverlayUtil.renderTextLocation(graphics, textPoint, "EXCLUSION ZONE", new Color(255, 0, 255, 255));
+				OverlayUtil.renderTextLocation(graphics, labelCanvasPoint, "EXCLUSION ZONE", new Color(255, 0, 255, 255));
 			}
 		}
 	}
 
-	private void renderAllRocksInScene(Graphics2D graphics)
+	private void renderAllRocksInSceneWithLabels(Graphics2D graphics)
 	{
-		Set<String> renderedLabels = new HashSet<>();
+		Set<String> alreadyRenderedLabels = new HashSet<>();
 
-		for (GameObject rock : plugin.getAllRocksInScene())
+		for (GameObject rockObject : plugin.getAllRocksInScene())
 		{
-			LocalPoint localPoint = rock.getLocalLocation();
-			if (localPoint == null)
+			LocalPoint rockLocalPoint = rockObject.getLocalLocation();
+			if (rockLocalPoint == null)
 			{
 				continue;
 			}
 
-			Color rockColor = new Color(255, 165, 0, 180);
+			Color debugRockColor = new Color(255, 165, 0, 180);
 
-			// Highlight tile
-			Polygon poly = Perspective.getCanvasTilePoly(client, localPoint);
-			if (poly != null)
+			Polygon tilePolygon = Perspective.getCanvasTilePoly(client, rockLocalPoint);
+			if (tilePolygon != null)
 			{
-				OverlayUtil.renderPolygon(graphics, poly, rockColor);
+				OverlayUtil.renderPolygon(graphics, tilePolygon, debugRockColor);
 			}
 
-			// Highlight model
-			modelOutlineRenderer.drawOutline(rock, 2, rockColor, 4);
+			modelOutlineRenderer.drawOutline(rockObject, 2, debugRockColor, 4);
 
-			// Draw ID label with impostor info
-			String label = getObjectLabelWithImpostor(rock);
+			String rockLabel = buildObjectLabelWithImpostorInfo(rockObject);
 
-			// Only render each unique label once to avoid clutter
-			if (!renderedLabels.contains(label))
+			boolean isLabelAlreadyRendered = alreadyRenderedLabels.contains(rockLabel);
+			if (!isLabelAlreadyRendered)
 			{
-				Point textPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, label, 0);
-				if (textPoint != null)
+				Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, rockLocalPoint, rockLabel, 0);
+				if (labelCanvasPoint != null)
 				{
-					int yOffset = getAndIncrementLabelOffset(textPoint);
-					Point offsetPoint = new Point(textPoint.getX(), textPoint.getY() + yOffset);
-					OverlayUtil.renderTextLocation(graphics, offsetPoint, label, rockColor);
-					renderedLabels.add(label);
+					int yOffsetToAvoidLabelOverlap = calculateAndIncrementLabelOffset(labelCanvasPoint);
+					Point adjustedLabelPoint = new Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
+					OverlayUtil.renderTextLocation(graphics, adjustedLabelPoint, rockLabel, debugRockColor);
+					alreadyRenderedLabels.add(rockLabel);
 				}
 			}
 		}
 	}
 
-	private void renderDebugText(Graphics2D graphics)
+	private void renderDebugTextOverlay(Graphics2D graphics)
 	{
-		int x = 10;
-		int y = 80;
-		int lineHeight = 15;
+		int textStartX = 10;
+		int textStartY = 80;
+		int lineHeightInPixels = 15;
 
 		graphics.setFont(new Font("Arial", Font.BOLD, 12));
 
-		List<String> debugLines = buildDebugLines();
+		List<String> debugTextLines = buildDebugTextLines();
 
-		for (String line : debugLines)
+		for (String textLine : debugTextLines)
 		{
-			Color backgroundColor = new Color(0, 0, 0, 180);
-			Color textColor = Color.WHITE;
+			Color textBackgroundColor = new Color(0, 0, 0, 180);
+			Color textForegroundColor = Color.WHITE;
 
-			// Draw background
-			Rectangle2D bounds = graphics.getFontMetrics().getStringBounds(line, graphics);
-			graphics.setColor(backgroundColor);
-			graphics.fillRect(x - 2, y - 12, (int) bounds.getWidth() + 4, (int) bounds.getHeight());
+			Rectangle2D textBounds = graphics.getFontMetrics().getStringBounds(textLine, graphics);
+			graphics.setColor(textBackgroundColor);
+			graphics.fillRect(textStartX - 2, textStartY - 12, (int) textBounds.getWidth() + 4, (int) textBounds.getHeight());
 
-			// Draw text
-			graphics.setColor(textColor);
-			graphics.drawString(line, x, y);
+			graphics.setColor(textForegroundColor);
+			graphics.drawString(textLine, textStartX, textStartY);
 
-			y += lineHeight;
+			textStartY += lineHeightInPixels;
 		}
 	}
 
-	private List<String> buildDebugLines()
+	private List<String> buildDebugTextLines()
 	{
-		List<String> lines = new ArrayList<>();
+		List<String> debugLines = new ArrayList<>();
 
-		lines.add("=== BARRACUDA TRIAL DEBUG ===");
-		lines.add(String.format("Lap: %d / %d", plugin.getCurrentLap() + 1, plugin.getRumsNeeded()));
-		lines.add(String.format("Planned Laps: %d", plugin.getPlannedLaps().size()));
-		lines.add(String.format("Lost Supplies Visible: %d", plugin.getLostSupplies().size()));
-		lines.add(String.format("Crates: %d / %d", plugin.getCratesCollected(), plugin.getCratesTotal()));
-		lines.add(String.format("Rum: %d / %d", plugin.getRumsCollected(), plugin.getRumsNeeded()));
-		lines.add(String.format("Current Path: %d points", plugin.getCurrentSegmentPath().size()));
-		lines.add(String.format("Next Path: %d points", plugin.getNextSegmentPath().size()));
-		lines.add("");
-		lines.add("--- Performance (ms) ---");
-		lines.add(String.format("Total Game Tick: %d ms", plugin.getLastTotalGameTickTimeMs()));
-		lines.add(String.format("  Lost Supplies Update: %d ms", plugin.getLastLostSuppliesUpdateTimeMs()));
-		lines.add(String.format("  Cloud Update: %d ms", plugin.getLastCloudUpdateTimeMs()));
-		lines.add(String.format("  Rock Update: %d ms", plugin.getLastRockUpdateTimeMs()));
-		lines.add(String.format("  Path Planning: %d ms", plugin.getLastPathPlanningTimeMs()));
-		lines.add(String.format("  A* Pathfinding: %d ms", plugin.getLastAStarTimeMs()));
-		lines.add(String.format("Last Path Recalc: %s", plugin.getLastPathRecalcCaller()));
-		lines.add("");
-		lines.add("--- Visible Objects ---");
-		lines.add(String.format("Lightning Clouds: %d", plugin.getLightningClouds().size()));
-		lines.add(String.format("Rocks (visible): %d", plugin.getRocks().size()));
-		lines.add(String.format("Speed Boosts (visible): %d", plugin.getSpeedBoosts().size()));
-		lines.add(String.format("All Rocks (debug scan): %d", plugin.getAllRocksInScene().size()));
-		lines.add("");
-		lines.add("--- Persistent Storage ---");
-		lines.add(String.format("Known Rock Locations: %d", plugin.getKnownRockLocations().size()));
-		lines.add(String.format("Known Speed Boosts: %d", plugin.getKnownSpeedBoostLocations().size()));
-		lines.add(String.format("Known Supply Spawns: %d", plugin.getKnownLostSuppliesSpawnLocations().size()));
+		debugLines.add("=== BARRACUDA TRIAL DEBUG ===");
+		debugLines.add(String.format("Lap: %d / %d", plugin.getCurrentLap() + 1, plugin.getRumsNeeded()));
+		debugLines.add(String.format("Planned Laps: %d", plugin.getPlannedLaps().size()));
+		debugLines.add(String.format("Lost Supplies Visible: %d", plugin.getLostSupplies().size()));
+		debugLines.add(String.format("Crates: %d / %d", plugin.getCratesCollected(), plugin.getCratesTotal()));
+		debugLines.add(String.format("Rum: %d / %d", plugin.getRumsCollected(), plugin.getRumsNeeded()));
+		debugLines.add(String.format("Current Path: %d points", plugin.getCurrentSegmentPath().size()));
+		debugLines.add(String.format("Next Path: %d points", plugin.getNextSegmentPath().size()));
+		debugLines.add("");
+		debugLines.add("--- Performance (ms) ---");
+		debugLines.add(String.format("Total Game Tick: %d ms", plugin.getLastTotalGameTickTimeMs()));
+		debugLines.add(String.format("  Lost Supplies Update: %d ms", plugin.getLastLostSuppliesUpdateTimeMs()));
+		debugLines.add(String.format("  Cloud Update: %d ms", plugin.getLastCloudUpdateTimeMs()));
+		debugLines.add(String.format("  Rock Update: %d ms", plugin.getLastRockUpdateTimeMs()));
+		debugLines.add(String.format("  Path Planning: %d ms", plugin.getLastPathPlanningTimeMs()));
+		debugLines.add(String.format("  A* Pathfinding: %d ms", plugin.getLastAStarTimeMs()));
+		debugLines.add(String.format("Last Path Recalc: %s", plugin.getLastPathRecalcCaller()));
+		debugLines.add("");
+		debugLines.add("--- Visible Objects ---");
+		debugLines.add(String.format("Lightning Clouds: %d", plugin.getLightningClouds().size()));
+		debugLines.add(String.format("Rocks (visible): %d", plugin.getRocks().size()));
+		debugLines.add(String.format("Speed Boosts (visible): %d", plugin.getSpeedBoosts().size()));
+		debugLines.add(String.format("All Rocks (debug scan): %d", plugin.getAllRocksInScene().size()));
+		debugLines.add("");
+		debugLines.add("--- Persistent Storage ---");
+		debugLines.add(String.format("Known Rock Locations: %d", plugin.getKnownRockLocations().size()));
+		debugLines.add(String.format("Known Speed Boosts: %d", plugin.getKnownSpeedBoostLocations().size()));
+		debugLines.add(String.format("Known Supply Spawns: %d", plugin.getKnownLostSuppliesSpawnLocations().size()));
 
-		WorldPoint boat = plugin.getBoatLocation();
-		if (boat != null)
+		WorldPoint boatCurrentLocation = plugin.getBoatLocation();
+		if (boatCurrentLocation != null)
 		{
-			lines.add("");
-			lines.add("--- Boat Position ---");
-			lines.add(String.format("Tile: (%d, %d, %d)", boat.getX(), boat.getY(), boat.getPlane()));
+			debugLines.add("");
+			debugLines.add("--- Boat Position ---");
+			debugLines.add(String.format("Tile: (%d, %d, %d)", boatCurrentLocation.getX(), boatCurrentLocation.getY(), boatCurrentLocation.getPlane()));
 		}
 
-		lines.add("");
-		lines.add("--- Rum Locations ---");
-		addRumLocationDebugInfo(lines);
+		debugLines.add("");
+		debugLines.add("--- Rum Locations ---");
+		appendRumLocationDebugInfo(debugLines);
 
-		return lines;
+		return debugLines;
 	}
 
-	private void addRumLocationDebugInfo(List<String> lines)
+	private void appendRumLocationDebugInfo(List<String> debugLines)
 	{
-		WorldPoint rumPickup = plugin.getRumPickupLocation();
-		WorldPoint rumReturn = plugin.getRumReturnLocation();
+		WorldPoint rumPickupLocation = plugin.getRumPickupLocation();
+		WorldPoint rumReturnLocation = plugin.getRumReturnLocation();
 
-		if (rumPickup != null)
+		if (rumPickupLocation != null)
 		{
-			GameObject pickupObject = findGameObjectAt(rumPickup);
-			String pickupInfo = String.format("Pickup (S): (%d, %d, %d)",
-				rumPickup.getX(), rumPickup.getY(), rumPickup.getPlane());
-			if (pickupObject != null)
+			GameObject rumPickupObject = findGameObjectAtWorldPoint(rumPickupLocation);
+			String pickupInfoLine = String.format("Pickup (S): (%d, %d, %d)",
+				rumPickupLocation.getX(), rumPickupLocation.getY(), rumPickupLocation.getPlane());
+			if (rumPickupObject != null)
 			{
-				pickupInfo += String.format(" [ID: %d]", pickupObject.getId());
+				pickupInfoLine += String.format(" [ID: %d]", rumPickupObject.getId());
 			}
-			lines.add(pickupInfo);
+			debugLines.add(pickupInfoLine);
 		}
 		else
 		{
-			lines.add("Pickup (S): null");
+			debugLines.add("Pickup (S): null");
 		}
 
-		if (rumReturn != null)
+		if (rumReturnLocation != null)
 		{
-			GameObject returnObject = findGameObjectAt(rumReturn);
-			String returnInfo = String.format("Return (N): (%d, %d, %d)",
-				rumReturn.getX(), rumReturn.getY(), rumReturn.getPlane());
-			if (returnObject != null)
+			GameObject rumReturnObject = findGameObjectAtWorldPoint(rumReturnLocation);
+			String returnInfoLine = String.format("Return (N): (%d, %d, %d)",
+				rumReturnLocation.getX(), rumReturnLocation.getY(), rumReturnLocation.getPlane());
+			if (rumReturnObject != null)
 			{
-				returnInfo += String.format(" [ID: %d]", returnObject.getId());
+				returnInfoLine += String.format(" [ID: %d]", rumReturnObject.getId());
 			}
-			lines.add(returnInfo);
+			debugLines.add(returnInfoLine);
 		}
 		else
 		{
-			lines.add("Return (N): null");
+			debugLines.add("Return (N): null");
 		}
 	}
 
-	private int getAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
+	private int calculateAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
 	{
-		net.runelite.api.Point roundedPoint = new net.runelite.api.Point(
+		net.runelite.api.Point roundedCanvasPoint = new net.runelite.api.Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);
 
-		int count = labelCounts.getOrDefault(roundedPoint, 0);
-		labelCounts.put(roundedPoint, count + 1);
+		int existingLabelCount = labelCountsByCanvasPosition.getOrDefault(roundedCanvasPoint, 0);
+		labelCountsByCanvasPosition.put(roundedCanvasPoint, existingLabelCount + 1);
 
-		return count * 15;
+		int pixelsPerLabel = 15;
+		return existingLabelCount * pixelsPerLabel;
 	}
 
-	private String getObjectLabelWithImpostor(GameObject obj)
+	private String buildObjectLabelWithImpostorInfo(GameObject gameObject)
 	{
-		ObjectComposition comp = client.getObjectDefinition(obj.getId());
+		ObjectComposition objectComposition = client.getObjectDefinition(gameObject.getId());
 
-		String name;
-		if (comp != null && comp.getName() != null)
+		String displayName;
+		if (objectComposition != null && objectComposition.getName() != null)
 		{
-			name = comp.getName();
+			displayName = objectComposition.getName();
 		}
 		else
 		{
-			name = "Unknown";
+			displayName = "Unknown";
 		}
 
-		StringBuilder label = new StringBuilder();
-		label.append(name).append(" (ID: ").append(obj.getId());
+		StringBuilder labelBuilder = new StringBuilder();
+		labelBuilder.append(displayName).append(" (ID: ").append(gameObject.getId());
 
-		if (comp != null)
+		if (objectComposition != null)
 		{
-			int[] impostorIds = comp.getImpostorIds();
-			if (impostorIds != null && impostorIds.length > 0)
+			int[] impostorIds = objectComposition.getImpostorIds();
+			boolean hasImpostorIds = (impostorIds != null && impostorIds.length > 0);
+			if (hasImpostorIds)
 			{
-				ObjectComposition impostor = comp.getImpostor();
-				if (impostor != null)
+				ObjectComposition impostorComposition = objectComposition.getImpostor();
+				if (impostorComposition != null)
 				{
-					label.append(", Imp: ").append(impostor.getId());
+					labelBuilder.append(", Imp: ").append(impostorComposition.getId());
 				}
 			}
 		}
 
-		label.append(")");
-		return label.toString();
+		labelBuilder.append(")");
+		return labelBuilder.toString();
 	}
 
-	private GameObject findGameObjectAt(WorldPoint worldPoint)
+	private GameObject findGameObjectAtWorldPoint(WorldPoint worldPoint)
 	{
-		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
 		{
 			return null;
 		}
 
-		var scene = worldView.getScene();
+		Scene scene = topLevelWorldView.getScene();
 		if (scene == null)
 		{
 			return null;
 		}
 
-		LocalPoint localPoint = LocalPoint.fromWorld(worldView, worldPoint);
+		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
 		if (localPoint == null)
 		{
 			return null;
 		}
 
-		var tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+		Tile tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
 		if (tile == null)
 		{
 			return null;

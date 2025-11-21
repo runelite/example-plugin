@@ -39,17 +39,17 @@ public class DistanceMatrixBuilder
 	{
 		Map<WorldPoint, Map<WorldPoint, Double>> matrix = new HashMap<>();
 
-		List<WorldPoint> suppliesLocations = new ArrayList<>();
+		List<WorldPoint> supplyLocations = new ArrayList<>();
 		for (GameObject supply : lostSupplies)
 		{
-			suppliesLocations.add(supply.getWorldLocation());
+			supplyLocations.add(supply.getWorldLocation());
 		}
 
-		for (WorldPoint from : suppliesLocations)
+		for (WorldPoint from : supplyLocations)
 		{
 			Map<WorldPoint, Double> distances = new HashMap<>();
 
-			for (WorldPoint to : suppliesLocations)
+			for (WorldPoint to : supplyLocations)
 			{
 				if (from.equals(to))
 				{

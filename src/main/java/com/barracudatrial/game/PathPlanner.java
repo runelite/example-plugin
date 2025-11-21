@@ -34,12 +34,12 @@ public class PathPlanner
 
 	/**
 	 * Recalculates the optimal path based on current game state
-	 * @param caller Description of what triggered this recalculation (for debugging)
+	 * @param recalculationTriggerReason Description of what triggered this recalculation (for debugging)
 	 */
-	public void recalculateOptimalPath(String caller)
+	public void recalculateOptimalPathFromCurrentState(String recalculationTriggerReason)
 	{
-		state.setLastPathRecalcCaller(caller);
-		log.debug("Path recalculation triggered by: {}", caller);
+		state.setLastPathRecalcCaller(recalculationTriggerReason);
+		log.debug("Path recalculation triggered by: {}", recalculationTriggerReason);
 
 		if (!state.isInTrialArea())
 		{
@@ -50,60 +50,51 @@ public class PathPlanner
 			return;
 		}
 
-		// Reset tick counter when manually recalculating
 		state.setTicksSinceLastPathRecalc(0);
 
-		// Use boat location as the start point (not player location!)
-		WorldPoint startPoint = state.getBoatLocation();
-		if (startPoint == null)
+		WorldPoint playerBoatLocation = state.getBoatLocation();
+		if (playerBoatLocation == null)
 		{
 			return;
 		}
 
-		// Plan optimal laps for collecting lost supplies (handles all cases including no supplies)
-		long planStart = config.debugMode() ? System.currentTimeMillis() : 0;
-		planOptimalLaps();
+		long multiLapPlanningStartTime = config.debugMode() ? System.currentTimeMillis() : 0;
+		planOptimalMultiLapRoute();
 		if (config.debugMode())
 		{
-			state.setLastPathPlanningTimeMs(System.currentTimeMillis() - planStart);
+			state.setLastPathPlanningTimeMs(System.currentTimeMillis() - multiLapPlanningStartTime);
 		}
 
-		// Special case: If no supplies AND we have rum, go straight to dropoff
 		if (state.getLostSupplies().isEmpty() && state.isHasRumOnUs())
 		{
-			List<WorldPoint> currentSegmentPath = new ArrayList<>();
+			List<WorldPoint> pathToDropoffOnly = new ArrayList<>();
 			if (state.getRumReturnLocation() != null)
 			{
-				currentSegmentPath.add(locationHelper.getPathfindingDropoffLocation());
+				pathToDropoffOnly.add(locationHelper.getPathfindingDropoffLocation());
 			}
-			state.setCurrentSegmentPath(currentSegmentPath);
+			state.setCurrentSegmentPath(pathToDropoffOnly);
 			state.setNextSegmentPath(new ArrayList<>());
-			state.setOptimalPath(new ArrayList<>(currentSegmentPath));
+			state.setOptimalPath(new ArrayList<>(pathToDropoffOnly));
 			log.debug("No supplies and have rum, pathing to dropoff");
 			return;
 		}
 
-		// Set current and next segment paths
 		if (state.getCurrentLap() < state.getPlannedLaps().size())
 		{
-			// Optimizer returns complete route: Lost Supplies → Pickup → Lost Supplies
-			// with pickup inserted at optimal position
-			List<WorldPoint> waypoints = new ArrayList<>(state.getPlannedLaps().get(state.getCurrentLap()));
+			List<WorldPoint> waypointsForCurrentLap = new ArrayList<>(state.getPlannedLaps().get(state.getCurrentLap()));
 
-			// Add rum dropoff at end (mandatory lap endpoint)
-			// Target 2 tiles south of dropoff (actual dropoff is impassable)
+			// Actual dropoff is impassable, so we target 2 tiles south
 			if (state.getRumReturnLocation() != null)
 			{
-				waypoints.add(locationHelper.getPathfindingDropoffLocation());
+				waypointsForCurrentLap.add(locationHelper.getPathfindingDropoffLocation());
 			}
 
-			// Expand waypoints into full A* path (tactical navigation with speed boosts)
-			long astarStart = config.debugMode() ? System.currentTimeMillis() : 0;
-			List<WorldPoint> currentSegmentPath = expandWaypointsWithAStar(state.getBoatLocation(), waypoints);
-			state.setCurrentSegmentPath(currentSegmentPath);
+			long aStarStartTime = config.debugMode() ? System.currentTimeMillis() : 0;
+			List<WorldPoint> expandedCurrentSegmentPath = expandStrategicWaypointsWithTacticalAStar(state.getBoatLocation(), waypointsForCurrentLap);
+			state.setCurrentSegmentPath(expandedCurrentSegmentPath);
 			if (config.debugMode())
 			{
-				state.setLastAStarTimeMs(System.currentTimeMillis() - astarStart);
+				state.setLastAStarTimeMs(System.currentTimeMillis() - aStarStartTime);
 			}
 		}
 		else
@@ -111,32 +102,26 @@ public class PathPlanner
 			state.setCurrentSegmentPath(new ArrayList<>());
 		}
 
-		// Show next segment preview (if more laps needed)
 		if (state.getCurrentLap() + 1 < state.getPlannedLaps().size())
 		{
-			// Optimizer returns complete route: Lost Supplies → Pickup → Lost Supplies
-			// with pickup inserted at optimal position
-			List<WorldPoint> nextWaypoints = new ArrayList<>(state.getPlannedLaps().get(state.getCurrentLap() + 1));
+			List<WorldPoint> waypointsForNextLap = new ArrayList<>(state.getPlannedLaps().get(state.getCurrentLap() + 1));
 
-			// Add rum dropoff at end (mandatory lap endpoint)
-			// Target 2 tiles south of dropoff (actual dropoff is impassable)
+			// Actual dropoff is impassable, so we target 2 tiles south
 			if (state.getRumReturnLocation() != null)
 			{
-				nextWaypoints.add(locationHelper.getPathfindingDropoffLocation());
+				waypointsForNextLap.add(locationHelper.getPathfindingDropoffLocation());
 			}
 
-			// Expand waypoints into full A* path
-			// Start from pathfinding dropoff location (2 tiles south of actual)
-			WorldPoint nextStart = state.getRumReturnLocation() != null ? locationHelper.getPathfindingDropoffLocation() : state.getBoatLocation();
-			List<WorldPoint> nextSegmentPath = expandWaypointsWithAStar(nextStart, nextWaypoints);
-			state.setNextSegmentPath(nextSegmentPath);
+			// Actual dropoff is impassable, so we target 2 tiles south
+			WorldPoint nextLapStartLocation = state.getRumReturnLocation() != null ? locationHelper.getPathfindingDropoffLocation() : state.getBoatLocation();
+			List<WorldPoint> expandedNextSegmentPath = expandStrategicWaypointsWithTacticalAStar(nextLapStartLocation, waypointsForNextLap);
+			state.setNextSegmentPath(expandedNextSegmentPath);
 		}
 		else
 		{
 			state.setNextSegmentPath(new ArrayList<>());
 		}
 
-		// Update optimalPath for backward compatibility
 		state.setOptimalPath(new ArrayList<>(state.getCurrentSegmentPath()));
 
 		log.debug("Planned {} laps, currently on lap {}/{}", state.getPlannedLaps().size(), state.getCurrentLap() + 1, state.getRumsNeeded());
@@ -146,7 +131,7 @@ public class PathPlanner
 	 * Plans optimal laps for collecting all lost supplies
 	 * Uses multi-lap optimization to minimize TOTAL time, not just first lap
 	 */
-	private void planOptimalLaps()
+	private void planOptimalMultiLapRoute()
 	{
 		state.getPlannedLaps().clear();
 
@@ -155,104 +140,91 @@ public class PathPlanner
 			return;
 		}
 
-		// Calculate how many laps we need
-		int lapsNeeded = Math.max(1, state.getRumsNeeded() - state.getCurrentLap());
+		int numberOfLapsNeeded = Math.max(1, state.getRumsNeeded() - state.getCurrentLap());
 
-		// If we already have supply assignments, only replan current lap to avoid going backwards
 		if (!state.getLostSuppliesForCurrentLap().isEmpty() || !state.getLostSuppliesForFutureLaps().isEmpty())
 		{
-			// Just replan the current lap with its assigned supplies
-			replanCurrentLapOnly();
+			replanCurrentLapWithAssignedSuppliesOnly();
 			return;
 		}
 
-		// Initial planning: use multi-lap optimizer for GLOBAL optimization
-		// This ensures we minimize TOTAL time, not just first lap time
 		state.getLostSuppliesForCurrentLap().clear();
 		state.getLostSuppliesForFutureLaps().clear();
 
-		// Create multi-lap optimizer (uses straight-line distance with rock and exclusion zone penalties)
-		boolean preferWestStart = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
-		MultiLapOptimizer optimizer = new MultiLapOptimizer(
+		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
+		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
-			preferWestStart,
+			shouldPreferWestStartDirection,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
 			state.getExclusionZoneMaxY()
 		);
 
-		// Use fallback locations if we haven't seen the rum objects yet
-		WorldPoint pickupLoc = state.getRumPickupLocation();
-		WorldPoint returnLoc = state.getRumReturnLocation();
+		WorldPoint rumPickupWorldLocation = state.getRumPickupLocation();
+		WorldPoint rumReturnWorldLocation = state.getRumReturnLocation();
 
-		// Calculate missing locations using known offsets
-		if (returnLoc == null && pickupLoc != null)
+		if (rumReturnWorldLocation == null && rumPickupWorldLocation != null)
 		{
-			// Calculate return from pickup (reverse offset)
-			returnLoc = new WorldPoint(
-				pickupLoc.getX() - State.PICKUP_OFFSET_X,
-				pickupLoc.getY() - State.PICKUP_OFFSET_Y,
-				pickupLoc.getPlane()
+			rumReturnWorldLocation = new WorldPoint(
+				rumPickupWorldLocation.getX() - State.PICKUP_OFFSET_X,
+				rumPickupWorldLocation.getY() - State.PICKUP_OFFSET_Y,
+				rumPickupWorldLocation.getPlane()
 			);
 		}
-		else if (pickupLoc == null && returnLoc != null)
+		else if (rumPickupWorldLocation == null && rumReturnWorldLocation != null)
 		{
-			// Calculate pickup from return (forward offset)
-			pickupLoc = new WorldPoint(
-				returnLoc.getX() + State.PICKUP_OFFSET_X,
-				returnLoc.getY() + State.PICKUP_OFFSET_Y,
-				returnLoc.getPlane()
+			rumPickupWorldLocation = new WorldPoint(
+				rumReturnWorldLocation.getX() + State.PICKUP_OFFSET_X,
+				rumReturnWorldLocation.getY() + State.PICKUP_OFFSET_Y,
+				rumReturnWorldLocation.getPlane()
 			);
 		}
-		else if (returnLoc == null && pickupLoc == null)
+		else if (rumReturnWorldLocation == null && rumPickupWorldLocation == null)
 		{
-			// Fallback: use boat location as dropoff and calculate pickup
-			returnLoc = state.getBoatLocation();
-			pickupLoc = new WorldPoint(
-				returnLoc.getX() + State.PICKUP_OFFSET_X,
-				returnLoc.getY() + State.PICKUP_OFFSET_Y,
-				returnLoc.getPlane()
+			rumReturnWorldLocation = state.getBoatLocation();
+			rumPickupWorldLocation = new WorldPoint(
+				rumReturnWorldLocation.getX() + State.PICKUP_OFFSET_X,
+				rumReturnWorldLocation.getY() + State.PICKUP_OFFSET_Y,
+				rumReturnWorldLocation.getPlane()
 			);
 		}
 
-		// Plan all laps considering total time
-		// Use pathfinding offsets: pickup +2 north, dropoff +2 south
-		WorldPoint pathfindingPickup = pickupLoc != null ? new WorldPoint(pickupLoc.getX(), pickupLoc.getY() + 2, pickupLoc.getPlane()) : null;
-		WorldPoint pathfindingDropoff = returnLoc != null ? new WorldPoint(returnLoc.getX(), returnLoc.getY() - 2, returnLoc.getPlane()) : null;
+		// Actual pickup is impassable, so we target 2 tiles north
+		WorldPoint pathfindingSafePickupLocation = rumPickupWorldLocation != null ? new WorldPoint(rumPickupWorldLocation.getX(), rumPickupWorldLocation.getY() + 2, rumPickupWorldLocation.getPlane()) : null;
+		// Actual dropoff is impassable, so we target 2 tiles south
+		WorldPoint pathfindingSafeDropoffLocation = rumReturnWorldLocation != null ? new WorldPoint(rumReturnWorldLocation.getX(), rumReturnWorldLocation.getY() - 2, rumReturnWorldLocation.getPlane()) : null;
 
-		int maxSearchDistance = 100;
-		List<List<WorldPoint>> plannedLaps = optimizer.planMultipleLaps(
+		int maximumAStarSearchDistance = 100;
+		List<List<WorldPoint>> allPlannedLaps = multiLapOptimizer.planMultipleLaps(
 			state.getBoatLocation(),
 			state.getLostSupplies(),
-			lapsNeeded,
-			pathfindingPickup,
-			pathfindingDropoff,
-			maxSearchDistance,
+			numberOfLapsNeeded,
+			pathfindingSafePickupLocation,
+			pathfindingSafeDropoffLocation,
+			maximumAStarSearchDistance,
 			state.isHasRumOnUs(),
 			state.getCurrentLap()
 		);
-		state.setPlannedLaps(plannedLaps);
+		state.setPlannedLaps(allPlannedLaps);
 
-		// Track which supplies are assigned to which laps
-		for (int lap = 0; lap < plannedLaps.size(); lap++)
+		for (int lapIndex = 0; lapIndex < allPlannedLaps.size(); lapIndex++)
 		{
-			List<WorldPoint> lapPath = plannedLaps.get(lap);
+			List<WorldPoint> waypointsForThisLap = allPlannedLaps.get(lapIndex);
 
-			// Find which supplies correspond to this lap's waypoints
-			for (WorldPoint waypoint : lapPath)
+			for (WorldPoint waypointLocation : waypointsForThisLap)
 			{
-				for (GameObject supply : state.getLostSupplies())
+				for (GameObject lostSupplyObject : state.getLostSupplies())
 				{
-					if (supply.getWorldLocation().equals(waypoint))
+					if (lostSupplyObject.getWorldLocation().equals(waypointLocation))
 					{
-						if (lap == 0)
+						if (lapIndex == 0)
 						{
-							state.getLostSuppliesForCurrentLap().add(supply);
+							state.getLostSuppliesForCurrentLap().add(lostSupplyObject);
 						}
 						else
 						{
-							state.getLostSuppliesForFutureLaps().add(supply);
+							state.getLostSuppliesForFutureLaps().add(lostSupplyObject);
 						}
 						break;
 					}
@@ -261,131 +233,122 @@ public class PathPlanner
 		}
 
 		log.debug("Planned {} laps with {} total supplies ({} current, {} future) - TOTAL TIME OPTIMIZED",
-			plannedLaps.size(), state.getLostSupplies().size(), state.getLostSuppliesForCurrentLap().size(), state.getLostSuppliesForFutureLaps().size());
+			allPlannedLaps.size(), state.getLostSupplies().size(), state.getLostSuppliesForCurrentLap().size(), state.getLostSuppliesForFutureLaps().size());
 	}
 
 	/**
 	 * Replans only the current lap using assigned supplies (doesn't go backwards for future lap supplies)
 	 * Uses strategic pathfinding (rocks + speed boosts, no clouds)
 	 */
-	private void replanCurrentLapOnly()
+	private void replanCurrentLapWithAssignedSuppliesOnly()
 	{
 		if (state.getBoatLocation() == null)
 		{
 			return;
 		}
 
-		// Only consider supplies assigned to current lap
-		Set<GameObject> currentLapSupplies = new HashSet<>(state.getLostSuppliesForCurrentLap());
-		currentLapSupplies.retainAll(state.getLostSupplies()); // Only supplies still visible
+		Set<GameObject> suppliesForCurrentLapOnly = new HashSet<>(state.getLostSuppliesForCurrentLap());
+		suppliesForCurrentLapOnly.retainAll(state.getLostSupplies());
 
-		if (currentLapSupplies.isEmpty())
+		if (suppliesForCurrentLapOnly.isEmpty())
 		{
-			// No supplies for current lap, path to rum pickup
-			List<List<WorldPoint>> plannedLaps = new ArrayList<>();
-			plannedLaps.add(new ArrayList<>());
-			state.setPlannedLaps(plannedLaps);
+			List<List<WorldPoint>> plannedLapsWithOnlyPickup = new ArrayList<>();
+			plannedLapsWithOnlyPickup.add(new ArrayList<>());
+			state.setPlannedLaps(plannedLapsWithOnlyPickup);
 			return;
 		}
 
-		// Create multi-lap optimizer (uses straight-line distance with rock and exclusion zone penalties)
-		boolean preferWestStart = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
-		MultiLapOptimizer optimizer = new MultiLapOptimizer(
+		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
+		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
-			preferWestStart,
+			shouldPreferWestStartDirection,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
 			state.getExclusionZoneMaxY()
 		);
 
-		// Use fallback locations if we haven't seen the rum objects yet
-		WorldPoint pickupLoc = state.getRumPickupLocation();
-		WorldPoint returnLoc = state.getRumReturnLocation();
+		WorldPoint rumPickupWorldLocation = state.getRumPickupLocation();
+		WorldPoint rumReturnWorldLocation = state.getRumReturnLocation();
 
-		// Calculate missing locations using known offsets
-		if (returnLoc == null && pickupLoc != null)
+		if (rumReturnWorldLocation == null && rumPickupWorldLocation != null)
 		{
-			// Calculate return from pickup (reverse offset)
-			returnLoc = new WorldPoint(
-				pickupLoc.getX() - State.PICKUP_OFFSET_X,
-				pickupLoc.getY() - State.PICKUP_OFFSET_Y,
-				pickupLoc.getPlane()
+			rumReturnWorldLocation = new WorldPoint(
+				rumPickupWorldLocation.getX() - State.PICKUP_OFFSET_X,
+				rumPickupWorldLocation.getY() - State.PICKUP_OFFSET_Y,
+				rumPickupWorldLocation.getPlane()
 			);
 		}
-		else if (pickupLoc == null && returnLoc != null)
+		else if (rumPickupWorldLocation == null && rumReturnWorldLocation != null)
 		{
-			// Calculate pickup from return (forward offset)
-			pickupLoc = new WorldPoint(
-				returnLoc.getX() + State.PICKUP_OFFSET_X,
-				returnLoc.getY() + State.PICKUP_OFFSET_Y,
-				returnLoc.getPlane()
+			rumPickupWorldLocation = new WorldPoint(
+				rumReturnWorldLocation.getX() + State.PICKUP_OFFSET_X,
+				rumReturnWorldLocation.getY() + State.PICKUP_OFFSET_Y,
+				rumReturnWorldLocation.getPlane()
 			);
 		}
-		else if (returnLoc == null && pickupLoc == null)
+		else if (rumReturnWorldLocation == null && rumPickupWorldLocation == null)
 		{
-			// Fallback: use boat location as dropoff and calculate pickup
-			returnLoc = state.getBoatLocation();
-			pickupLoc = new WorldPoint(
-				returnLoc.getX() + State.PICKUP_OFFSET_X,
-				returnLoc.getY() + State.PICKUP_OFFSET_Y,
-				returnLoc.getPlane()
+			rumReturnWorldLocation = state.getBoatLocation();
+			rumPickupWorldLocation = new WorldPoint(
+				rumReturnWorldLocation.getX() + State.PICKUP_OFFSET_X,
+				rumReturnWorldLocation.getY() + State.PICKUP_OFFSET_Y,
+				rumReturnWorldLocation.getPlane()
 			);
 		}
 
-		// Replan current lap
-		// Use pathfinding offsets: pickup +2 north, dropoff +2 south
-		WorldPoint pathfindingPickup = pickupLoc != null ? new WorldPoint(pickupLoc.getX(), pickupLoc.getY() + 2, pickupLoc.getPlane()) : null;
-		WorldPoint pathfindingDropoff = returnLoc != null ? new WorldPoint(returnLoc.getX(), returnLoc.getY() - 2, returnLoc.getPlane()) : null;
+		// Actual pickup is impassable, so we target 2 tiles north
+		WorldPoint pathfindingSafePickupLocation = rumPickupWorldLocation != null ? new WorldPoint(rumPickupWorldLocation.getX(), rumPickupWorldLocation.getY() + 2, rumPickupWorldLocation.getPlane()) : null;
+		// Actual dropoff is impassable, so we target 2 tiles south
+		WorldPoint pathfindingSafeDropoffLocation = rumReturnWorldLocation != null ? new WorldPoint(rumReturnWorldLocation.getX(), rumReturnWorldLocation.getY() - 2, rumReturnWorldLocation.getPlane()) : null;
 
-		int maxSearchDistance = 100;
-		List<List<WorldPoint>> replanned = optimizer.planMultipleLaps(
+		int maximumAStarSearchDistance = 100;
+		List<List<WorldPoint>> replannedCurrentLap = multiLapOptimizer.planMultipleLaps(
 			state.getBoatLocation(),
-			currentLapSupplies,
-			1, // Just current lap
-			pathfindingPickup,
-			pathfindingDropoff,
-			maxSearchDistance,
+			suppliesForCurrentLapOnly,
+			1,
+			pathfindingSafePickupLocation,
+			pathfindingSafeDropoffLocation,
+			maximumAStarSearchDistance,
 			state.isHasRumOnUs(),
 			state.getCurrentLap()
 		);
 
-		List<List<WorldPoint>> plannedLaps = new ArrayList<>();
-		if (!replanned.isEmpty())
+		List<List<WorldPoint>> allPlannedLaps = new ArrayList<>();
+		if (!replannedCurrentLap.isEmpty())
 		{
-			plannedLaps.add(replanned.get(0));
+			allPlannedLaps.add(replannedCurrentLap.get(0));
 		}
 
-		// Also plan next lap as preview (using future lap supplies)
 		if (state.getCurrentLap() + 1 < state.getRumsNeeded() && !state.getLostSuppliesForFutureLaps().isEmpty())
 		{
-			Set<GameObject> futureLapSupplies = new HashSet<>(state.getLostSuppliesForFutureLaps());
-			futureLapSupplies.retainAll(state.getLostSupplies());
+			Set<GameObject> suppliesForFutureLapsOnly = new HashSet<>(state.getLostSuppliesForFutureLaps());
+			suppliesForFutureLapsOnly.retainAll(state.getLostSupplies());
 
-			if (!futureLapSupplies.isEmpty() && state.getRumReturnLocation() != null)
+			if (!suppliesForFutureLapsOnly.isEmpty() && state.getRumReturnLocation() != null)
 			{
-				List<List<WorldPoint>> nextLapPlan = optimizer.planMultipleLaps(
+				List<List<WorldPoint>> plannedNextLap = multiLapOptimizer.planMultipleLaps(
 					state.getRumReturnLocation(),
-					futureLapSupplies,
+					suppliesForFutureLapsOnly,
 					1,
 					state.getRumPickupLocation(),
 					state.getRumReturnLocation(),
-					maxSearchDistance,
-					false, // Next lap starts without rum
+					maximumAStarSearchDistance,
+					false,
 					state.getCurrentLap() + 1
 				);
 
-				if (!nextLapPlan.isEmpty())
+				if (!plannedNextLap.isEmpty())
 				{
-					plannedLaps.add(nextLapPlan.get(0));
+					allPlannedLaps.add(plannedNextLap.get(0));
 				}
 			}
 		}
 
-		state.setPlannedLaps(plannedLaps);
+		state.setPlannedLaps(allPlannedLaps);
 
 		log.debug("Replanned current lap only with {} supplies (avoiding {} future lap supplies)",
-			currentLapSupplies.size(), state.getLostSuppliesForFutureLaps().size());
+			suppliesForCurrentLapOnly.size(), state.getLostSuppliesForFutureLaps().size());
 	}
 
 	/**
@@ -393,136 +356,118 @@ public class PathPlanner
 	 * Only expands the next 3 waypoints for performance (user only needs immediate path)
 	 * Uses BarracudaTileCostCalculator to route through speed boosts and avoid clouds/rocks
 	 */
-	private List<WorldPoint> expandWaypointsWithAStar(WorldPoint start, List<WorldPoint> waypoints)
+	private List<WorldPoint> expandStrategicWaypointsWithTacticalAStar(WorldPoint startLocation, List<WorldPoint> strategicWaypoints)
 	{
-		if (waypoints.isEmpty())
+		if (strategicWaypoints.isEmpty())
 		{
 			return new ArrayList<>();
 		}
 
-		// Filter out safe clouds (only pass dangerous ones to cost calculator)
-		Set<NPC> dangerousClouds = new HashSet<>();
-		for (NPC cloud : state.getLightningClouds())
+		Set<NPC> currentlyDangerousClouds = new HashSet<>();
+		for (NPC lightningCloud : state.getLightningClouds())
 		{
-			if (!isCloudSafe(cloud.getAnimation()))
+			if (!isCloudAnimationSafe(lightningCloud.getAnimation()))
 			{
-				dangerousClouds.add(cloud);
+				currentlyDangerousClouds.add(lightningCloud);
 			}
 		}
 
-		// Create tactical cost calculator (includes clouds, speed boosts, rocks, exclusion zone)
-		BarracudaTileCostCalculator costCalculator = new BarracudaTileCostCalculator(
+		BarracudaTileCostCalculator tileCostCalculator = new BarracudaTileCostCalculator(
 			state.getKnownSpeedBoostLocations(),
 			state.getKnownRockLocations(),
 			state.getRocks(),
-			dangerousClouds,
+			currentlyDangerousClouds,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
 			state.getExclusionZoneMaxY()
 		);
 
-		// Create A* pathfinder
-		AStarPathfinder pathfinder = new AStarPathfinder(costCalculator);
+		AStarPathfinder aStarPathfinder = new AStarPathfinder(tileCostCalculator);
 
-		List<WorldPoint> fullPath = new ArrayList<>();
-		WorldPoint current = start;
-		int maxSearchDistance = 100;
+		List<WorldPoint> completeExpandedPath = new ArrayList<>();
+		WorldPoint currentPathfindingPosition = startLocation;
+		int maximumAStarSearchDistance = 100;
 
-		// Only expand next N waypoints with A* (configurable for performance and visual clarity)
-		// Remaining waypoints will be expanded when closer on future recalcs
-		int waypointsToExpand = Math.min(config.pathLookahead(), waypoints.size());
+		int numberOfWaypointsToExpandWithAStar = Math.min(config.pathLookahead(), strategicWaypoints.size());
 
-		// Expand first N waypoints with A*
-		for (int i = 0; i < waypointsToExpand; i++)
+		for (int waypointIndex = 0; waypointIndex < numberOfWaypointsToExpandWithAStar; waypointIndex++)
 		{
-			WorldPoint waypoint = waypoints.get(i);
-			List<WorldPoint> segment = pathfinder.findPath(current, waypoint, maxSearchDistance);
+			WorldPoint targetWaypoint = strategicWaypoints.get(waypointIndex);
+			List<WorldPoint> pathSegmentToWaypoint = aStarPathfinder.findPath(currentPathfindingPosition, targetWaypoint, maximumAStarSearchDistance);
 
-			if (segment.isEmpty())
+			if (pathSegmentToWaypoint.isEmpty())
 			{
-				// No path found, fallback to direct waypoint
-				fullPath.add(waypoint);
+				completeExpandedPath.add(targetWaypoint);
 			}
 			else
 			{
-				// Add all tiles in this segment (except first, which is current position)
-				for (int j = 1; j < segment.size(); j++)
+				for (int tileIndex = 1; tileIndex < pathSegmentToWaypoint.size(); tileIndex++)
 				{
-					fullPath.add(segment.get(j));
+					completeExpandedPath.add(pathSegmentToWaypoint.get(tileIndex));
 				}
 			}
 
-			current = waypoint;
+			currentPathfindingPosition = targetWaypoint;
 		}
 
-		// Do NOT add remaining waypoints - they will be calculated when closer
-		// This reduces both computation time and visual clutter
-
-		return fullPath;
+		return completeExpandedPath;
 	}
 
 	/**
 	 * Checks if a cloud animation indicates it's safe
-	 * @param animationId The cloud's current animation ID
+	 * @param cloudAnimationId The cloud's current animation ID
 	 * @return true if the cloud is safe (harmless animation)
 	 */
-	private boolean isCloudSafe(int animationId)
+	private boolean isCloudAnimationSafe(int cloudAnimationId)
 	{
-		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
+		return cloudAnimationId == State.CLOUD_ANIM_HARMLESS || cloudAnimationId == State.CLOUD_ANIM_HARMLESS_ALT;
 	}
 
 	/**
 	 * Checks if a cloud is dangerous based on its animation
-	 * @param cloud The cloud NPC to check
+	 * @param lightningCloud The cloud NPC to check
 	 * @return true if the cloud is dangerous
 	 */
-	public boolean isCloudDangerous(NPC cloud)
+	public boolean isCloudCurrentlyDangerous(NPC lightningCloud)
 	{
-		int animation = cloud.getAnimation();
-		// Cloud is dangerous if it's NOT in a safe animation state
-		return !isCloudSafe(animation);
+		int cloudAnimationId = lightningCloud.getAnimation();
+		return !isCloudAnimationSafe(cloudAnimationId);
 	}
 
 	/**
 	 * Generates a circular path around the exclusion zone
 	 * Used as a fallback when no specific targets are available
 	 */
-	public List<WorldPoint> generateCircularPath(WorldPoint start)
+	public List<WorldPoint> generateCircularPathAroundExclusionZone(WorldPoint startLocation)
 	{
-		List<WorldPoint> path = new ArrayList<>();
+		List<WorldPoint> circularPath = new ArrayList<>();
 
-		// If we don't have rum return location yet, can't calculate circular path
 		if (state.getRumReturnLocation() == null)
 		{
-			return path;
+			return circularPath;
 		}
 
-		// Create waypoints traveling west around the island
-		// These waypoints circle around the exclusion zone
-		int centerX = (state.getExclusionZoneMinX() + state.getExclusionZoneMaxX()) / 2;
-		int centerY = (state.getExclusionZoneMinY() + state.getExclusionZoneMaxY()) / 2;
+		int exclusionZoneCenterX = (state.getExclusionZoneMinX() + state.getExclusionZoneMaxX()) / 2;
+		int exclusionZoneCenterY = (state.getExclusionZoneMinY() + state.getExclusionZoneMaxY()) / 2;
 
-		// Calculate radius to stay outside exclusion zone
-		int radiusX = (state.getExclusionZoneMaxX() - state.getExclusionZoneMinX()) / 2 + 10; // 10 tile buffer
-		int radiusY = (state.getExclusionZoneMaxY() - state.getExclusionZoneMinY()) / 2 + 10;
+		// 10 tile buffer around exclusion zone
+		int circularPathRadiusX = (state.getExclusionZoneMaxX() - state.getExclusionZoneMinX()) / 2 + 10;
+		int circularPathRadiusY = (state.getExclusionZoneMaxY() - state.getExclusionZoneMinY()) / 2 + 10;
 
-		// Generate 8 waypoints around the circle, starting from current position
-		// and going counter-clockwise (west)
-		double startAngle = Math.atan2(start.getY() - centerY, start.getX() - centerX);
+		double startAngleFromCenter = Math.atan2(startLocation.getY() - exclusionZoneCenterY, startLocation.getX() - exclusionZoneCenterX);
 
-		for (int i = 1; i <= 8; i++)
+		for (int waypointIndex = 1; waypointIndex <= 8; waypointIndex++)
 		{
-			// Travel counter-clockwise (subtract angle)
-			double angle = startAngle - (i * Math.PI / 4); // 45 degrees per waypoint
+			double currentAngle = startAngleFromCenter - (waypointIndex * Math.PI / 4);
 
-			int waypointX = (int) (centerX + radiusX * Math.cos(angle));
-			int waypointY = (int) (centerY + radiusY * Math.sin(angle));
+			int waypointX = (int) (exclusionZoneCenterX + circularPathRadiusX * Math.cos(currentAngle));
+			int waypointY = (int) (exclusionZoneCenterY + circularPathRadiusY * Math.sin(currentAngle));
 
-			path.add(new WorldPoint(waypointX, waypointY, start.getPlane()));
+			circularPath.add(new WorldPoint(waypointX, waypointY, startLocation.getPlane()));
 		}
 
-		return path;
+		return circularPath;
 	}
 
 	/**

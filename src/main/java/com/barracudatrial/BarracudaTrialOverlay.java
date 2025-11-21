@@ -21,8 +21,8 @@ public class BarracudaTrialOverlay extends Overlay
 	private final ObjectRenderer objectRenderer;
 	private final DebugRenderer debugRenderer;
 
-	private int frameCounter = 0;
-	private Map<net.runelite.api.Point, Integer> labelCounts = new HashMap<>();
+	private int currentFrameNumber = 0;
+	private Map<net.runelite.api.Point, Integer> screenPositionLabelCounts = new HashMap<>();
 
 	@Inject
 	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
@@ -41,8 +41,8 @@ public class BarracudaTrialOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		frameCounter++;
-		labelCounts.clear();
+		currentFrameNumber++;
+		screenPositionLabelCounts.clear();
 
 		if (!plugin.isInTrialArea())
 		{
@@ -50,12 +50,12 @@ public class BarracudaTrialOverlay extends Overlay
 		}
 
 		// Share label tracking across all renderers to prevent overlap
-		objectRenderer.setLabelCounts(labelCounts);
-		debugRenderer.setLabelCounts(labelCounts);
+		objectRenderer.setLabelCounts(screenPositionLabelCounts);
+		debugRenderer.setLabelCounts(screenPositionLabelCounts);
 
 		if (config.showOptimalPath())
 		{
-			pathRenderer.renderOptimalPath(graphics, frameCounter);
+			pathRenderer.renderOptimalPath(graphics, currentFrameNumber);
 		}
 
 		if (config.highlightLostSupplies())

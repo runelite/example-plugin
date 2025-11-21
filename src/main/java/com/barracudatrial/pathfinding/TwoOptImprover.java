@@ -4,11 +4,22 @@ import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
 
+/**
+ * 2-opt algorithm for improving TSP routes
+ * Iteratively swaps route segments to reduce total distance
+ */
 public class TwoOptImprover
 {
 	private static final int MAX_ITERATIONS = 20;
 
-	public List<WorldPoint> improve(
+	/**
+	 * Improves a route using 2-opt swaps
+	 * @param route Current route through supplies
+	 * @param startPoint Starting position (used for calculating edge costs)
+	 * @param distanceMatrix Pre-computed distances between points
+	 * @return Improved route (may be same as input if no improvements found)
+	 */
+	public List<WorldPoint> improveRoute(
 		List<WorldPoint> route,
 		WorldPoint startPoint,
 		Map<WorldPoint, Map<WorldPoint, Double>> distanceMatrix)
@@ -18,21 +29,23 @@ public class TwoOptImprover
 			return route;
 		}
 
-		boolean improved = true;
+		boolean foundImprovement = true;
 		int iterations = 0;
 
-		while (improved && iterations < MAX_ITERATIONS)
+		// Keep trying swaps until no improvements found or max iterations reached
+		// Max iterations prevents excessive optimization time for large routes
+		while (foundImprovement && iterations < MAX_ITERATIONS)
 		{
-			improved = false;
+			foundImprovement = false;
 			iterations++;
 
-			for (int i = 0; i < route.size() - 1; i++)
+			for (int firstIndex = 0; firstIndex < route.size() - 1; firstIndex++)
 			{
-				for (int j = i + 2; j < route.size(); j++)
+				for (int secondIndex = firstIndex + 2; secondIndex < route.size(); secondIndex++)
 				{
-					if (trySwap(route, i, j, startPoint, distanceMatrix))
+					if (trySwapSegment(route, firstIndex, secondIndex, startPoint, distanceMatrix))
 					{
-						improved = true;
+						foundImprovement = true;
 					}
 				}
 			}
@@ -41,39 +54,48 @@ public class TwoOptImprover
 		return route;
 	}
 
-	private boolean trySwap(
+	/**
+	 * Tries swapping a segment of the route and keeps it if it improves total distance
+	 * @param firstIndex Start of segment to reverse
+	 * @param secondIndex End of segment to reverse
+	 * @return true if swap was beneficial and applied
+	 */
+	private boolean trySwapSegment(
 		List<WorldPoint> route,
-		int i,
-		int j,
+		int firstIndex,
+		int secondIndex,
 		WorldPoint startPoint,
 		Map<WorldPoint, Map<WorldPoint, Double>> distanceMatrix)
 	{
-		WorldPoint previousToI = (i == 0) ? startPoint : route.get(i - 1);
-		WorldPoint pointAtI = route.get(i);
-		WorldPoint pointAfterI = route.get(i + 1);
+		WorldPoint beforeSegment = (firstIndex == 0) ? startPoint : route.get(firstIndex - 1);
+		WorldPoint segmentStart = route.get(firstIndex);
+		WorldPoint afterSegmentStart = route.get(firstIndex + 1);
 
-		WorldPoint pointAtJ = route.get(j);
-		WorldPoint pointAfterJ = (j == route.size() - 1) ? null : route.get(j + 1);
+		WorldPoint segmentEnd = route.get(secondIndex);
+		WorldPoint afterSegment = (secondIndex == route.size() - 1) ? null : route.get(secondIndex + 1);
 
-		double currentCost = getDistance(previousToI, pointAtI, distanceMatrix) +
-			getDistance(pointAtI, pointAfterI, distanceMatrix);
+		// Calculate cost of current edge configuration
+		double currentCost = getDistance(beforeSegment, segmentStart, distanceMatrix) +
+			getDistance(segmentStart, afterSegmentStart, distanceMatrix);
 
-		if (pointAfterJ != null)
+		if (afterSegment != null)
 		{
-			currentCost += getDistance(pointAtJ, pointAfterJ, distanceMatrix);
+			currentCost += getDistance(segmentEnd, afterSegment, distanceMatrix);
 		}
 
-		double newCost = getDistance(previousToI, pointAtJ, distanceMatrix) +
-			getDistance(pointAtJ, pointAfterI, distanceMatrix);
+		// Calculate cost after reversing segment
+		double newCost = getDistance(beforeSegment, segmentEnd, distanceMatrix) +
+			getDistance(segmentEnd, afterSegmentStart, distanceMatrix);
 
-		if (pointAfterJ != null)
+		if (afterSegment != null)
 		{
-			newCost += getDistance(pointAtI, pointAfterJ, distanceMatrix);
+			newCost += getDistance(segmentStart, afterSegment, distanceMatrix);
 		}
 
+		// Apply swap if it reduces cost (epsilon to avoid floating point noise)
 		if (newCost < currentCost - 0.001)
 		{
-			reverseSegment(route, i, j);
+			reverseSegment(route, firstIndex, secondIndex);
 			return true;
 		}
 
