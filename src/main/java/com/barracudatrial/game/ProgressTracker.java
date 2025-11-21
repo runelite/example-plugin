@@ -131,6 +131,6 @@ public class ProgressTracker
 
 	public int calculateRemainingLostSupplies()
 	{
-		return state.getlostSuppliesTotal() - state.getLostSuppliesCollected();
+		return state.getLostSuppliesTotal() - state.getLostSuppliesCollected();
 	}
 }

@@ -191,7 +191,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 	public int getLostSuppliesRemaining()
 	{
-		return gameState.getlostSuppliesTotal() - gameState.getLostSuppliesCollected();
+		return gameState.getLostSuppliesTotal() - gameState.getLostSuppliesCollected();
 	}
 
 	public boolean isPointInExclusionZone(WorldPoint point)
