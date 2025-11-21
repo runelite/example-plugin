@@ -4,6 +4,7 @@ import com.barracudatrial.rendering.DebugRenderer;
 import com.barracudatrial.rendering.ObjectRenderer;
 import com.barracudatrial.rendering.PathRenderer;
 import net.runelite.api.Client;
+import net.runelite.api.Point;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
@@ -21,7 +22,7 @@ public class BarracudaTrialOverlay extends Overlay
 	private final DebugRenderer debugRenderer;
 
 	private int currentFrameNumber = 0;
-	private Map<net.runelite.api.Point, Integer> screenPositionLabelCounts = new HashMap<>();
+	private Map<Point, Integer> screenPositionLabelCounts = new HashMap<>();
 
 	@Inject
 	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)

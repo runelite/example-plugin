@@ -4,6 +4,7 @@ import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
+import net.runelite.api.Point;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -106,8 +107,8 @@ public class PathRenderer
 			return;
 		}
 
-		net.runelite.api.Point fromCanvasPoint = Perspective.localToCanvas(client, fromLocalPoint, fromPoint.getPlane(), 0);
-		net.runelite.api.Point toCanvasPoint = Perspective.localToCanvas(client, toLocalPoint, toPoint.getPlane(), 0);
+		Point fromCanvasPoint = Perspective.localToCanvas(client, fromLocalPoint, fromPoint.getPlane(), 0);
+		Point toCanvasPoint = Perspective.localToCanvas(client, toLocalPoint, toPoint.getPlane(), 0);
 
 		if (fromCanvasPoint == null || toCanvasPoint == null)
 		{
@@ -172,8 +173,8 @@ public class PathRenderer
 				continue;
 			}
 
-			net.runelite.api.Point segmentStartCanvas = Perspective.localToCanvas(client, segmentStartLocal, segmentStartPoint.getPlane(), 0);
-			net.runelite.api.Point segmentEndCanvas = Perspective.localToCanvas(client, segmentEndLocal, segmentEndPoint.getPlane(), 0);
+			Point segmentStartCanvas = Perspective.localToCanvas(client, segmentStartLocal, segmentStartPoint.getPlane(), 0);
+			Point segmentEndCanvas = Perspective.localToCanvas(client, segmentEndLocal, segmentEndPoint.getPlane(), 0);
 
 			if (segmentStartCanvas == null || segmentEndCanvas == null)
 			{

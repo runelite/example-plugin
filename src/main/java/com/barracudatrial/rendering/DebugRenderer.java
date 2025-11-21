@@ -26,7 +26,7 @@ public class DebugRenderer
 	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
+	private Map<Point, Integer> labelCountsByCanvasPosition;
 
 	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -36,7 +36,7 @@ public class DebugRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition)
+	public void setLabelCounts(Map<Point, Integer> labelCountsByCanvasPosition)
 	{
 		this.labelCountsByCanvasPosition = labelCountsByCanvasPosition;
 	}
@@ -254,9 +254,9 @@ public class DebugRenderer
 		}
 	}
 
-	private int calculateAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
+	private int calculateAndIncrementLabelOffset(Point canvasPoint)
 	{
-		net.runelite.api.Point roundedCanvasPoint = new net.runelite.api.Point(
+		Point roundedCanvasPoint = new Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);

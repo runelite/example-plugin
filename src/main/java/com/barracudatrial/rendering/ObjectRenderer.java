@@ -20,7 +20,7 @@ public class ObjectRenderer
 	private final CachedConfig cachedConfig;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
-	private Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition;
+	private Map<Point, Integer> labelCountsByCanvasPosition;
 
 	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, CachedConfig cachedConfig, ModelOutlineRenderer modelOutlineRenderer)
 	{
@@ -30,7 +30,7 @@ public class ObjectRenderer
 		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
-	public void setLabelCounts(Map<net.runelite.api.Point, Integer> labelCountsByCanvasPosition)
+	public void setLabelCounts(Map<Point, Integer> labelCountsByCanvasPosition)
 	{
 		this.labelCountsByCanvasPosition = labelCountsByCanvasPosition;
 	}
@@ -245,18 +245,18 @@ public class ObjectRenderer
 
 	private void renderLabelAtLocalPoint(Graphics2D graphics, LocalPoint localPoint, String labelText, Color labelColor, int heightOffsetInPixels)
 	{
-		net.runelite.api.Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, labelText, heightOffsetInPixels);
+		Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, labelText, heightOffsetInPixels);
 		if (labelCanvasPoint != null)
 		{
 			int yOffsetToAvoidLabelOverlap = calculateAndIncrementLabelOffset(labelCanvasPoint);
-			net.runelite.api.Point adjustedCanvasPoint = new net.runelite.api.Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
+			Point adjustedCanvasPoint = new Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
 			OverlayUtil.renderTextLocation(graphics, adjustedCanvasPoint, labelText, labelColor);
 		}
 	}
 
-	private int calculateAndIncrementLabelOffset(net.runelite.api.Point canvasPoint)
+	private int calculateAndIncrementLabelOffset(Point canvasPoint)
 	{
-		net.runelite.api.Point roundedCanvasPoint = new net.runelite.api.Point(
+		Point roundedCanvasPoint = new Point(
 			(canvasPoint.getX() / 10) * 10,
 			(canvasPoint.getY() / 10) * 10
 		);
