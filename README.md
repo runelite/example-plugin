@@ -10,7 +10,6 @@ A RuneLite plugin for Barracuda Trials. Displays an optimal path to collect lost
 - **Pathing sometimes makes weird choices**, especially mid-route. Ignore suggestions to go backwards.
 - **Rum pickup/dropoff highlighting is not working.** The locations are tracked but not rendered correctly.
 - **Debug mode needs cleanup.** Once everything is stable, debug logging and performance tracking should be removed.
-- **Code needs refactoring.** The plugin is over 1500 lines and should be split into smaller, more maintainable modules.
 
 ## Problem & Approach
 
