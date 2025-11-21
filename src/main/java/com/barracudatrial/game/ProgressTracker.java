@@ -120,7 +120,7 @@ public class ProgressTracker
 			if (parts.length == 2)
 			{
 				state.setLostSuppliesCollected(Integer.parseInt(parts[0].trim()));
-				state.setlostSuppliesTotal(Integer.parseInt(parts[1].trim()));
+				state.setLostSuppliesTotal(Integer.parseInt(parts[1].trim()));
 			}
 		}
 		catch (NumberFormatException e)
