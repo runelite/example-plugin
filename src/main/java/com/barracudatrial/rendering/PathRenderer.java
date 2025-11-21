@@ -63,6 +63,7 @@ public class PathRenderer
 
 	private void drawInterpolatedPathWithTracer(Graphics2D graphics, List<WorldPoint> waypoints, WorldPoint startLocation, int totalSegmentsInPath, int frameCounterForTracerAnimation)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		int globalSegmentOffset = 0;
 		WorldPoint previousWaypoint = startLocation;
 		for (WorldPoint waypoint : waypoints)
@@ -121,6 +122,7 @@ public class PathRenderer
 
 	private int drawInterpolatedSegment(Graphics2D graphics, WorldPoint fromPoint, WorldPoint toPoint, Color pathColor, int totalSegmentsInPath, int globalSegmentOffset, int frameCounterForTracerAnimation)
 	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
 		{
