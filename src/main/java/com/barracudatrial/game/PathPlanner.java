@@ -151,7 +151,7 @@ public class PathPlanner
 		state.getLostSuppliesForCurrentLap().clear();
 		state.getLostSuppliesForFutureLaps().clear();
 
-		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
+		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
 		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
 			shouldPreferWestStartDirection,
@@ -258,7 +258,7 @@ public class PathPlanner
 			return;
 		}
 
-		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.WEST;
+		boolean shouldPreferWestStartDirection = config.startingDirection() == BarracudaTrialConfig.StartingDirection.COUNTER_CLOCKWISE;
 		MultiLapOptimizer multiLapOptimizer = new MultiLapOptimizer(
 			state.getKnownRockLocations(),
 			shouldPreferWestStartDirection,

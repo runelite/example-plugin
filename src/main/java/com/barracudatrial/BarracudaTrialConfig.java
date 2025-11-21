@@ -62,13 +62,13 @@ public interface BarracudaTrialConfig extends Config
 	@ConfigItem(
 		keyName = "startingDirection",
 		name = "Starting Direction",
-		description = "Preferred direction to start collecting lost supplies from dropoff (West or East). Will use this direction when possible.",
+		description = "Direction to travel around the island from dropoff. Counter-clockwise goes west first, clockwise goes east first.",
 		section = pathSection,
 		position = 1
 	)
 	default StartingDirection startingDirection()
 	{
-		return StartingDirection.WEST;
+		return StartingDirection.COUNTER_CLOCKWISE;
 	}
 
 	@ConfigItem(
@@ -137,8 +137,8 @@ public interface BarracudaTrialConfig extends Config
 
 	enum StartingDirection
 	{
-		WEST,
-		EAST
+		COUNTER_CLOCKWISE,
+		CLOCKWISE
 	}
 
 	@ConfigItem(
