@@ -41,7 +41,8 @@ public class ObjectTracker
 	);
 
 	private static final Set<Integer> SPEED_BOOST_IDS = Set.of(
-		ObjectID.SAILING_RAPIDS_STRONG
+		ObjectID.SAILING_RAPIDS, ObjectID.SAILING_RAPIDS_STRONG,
+		ObjectID.SAILING_RAPIDS_POWERFUL, ObjectID.SAILING_RAPIDS_DEADLY
 	);
 
 	public ObjectTracker(Client client, State state, SceneScanner sceneScanner)
