@@ -36,7 +36,6 @@ public class TemporTantrumRoutes
 	{
 		// SWORDFISH difficulty - 1 lap, 14 shipments + rum pickup/dropoff
 		// Captured 2025-11-21
-		// Rum coordinates confirmed via LocationManager and NPC boat WorldEntity
 		ROUTES.put(Difficulty.SWORDFISH, List.of(
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2994, 2891, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2978, 2866, 0)),
@@ -45,7 +44,7 @@ public class TemporTantrumRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2990, 2808, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2788, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3012, 2768, 0)),
-			new RouteWaypoint(WaypointType.RUM_PICKUP, new WorldPoint(3037, 2767, 0)), // Pick up rum
+			new RouteWaypoint(WaypointType.RUM_PICKUP), // Pick up rum
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
@@ -53,11 +52,65 @@ public class TemporTantrumRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3082, 2875, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3084, 2896, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3053, 2920, 0)),
-			new RouteWaypoint(WaypointType.RUM_DROPOFF, new WorldPoint(3035, 2926, 0)) // Drop off rum
+			new RouteWaypoint(WaypointType.RUM_DROPOFF) // Drop off rum
 		));
 
-		// SHARK difficulty - 2 laps (not yet captured)
-		ROUTES.put(Difficulty.SHARK, new ArrayList<>());
+		// SHARK difficulty - 2 laps
+		// Captured 2025-11-21
+		ROUTES.put(Difficulty.SHARK, List.of(
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3018, 2889, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3018, 2889, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3018, 2889, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3018, 2889, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3018, 2889, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2866, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2866, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2866, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2866, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3004, 2834, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3004, 2834, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3004, 2834, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3004, 2834, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3006, 2819, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3006, 2819, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3006, 2819, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3006, 2819, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3028, 2789, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3028, 2789, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3028, 2789, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3028, 2789, 0)),
+			new RouteWaypoint(WaypointType.RUM_PICKUP), // Pick up rum
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3078, 2863, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3078, 2863, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3078, 2863, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3078, 2863, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3078, 2863, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3082, 2875, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3082, 2875, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3082, 2875, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3082, 2875, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3059, 2904, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3059, 2904, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3059, 2904, 0)),
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3059, 2904, 0)),
+			new RouteWaypoint(WaypointType.RUM_DROPOFF) // Drop off rum
+		));
 
 		// MARLIN difficulty - 3 laps (not yet captured)
 		ROUTES.put(Difficulty.MARLIN, new ArrayList<>());
