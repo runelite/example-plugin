@@ -179,10 +179,19 @@ public class AStarPathfinder
 		// Calculate ticks needed to turn (15°/tick turn rate)
 		double ticksToTurn = turnAngleDegrees / 15.0;
 
-		// Wasted movement = ticks spent turning * average inefficiency
-		// During a 180° turn, you spend 12 ticks going wrong directions
-		// Approximate wasted distance as half the ticks (conservative estimate)
-		double wastedMovement = ticksToTurn * 0.5;
+		// Piecewise function: gentle up to 90°, then explosive penalty
+		double wastedMovement;
+		if (turnAngleDegrees <= 90)
+		{
+			// Gentle linear cost for turns up to 90°
+			wastedMovement = ticksToTurn * 0.17;
+		}
+		else
+		{
+			// Explosive cost for turns over 90°
+			double ticksOver90 = ticksToTurn - 6.0; // 90° = 6 ticks
+			wastedMovement = 1.0 + Math.pow(ticksOver90, 2.5) * 8.0;
+		}
 
 		return wastedMovement;
 	}

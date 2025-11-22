@@ -72,45 +72,44 @@ public class BarracudaTileCostCalculator
 			return 999999;
 		}
 
-		if (veryCloseToRocks.contains(to))
-		{
-			cost += 10000;
-		}
-		else if (closeToRocks.contains(to))
-		{
-			cost += 500;
-		}
-
-		double distToZone = distanceToExclusionZone(to);
-		if (distToZone <= 1)
-		{
-			cost += 10000;
-		}
-		else if (distToZone <= 2)
-		{
-			cost += 500;
-		}
-		else if (distToZone <= 3)
-		{
-			cost += 50;
-		}
-
-		// Use single penalty instead of distance-based since precompute would need 3 separate sets for each distance tier (memory tradeoff)
-		if (cloudDangerZones.contains(to))
-		{
-			cost += 20;
-		}
-
 		if (knownSpeedBoostLocations.contains(to))
 		{
-			// Speed boost gives 3x speed for 8 tiles, so total savings is ~5.33 cost units
-			cost = -5.0;
-			speedBoostTilesRemaining = 8;
+			cost = -10.0;
+			speedBoostTilesRemaining = 5;
 		}
 		else if (speedBoostTilesRemaining > 0)
 		{
 			cost /= 3.0;
 			speedBoostTilesRemaining--;
+		}
+
+		if (veryCloseToRocks.contains(to))
+		{
+			cost += 100;
+		}
+		else if (closeToRocks.contains(to))
+		{
+			cost += 25;
+		}
+
+		double distToZone = distanceToExclusionZone(to);
+		if (distToZone <= 1)
+		{
+			cost += 100;
+		}
+		else if (distToZone <= 2)
+		{
+			cost += 50;
+		}
+		else if (distToZone <= 3)
+		{
+			cost += 25;
+		}
+
+		// Use single penalty instead of distance-based since precompute would need 3 separate sets for each distance tier (memory tradeoff)
+		if (cloudDangerZones.contains(to))
+		{
+			cost += 200;
 		}
 
 		return cost;
