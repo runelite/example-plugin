@@ -22,9 +22,11 @@ public class AStarPathfinder
 	 * @param start Starting position
 	 * @param goal Goal position
 	 * @param maxSearchDistance Maximum tiles to search (prevents infinite loops)
+	 * @param boatDirectionDx Boat's forward direction X component (0 if not on boat)
+	 * @param boatDirectionDy Boat's forward direction Y component (0 if not on boat)
 	 * @return List of WorldPoints representing the path, or empty list if no path found
 	 */
-	public List<WorldPoint> findPath(WorldPoint start, WorldPoint goal, int maxSearchDistance)
+	public List<WorldPoint> findPath(WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy)
 	{
 		// Priority queue ordered by f-score (g + h), with tie-breaking towards goal
 		// When f-scores are equal, prefer nodes closer to goal (Manhattan distance)
@@ -77,6 +79,16 @@ public class AStarPathfinder
 				if (closedSet.contains(neighbor))
 				{
 					continue;
+				}
+
+				// For first move from start: enforce boat's forward direction constraint
+				// The boat cannot turn in place - it must move forward first
+				if (current.parent == null && (boatDirectionDx != 0 || boatDirectionDy != 0))
+				{
+					if (!isInForwardCone(current.position, neighbor, boatDirectionDx, boatDirectionDy))
+					{
+						continue; // Skip neighbors not in forward cone
+					}
 				}
 
 				// Get tile cost for this neighbor
@@ -173,6 +185,37 @@ public class AStarPathfinder
 		double wastedMovement = ticksToTurn * 0.5;
 
 		return wastedMovement;
+	}
+
+	/**
+	 * Checks if a neighbor tile is within the boat's forward cone of movement
+	 * The boat must move forward - it cannot turn in place
+	 * We use a generous cone (90 degrees / dot product > 0) to account for grid quantization
+	 *
+	 * @param current Current position
+	 * @param neighbor Neighbor being evaluated
+	 * @param boatDx Boat's forward direction X component
+	 * @param boatDy Boat's forward direction Y component
+	 * @return true if neighbor is "forward enough" to be reachable on first move
+	 */
+	private boolean isInForwardCone(WorldPoint current, WorldPoint neighbor, int boatDx, int boatDy)
+	{
+		// Calculate movement direction from current to neighbor
+		int moveDx = neighbor.getX() - current.getX();
+		int moveDy = neighbor.getY() - current.getY();
+
+		// Calculate dot product between boat direction and movement direction
+		// Dot product > 0 means angle < 90 degrees (forward-ish)
+		// Dot product = 0 means perpendicular
+		// Dot product < 0 means angle > 90 degrees (backwards)
+		int dotProduct = moveDx * boatDx + moveDy * boatDy;
+
+		// Allow any tile in the forward hemisphere (dot product > 0)
+		// This is a 180-degree cone, which is generous but accounts for:
+		// - Grid quantization errors (boat rotates in 15° but tiles are 90° aligned)
+		// - Estimation errors in front tile position
+		// We still reject pure backwards movement (dot product <= 0)
+		return dotProduct > 0;
 	}
 
 	/**
