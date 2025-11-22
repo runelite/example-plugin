@@ -5,7 +5,9 @@ import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class BarracudaTileCostCalculator
@@ -21,12 +23,14 @@ public class BarracudaTileCostCalculator
 
 	private int speedBoostTilesRemaining = 0;
 	private WorldPoint lastTile = null;
+	private final Set<WorldPoint> consumedBoosts = new HashSet<>();
 
 	// Precomputed spatial lookups for O(1) cost checks (huge performance boost)
 	private final Set<WorldPoint> visibleRockLocations;
 	private final Set<WorldPoint> veryCloseToRocks;
 	private final Set<WorldPoint> closeToRocks;
 	private final Set<WorldPoint> cloudDangerZones;
+	private final Map<WorldPoint, WorldPoint> boostGrabbableTiles;
 
 	public BarracudaTileCostCalculator(
 		Set<WorldPoint> knownSpeedBoostLocations,
@@ -52,6 +56,7 @@ public class BarracudaTileCostCalculator
 		this.veryCloseToRocks = precomputeRockProximity(1);
 		this.closeToRocks = precomputeRockProximity(2);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
+		this.boostGrabbableTiles = precomputeBoostGrabbableTiles();
 	}
 
 	public double getTileCost(WorldPoint from, WorldPoint to)
@@ -74,10 +79,12 @@ public class BarracudaTileCostCalculator
 			return 999999;
 		}
 
-		if (knownSpeedBoostLocations.contains(to))
+		WorldPoint nearbyBoost = findNearbyUnconsumedBoost(to);
+		if (nearbyBoost != null)
 		{
 			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -10.0 : -5.0;
 			speedBoostTilesRemaining = 5;
+			consumedBoosts.add(nearbyBoost);
 		}
 		else if (speedBoostTilesRemaining > 0)
 		{
@@ -121,6 +128,38 @@ public class BarracudaTileCostCalculator
 	{
 		speedBoostTilesRemaining = 0;
 		lastTile = null;
+	}
+
+	private WorldPoint findNearbyUnconsumedBoost(WorldPoint tile)
+	{
+		WorldPoint boost = boostGrabbableTiles.get(tile);
+		if (boost != null && !consumedBoosts.contains(boost))
+		{
+			return boost;
+		}
+		return null;
+	}
+
+	private Map<WorldPoint, WorldPoint> precomputeBoostGrabbableTiles()
+	{
+		Map<WorldPoint, WorldPoint> grabbableTiles = new HashMap<>();
+
+		for (WorldPoint boost : knownSpeedBoostLocations)
+		{
+			int plane = boost.getPlane();
+
+			// Boosts can be grabbed from 3x3 area (Chebyshev distance <= 1)
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dy = -1; dy <= 1; dy++)
+				{
+					WorldPoint tile = new WorldPoint(boost.getX() + dx, boost.getY() + dy, plane);
+					grabbableTiles.put(tile, boost);
+				}
+			}
+		}
+
+		return grabbableTiles;
 	}
 
 	private boolean isInExclusionZone(WorldPoint point)
