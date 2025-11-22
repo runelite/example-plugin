@@ -38,7 +38,7 @@ public class ObjectTracker
 
 	// Most rock IDs don't have constants available
 	private static final Set<Integer> ROCK_IDS = Set.of(
-		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444, 60453
+		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444
 	);
 
 	private static final Set<Integer> SPEED_BOOST_IDS = Set.of(
