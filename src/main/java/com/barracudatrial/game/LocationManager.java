@@ -20,18 +20,10 @@ public class LocationManager implements PathPlanner.LocationHelper
 	private static final int RUM_PICKUP_BASE_OBJECT_ID = 59240; // No constant available
 	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
 
-	private static final int PICKUP_OFFSET_X = 24;
-	private static final int PICKUP_OFFSET_Y = -128;
-
-	private static final int EXCLUSION_MIN_X_OFFSET = 47;
-	private static final int EXCLUSION_MAX_X_OFFSET = 102;
-	private static final int EXCLUSION_MIN_Y_OFFSET = -51;
-	private static final int EXCLUSION_MAX_Y_OFFSET = 12;
-
-	// Actual pickup is impassable, so we target 2 tiles north
-	private static final int PATHFINDING_PICKUP_OFFSET_Y = 2;
-	// Actual dropoff is impassable, so we target 2 tiles south
-	private static final int PATHFINDING_DROPOFF_OFFSET_Y = -2;
+	private static final int EXCLUSION_MIN_X_OFFSET = -26;
+	private static final int EXCLUSION_MAX_X_OFFSET = 22;
+	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
+	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
 
 	public LocationManager(Client client, State state, SceneScanner sceneScanner)
 	{
@@ -326,36 +318,18 @@ public class LocationManager implements PathPlanner.LocationHelper
 	}
 
 	/**
-	 * Gets the pathfinding-safe pickup location
-	 * The actual pickup is impassable, so we target 2 tiles north
+	 * Gets the pickup location for pathfinding
 	 */
 	public WorldPoint getPathfindingPickupLocation()
 	{
-		if (state.getRumPickupLocation() == null)
-		{
-			return null;
-		}
-		return new WorldPoint(
-			state.getRumPickupLocation().getX(),
-			state.getRumPickupLocation().getY() + PATHFINDING_PICKUP_OFFSET_Y,
-			state.getRumPickupLocation().getPlane()
-		);
+		return state.getRumPickupLocation();
 	}
 
 	/**
-	 * Gets the pathfinding-safe dropoff location
-	 * The actual dropoff is impassable, so we target 2 tiles south
+	 * Gets the dropoff location for pathfinding
 	 */
 	public WorldPoint getPathfindingDropoffLocation()
 	{
-		if (state.getRumReturnLocation() == null)
-		{
-			return null;
-		}
-		return new WorldPoint(
-			state.getRumReturnLocation().getX(),
-			state.getRumReturnLocation().getY() + PATHFINDING_DROPOFF_OFFSET_Y,
-			state.getRumReturnLocation().getPlane()
-		);
+		return state.getRumReturnLocation();
 	}
 }
