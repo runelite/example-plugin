@@ -11,7 +11,9 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ObjectRenderer
 {
@@ -69,9 +71,37 @@ public class ObjectRenderer
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		Color highlightColor = cachedConfig.getLostSuppliesColor();
+
+		// Build a set of lost supply locations for quick lookup
+		Set<WorldPoint> lostSupplyLocations = new HashSet<>();
+		for (GameObject lostSupply : plugin.getGameState().getLostSupplies())
+		{
+			lostSupplyLocations.add(lostSupply.getWorldLocation());
+		}
+
 		for (WorldPoint supplyLocation : plugin.getGameState().getVisibleSupplyLocations())
 		{
 			renderTileHighlightAtWorldPoint(graphics, supplyLocation, highlightColor);
+
+			// If showIDs is on and this location doesn't have a lost supply, show the object ID
+			if (cachedConfig.isShowIDs() && !lostSupplyLocations.contains(supplyLocation))
+			{
+				GameObject gameObject = findGameObjectAtWorldPoint(supplyLocation);
+				if (gameObject != null)
+				{
+					String debugLabel = buildObjectLabelWithImpostorInfo(gameObject, "Visible Supply") +
+						String.format(" @ (%d, %d)", supplyLocation.getX(), supplyLocation.getY());
+					WorldView topLevelWorldView = client.getTopLevelWorldView();
+					if (topLevelWorldView != null)
+					{
+						LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, supplyLocation);
+						if (localPoint != null)
+						{
+							renderLabelAtLocalPoint(graphics, localPoint, debugLabel, highlightColor, 0);
+						}
+					}
+				}
+			}
 		}
 	}
 

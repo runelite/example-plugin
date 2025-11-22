@@ -105,15 +105,12 @@ public class BarracudaTrialPlugin extends Plugin
 			pathPlanner.recalculateOptimalPathFromCurrentState("shipment collected");
 		}
 
-		if (cachedConfig.isDebugMode())
-		{
-			objectTracker.updateLostSuppliesTracking();
+		objectTracker.updateLostSuppliesTracking();
 
-			if (routeCapture.isCapturing())
-			{
-				List<WorldPoint> collected = objectTracker.checkAllVisibleShipmentsForCollection();
-				routeCapture.onShipmentsCollected(collected);
-			}
+		if (cachedConfig.isDebugMode() && routeCapture.isCapturing())
+		{
+			List<WorldPoint> collected = objectTracker.checkAllVisibleShipmentsForCollection();
+			routeCapture.onShipmentsCollected(collected);
 		}
 
 		if (cachedConfig.isShowIDs())
@@ -181,11 +178,6 @@ public class BarracudaTrialPlugin extends Plugin
 			log.debug("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
 
-			if (routeCapture.isCapturing())
-			{
-				routeCapture.onRumDelivered();
-			}
-
 			if (gameState.getCurrentStaticRoute() != null)
 			{
 				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
@@ -200,11 +192,22 @@ public class BarracudaTrialPlugin extends Plugin
 				}
 			}
 
-			int nextLapNumber = gameState.getCurrentLap() + 1;
-			gameState.setCurrentLap(nextLapNumber);
-			log.debug("Advanced to lap {}", nextLapNumber);
+			var nextLapNumber = gameState.getCurrentLap() + 1;
+			var isCompletingFinalLap = gameState.getCurrentDifficulty().rumsRequired == nextLapNumber;
+
+			// Reset will be handled by game, no need to reset here if isCompletingFinalLap
+			if (!isCompletingFinalLap)
+			{
+				gameState.setCurrentLap(nextLapNumber);
+				log.debug("Advanced to lap {}", nextLapNumber);
+			}
 
 			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum delivered");
+
+			if (routeCapture.isCapturing())
+			{
+				routeCapture.onRumDelivered(isCompletingFinalLap);
+			}
 		}
 	}
 

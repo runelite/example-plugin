@@ -118,14 +118,20 @@ public class RouteCapture
 	 * Handle rum delivery detected via chat message.
 	 * Completes the route capture.
 	 */
-	public void onRumDelivered()
+	public void onRumDelivered(boolean isCompletingFinalLap)
 	{
 		if (!isCapturing)
 		{
 			return;
 		}
 
-		completeCapture();
+		capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF));
+		log.info("[ROUTE CAPTURE] Rum dropoff recorded (waypoint #{})", capturedWaypoints.size());
+
+		if (isCompletingFinalLap)
+		{
+			completeCapture();
+		}
 	}
 
 	/**
@@ -148,8 +154,6 @@ public class RouteCapture
 	 */
 	private void completeCapture()
 	{
-		capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF));
-
 		log.info("");
 		log.info("[ROUTE CAPTURE] ========================================");
 		log.info("[ROUTE CAPTURE] COMPLETE - Route captured successfully!");
@@ -178,16 +182,6 @@ public class RouteCapture
 			RouteWaypoint waypoint = capturedWaypoints.get(i);
 			String comma = (i < capturedWaypoints.size() - 1) ? "," : "";
 
-			String comment = "";
-			if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_PICKUP)
-			{
-				comment = " // Pick up rum";
-			}
-			else if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_DROPOFF)
-			{
-				comment = " // Drop off rum";
-			}
-
 			if (waypoint.getType() == RouteWaypoint.WaypointType.SHIPMENT)
 			{
 				WorldPoint loc = waypoint.getLocation();
@@ -196,8 +190,8 @@ public class RouteCapture
 			}
 			else
 			{
-				log.info("\tnew RouteWaypoint(WaypointType.{}){}{}",
-					waypoint.getType(), comma, comment);
+				log.info("\tnew RouteWaypoint(WaypointType.{}){}",
+					waypoint.getType(), comma);
 			}
 		}
 

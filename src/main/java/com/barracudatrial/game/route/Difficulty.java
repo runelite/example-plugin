@@ -13,7 +13,7 @@ public enum Difficulty
 	SHARK(2),
 	MARLIN(3);
 
-	private final int rumsRequired;
+	public final int rumsRequired;
 
 	Difficulty(int rumsRequired)
 	{

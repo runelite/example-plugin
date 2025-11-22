@@ -6,8 +6,10 @@ A RuneLite plugin to help navigate Barracuda Trials by displaying optimal routes
 
 ## Known Issues
 
-- **Only Tempor Tantrum supported.** Route data for Jubbly Jive and Gwenith Glide trials needs to be captured.
-- **Rum pickup/dropoff highlighting is not working.** The locations are tracked but not rendered correctly.
+- **Only Tempor Tantrum supported.** Refactor and Route data are required for Jubbly Jive and Gwenith Glide trials.
+- **Rum pickup/dropoff highlighting is not working.** The locations are tracked but not rendered correctly. Additionally, on multi-lap routes sometimes you are told to visit the pickup/dropoff.
+- **Navigation not provided for distant waypoints.** When a supply's tile is out of view we do not currently render a path towards it.
+- **Pathfinding can be improved.** There is a lot of tweaking we can do.
 - **Debug mode needs cleanup.** Once everything is stable, debug logging and performance tracking should be removed.
 
 ## Approach

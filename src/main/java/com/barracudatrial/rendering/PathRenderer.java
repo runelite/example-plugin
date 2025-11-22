@@ -48,6 +48,12 @@ public class PathRenderer
 		int totalSegmentsInPath = calculateTotalSegmentsInPath(currentSegmentPath, visualFrontPositionTransformed);
 
 		drawInterpolatedPathWithTracer(graphics, currentSegmentPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
+
+		// Render waypoint labels in debug mode
+		if (cachedConfig.isDebugMode())
+		{
+			renderWaypointLabels(graphics);
+		}
 	}
 
 	/**
@@ -357,5 +363,29 @@ public class PathRenderer
 		}
 
 		return globalSegmentOffset + segmentCountInThisLine;
+	}
+
+	private void renderWaypointLabels(Graphics2D graphics)
+	{
+		List<com.barracudatrial.game.route.RouteWaypoint> staticRoute = plugin.getGameState().getCurrentStaticRoute();
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (staticRoute == null || topLevelWorldView == null) return;
+
+		graphics.setColor(Color.WHITE);
+		int index = 0;
+		for (com.barracudatrial.game.route.RouteWaypoint waypoint : staticRoute)
+		{
+			WorldPoint loc = waypoint.getLocation();
+			if (loc != null)
+			{
+				LocalPoint lp = LocalPoint.fromWorld(topLevelWorldView, loc);
+				Point cp = lp != null ? Perspective.getCanvasTextLocation(client, graphics, lp, "", 20) : null;
+				if (cp != null)
+				{
+					graphics.drawString(String.format("#%d %s @ (%d, %d)", index, waypoint.getType(), loc.getX(), loc.getY()), cp.getX(), cp.getY());
+				}
+			}
+			index++;
+		}
 	}
 }
