@@ -55,7 +55,12 @@ public class PathPlanner
 
 		state.setTicksSinceLastPathRecalc(0);
 
-		WorldPoint playerBoatLocation = state.getBoatLocation();
+		// Use front boat tile for pathfinding (fallback to center if not available)
+		WorldPoint playerBoatLocation = state.getFrontBoatTileEstimatedActual();
+		if (playerBoatLocation == null)
+		{
+			playerBoatLocation = state.getBoatLocation();
+		}
 		if (playerBoatLocation == null)
 		{
 			return;

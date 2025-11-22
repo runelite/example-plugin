@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
+import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.NpcID;
@@ -99,6 +100,12 @@ public class State
 
 	@Getter @Setter
 	private WorldPoint boatLocation = null;
+
+	@Getter @Setter
+	private WorldPoint frontBoatTileEstimatedActual = null;
+
+	@Getter @Setter
+	private LocalPoint frontBoatTileLocal = null;
 
 	@Getter @Setter
 	private int currentLap = 0;

@@ -89,6 +89,8 @@ public class BarracudaTrialPlugin extends Plugin
 
 		objectTracker.updatePlayerBoatLocation();
 
+		objectTracker.updateFrontBoatTile();
+
 		objectTracker.updateLightningCloudTracking();
 
 		locationManager.updateRumLocations();

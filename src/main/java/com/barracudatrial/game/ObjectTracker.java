@@ -2,6 +2,7 @@ package com.barracudatrial.game;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
+import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.ObjectID;
@@ -718,6 +719,165 @@ public class ObjectTracker
 		{
 			state.setBoatLocation(localPlayer.getWorldLocation());
 			log.debug("Error getting boat location: {}", e.getMessage());
+		}
+	}
+
+	/**
+	 * Updates the front boat tile position for pathfinding
+	 * The front is calculated as 3 tiles ahead of the boat center in the direction of travel
+	 */
+	public void updateFrontBoatTile()
+	{
+		if (!state.isInTrialArea())
+		{
+			state.setFrontBoatTileEstimatedActual(null);
+			state.setFrontBoatTileLocal(null);
+			return;
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null)
+		{
+			state.setFrontBoatTileEstimatedActual(null);
+			state.setFrontBoatTileLocal(null);
+			return;
+		}
+
+		try
+		{
+			WorldView playerWorldView = localPlayer.getWorldView();
+			if (playerWorldView == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			WorldView topLevelWorldView = client.getTopLevelWorldView();
+			if (topLevelWorldView == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			int playerWorldViewId = playerWorldView.getId();
+			WorldEntity boatWorldEntity = topLevelWorldView.worldEntities().byIndex(playerWorldViewId);
+			if (boatWorldEntity == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			WorldView boatWorldView = boatWorldEntity.getWorldView();
+			if (boatWorldView == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			Scene boatScene = boatWorldView.getScene();
+			if (boatScene == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			// Find the local player in the boat's WorldView
+			Player boatPlayer = null;
+			for (Player p : boatWorldView.players())
+			{
+				if (p != null && p.equals(localPlayer))
+				{
+					boatPlayer = p;
+					break;
+				}
+			}
+
+			if (boatPlayer == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			// Find the NPC on the boat (center marker)
+			NPC boatNpc = null;
+			for (NPC npc : boatWorldView.npcs())
+			{
+				if (npc != null)
+				{
+					boatNpc = npc;
+					break;
+				}
+			}
+
+			if (boatNpc == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			LocalPoint npcLocalPoint = boatNpc.getLocalLocation();
+			LocalPoint boatPlayerLocalPoint = boatPlayer.getLocalLocation();
+
+			if (npcLocalPoint == null || boatPlayerLocalPoint == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			// Calculate direction from player (back) to NPC (middle) in scene tiles
+			int npcSceneX = npcLocalPoint.getSceneX();
+			int npcSceneY = npcLocalPoint.getSceneY();
+			int playerSceneX = boatPlayerLocalPoint.getSceneX();
+			int playerSceneY = boatPlayerLocalPoint.getSceneY();
+
+			int deltaX = npcSceneX - playerSceneX;
+			int deltaY = npcSceneY - playerSceneY;
+
+			// Front of boat: extend 3 tiles from NPC
+			int frontSceneX = npcSceneX + (deltaX * 3);
+			int frontSceneY = npcSceneY + (deltaY * 3);
+
+			// Convert to LocalPoint in boat's coordinate system (for rendering)
+			int baseX = boatScene.getBaseX();
+			int baseY = boatScene.getBaseY();
+			LocalPoint frontLocalPoint = LocalPoint.fromScene(baseX + frontSceneX, baseY + frontSceneY, boatScene);
+
+			if (frontLocalPoint == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			// Transform from boat's coordinate system to main world
+			LocalPoint frontMainWorldLocal = boatWorldEntity.transformToMainWorld(frontLocalPoint);
+			if (frontMainWorldLocal == null)
+			{
+				state.setFrontBoatTileEstimatedActual(null);
+				state.setFrontBoatTileLocal(null);
+				return;
+			}
+
+			// Store the main-world LocalPoint (rotates with boat, used for rendering, in main world coords)
+			state.setFrontBoatTileLocal(frontMainWorldLocal);
+
+			// Convert to WorldPoint (for pathfinding A* algorithm)
+			WorldPoint frontWorldPoint = WorldPoint.fromLocalInstance(client, frontMainWorldLocal);
+			state.setFrontBoatTileEstimatedActual(frontWorldPoint);
+		}
+		catch (Exception e)
+		{
+			state.setFrontBoatTileEstimatedActual(null);
+			state.setFrontBoatTileLocal(null);
+			log.debug("Error calculating front boat tile: {}", e.getMessage());
 		}
 	}
 }

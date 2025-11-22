@@ -2,6 +2,7 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
+import com.barracudatrial.game.State;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -49,6 +50,7 @@ public class DebugRenderer
 			renderAllRocksInSceneWithLabels(graphics);
 		}
 
+		renderFrontBoatTileDebug(graphics);
 		renderDebugTextOverlay(graphics);
 	}
 
@@ -102,6 +104,208 @@ public class DebugRenderer
 		}
 	}
 
+	private void renderExperimentalBoatFrontPositions(Graphics2D graphics)
+	{
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return;
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null || localPlayer.getWorldView() == null)
+		{
+			return;
+		}
+
+		WorldPoint boatCenter = plugin.getGameState().getBoatLocation();
+		if (boatCenter == null)
+		{
+			return;
+		}
+
+		// Get boat WorldEntity
+		WorldView playerWorldView = localPlayer.getWorldView();
+		int playerWorldViewId = playerWorldView.getId();
+		WorldEntity boatWorldEntity = null;
+
+		for (WorldEntity worldEntity : topLevelWorldView.worldEntities())
+		{
+			if (worldEntity != null && worldEntity.getWorldView() != null && worldEntity.getWorldView().getId() == playerWorldViewId)
+			{
+				boatWorldEntity = worldEntity;
+				break;
+			}
+		}
+
+		if (boatWorldEntity == null)
+		{
+			drawDebugTile(graphics, boatCenter, Color.RED, "EXIT: boatWorldEntity null");
+			return;
+		}
+
+		WorldView boatWorldView = boatWorldEntity.getWorldView();
+		if (boatWorldView == null)
+		{
+			drawDebugTile(graphics, boatCenter, Color.RED, "EXIT: boatWorldView null");
+			return;
+		}
+
+		Scene boatScene = boatWorldView.getScene();
+		if (boatScene == null)
+		{
+			drawDebugTile(graphics, boatCenter, Color.RED, "EXIT: boatScene null");
+			return;
+		}
+
+		// Draw tiles at entity locations from the boat's WorldView
+		try
+		{
+			Color[] colors = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK};
+			int colorIndex = 0;
+			String foundInfo = "";
+
+			// Find the local player in the boat's WorldView
+			Player boatPlayer = null;
+			for (Player p : boatWorldView.players())
+			{
+				if (p != null && p.equals(localPlayer))
+				{
+					boatPlayer = p;
+					break;
+				}
+			}
+
+			// Draw the player's tile from the boat's perspective with animation ID
+			if (boatPlayer != null)
+			{
+				LocalPoint boatPlayerLocalPoint = boatPlayer.getLocalLocation();
+				if (boatPlayerLocalPoint != null)
+				{
+					int animId = boatPlayer.getAnimation();
+					String label = "PLAYER A:" + animId;
+
+					Polygon playerTilePolygon = Perspective.getCanvasTilePoly(client, boatPlayerLocalPoint);
+					if (playerTilePolygon != null)
+					{
+						Color playerTileColor = new Color(255, 255, 0, 120);
+						OverlayUtil.renderPolygon(graphics, playerTilePolygon, playerTileColor);
+					}
+					Point playerLabelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, boatPlayerLocalPoint, label, 0);
+					if (playerLabelCanvasPoint != null)
+					{
+						OverlayUtil.renderTextLocation(graphics, playerLabelCanvasPoint, label, Color.YELLOW);
+					}
+				}
+			}
+
+			// Try NPCs on the boat - draw using the NPC's own LocalPoint which should rotate
+			for (NPC npc : boatWorldView.npcs())
+			{
+				if (npc != null && boatPlayer != null)
+				{
+					LocalPoint npcLocalPoint = npc.getLocalLocation();
+					LocalPoint boatPlayerLocalPoint = boatPlayer.getLocalLocation();
+
+					if (npcLocalPoint != null && boatPlayerLocalPoint != null)
+					{
+						// Draw the NPC tile
+						Polygon npcTilePolygon = Perspective.getCanvasTilePoly(client, npcLocalPoint);
+						if (npcTilePolygon != null)
+						{
+							Color npcTileColor = new Color(255, 0, 0, 120);
+							OverlayUtil.renderPolygon(graphics, npcTilePolygon, npcTileColor);
+						}
+						Point npcLabelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, npcLocalPoint, "NPC", 0);
+						if (npcLabelCanvasPoint != null)
+						{
+							OverlayUtil.renderTextLocation(graphics, npcLabelCanvasPoint, "NPC", Color.RED);
+						}
+
+						// Get scene coordinates
+						int npcSceneX = npcLocalPoint.getSceneX();
+						int npcSceneY = npcLocalPoint.getSceneY();
+						int playerSceneX = boatPlayerLocalPoint.getSceneX();
+						int playerSceneY = boatPlayerLocalPoint.getSceneY();
+
+						// Direction from player (back) to NPC (middle) in scene tiles
+						int deltaX = npcSceneX - playerSceneX;
+						int deltaY = npcSceneY - playerSceneY;
+
+						// Front of boat: extend 4 tiles from NPC (3 more tiles ahead)
+						int frontSceneX = npcSceneX + (deltaX * 3);
+						int frontSceneY = npcSceneY + (deltaY * 3);
+
+						// Convert scene coordinates to LocalPoint using the boat scene's base
+						int baseX = boatScene.getBaseX();
+						int baseY = boatScene.getBaseY();
+						LocalPoint frontLocalPoint = LocalPoint.fromScene(baseX + frontSceneX, baseY + frontSceneY, boatScene);
+
+						// Draw the front tile in BLUE (boat-relative, rotates with boat)
+						if (frontLocalPoint != null)
+						{
+							Polygon frontTilePolygon = Perspective.getCanvasTilePoly(client, frontLocalPoint);
+							if (frontTilePolygon != null)
+							{
+								Color frontTileColor = new Color(0, 0, 255, 120);
+								OverlayUtil.renderPolygon(graphics, frontTilePolygon, frontTileColor);
+							}
+							Point frontLabelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, frontLocalPoint, "FRONT", 0);
+							if (frontLabelCanvasPoint != null)
+							{
+								OverlayUtil.renderTextLocation(graphics, frontLabelCanvasPoint, "FRONT", Color.BLUE);
+							}
+
+							// Transform from boat's coordinate system to main world using transformToMainWorld
+							// This is exactly what Perspective.java does for rendering WorldEntity points
+							LocalPoint frontMainWorldLocal = boatWorldEntity.transformToMainWorld(frontLocalPoint);
+							if (frontMainWorldLocal != null)
+							{
+								WorldPoint frontWorldPoint = WorldPoint.fromLocalInstance(client, frontMainWorldLocal);
+								if (frontWorldPoint != null)
+								{
+									drawDebugTile(graphics, frontWorldPoint, Color.MAGENTA, "WORLD-FRONT");
+								}
+							}
+						}
+					}
+				}
+			}
+
+		}
+		catch (Exception e) {
+			drawDebugTile(graphics, boatCenter, Color.RED, "exc");
+		}
+	}
+
+	private void drawDebugTile(Graphics2D graphics, WorldPoint worldPoint, Color color, String label)
+	{
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return;
+		}
+
+		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
+		if (localPoint == null)
+		{
+			return;
+		}
+
+		Polygon tilePolygon = Perspective.getCanvasTilePoly(client, localPoint);
+		if (tilePolygon != null)
+		{
+			Color tileColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 120);
+			OverlayUtil.renderPolygon(graphics, tilePolygon, tileColor);
+		}
+
+		Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, localPoint, label, 0);
+		if (labelCanvasPoint != null)
+		{
+			OverlayUtil.renderTextLocation(graphics, labelCanvasPoint, label, color);
+		}
+	}
+
 	private void renderAllRocksInSceneWithLabels(Graphics2D graphics)
 	{
 		Set<String> alreadyRenderedLabels = new HashSet<>();
@@ -136,6 +340,57 @@ public class DebugRenderer
 					Point adjustedLabelPoint = new Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
 					OverlayUtil.renderTextLocation(graphics, adjustedLabelPoint, rockLabel, debugRockColor);
 					alreadyRenderedLabels.add(rockLabel);
+				}
+			}
+		}
+	}
+
+	private void renderFrontBoatTileDebug(Graphics2D graphics)
+	{
+		var state = plugin.getGameState();
+		if (!state.isInTrialArea())
+		{
+			return;
+		}
+
+		// Draw the stored front boat tile (LocalPoint - boat-relative, rotates with boat)
+		LocalPoint frontBoatTileLocal = state.getFrontBoatTileLocal();
+		if (frontBoatTileLocal != null)
+		{
+			Polygon frontTilePolygon = Perspective.getCanvasTilePoly(client, frontBoatTileLocal);
+			if (frontTilePolygon != null)
+			{
+				Color frontTileColor = new Color(255, 0, 255, 120); // Magenta
+				OverlayUtil.renderPolygon(graphics, frontTilePolygon, frontTileColor);
+			}
+			Point frontLabelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, frontBoatTileLocal, "FRONT-LOCAL", 0);
+			if (frontLabelCanvasPoint != null)
+			{
+				OverlayUtil.renderTextLocation(graphics, frontLabelCanvasPoint, "FRONT-LOCAL", Color.MAGENTA);
+			}
+		}
+
+		// Draw the estimated actual world tile (WorldPoint - static world coordinates, for pathfinding)
+		WorldPoint frontBoatTileActual = state.getFrontBoatTileEstimatedActual();
+		if (frontBoatTileActual != null)
+		{
+			WorldView topLevelWorldView = client.getTopLevelWorldView();
+			if (topLevelWorldView != null)
+			{
+				LocalPoint actualLocal = LocalPoint.fromWorld(topLevelWorldView, frontBoatTileActual);
+				if (actualLocal != null)
+				{
+					Polygon actualTilePolygon = Perspective.getCanvasTilePoly(client, actualLocal);
+					if (actualTilePolygon != null)
+					{
+						Color actualTileColor = new Color(0, 255, 255, 120); // Cyan
+						OverlayUtil.renderPolygon(graphics, actualTilePolygon, actualTileColor);
+					}
+					Point actualLabelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, actualLocal, "FRONT-ACTUAL", 0);
+					if (actualLabelCanvasPoint != null)
+					{
+						OverlayUtil.renderTextLocation(graphics, actualLabelCanvasPoint, "FRONT-ACTUAL", Color.CYAN);
+					}
 				}
 			}
 		}
