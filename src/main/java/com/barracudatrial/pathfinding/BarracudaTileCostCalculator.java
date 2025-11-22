@@ -87,25 +87,25 @@ public class BarracudaTileCostCalculator
 
 		if (veryCloseToRocks.contains(to))
 		{
-			cost += 100;
+			cost += 1000;
 		}
 		else if (closeToRocks.contains(to))
 		{
-			cost += 25;
+			cost += 100;
 		}
 
 		double distToZone = distanceToExclusionZone(to);
 		if (distToZone <= 1)
 		{
-			cost += 100;
+			cost += 1000;
 		}
 		else if (distToZone <= 2)
 		{
-			cost += 50;
+			cost += 100;
 		}
 		else if (distToZone <= 3)
 		{
-			cost += 25;
+			cost += 50;
 		}
 
 		// Use single penalty instead of distance-based since precompute would need 3 separate sets for each distance tier (memory tradeoff)
