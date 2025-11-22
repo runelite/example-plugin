@@ -113,7 +113,7 @@ public class PathRenderer
 
 		// Step forward along the path to bias toward showing "forward progress"
 		// This prevents the path from appearing to start "alongside" when moving fast
-		int forwardBiasOffset = 5;
+		int forwardBiasOffset = 2;
 		int startIndex = Math.min(path.size() - 1, closestIndex + forwardBiasOffset);
 
 		if (startIndex >= path.size())
