@@ -150,7 +150,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 		if (chatMessage.contains("You collect the rum"))
 		{
-			log.debug("Rum collected! Message: {}", chatMessage);
+			log.info("Rum collected! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(true);
 
 			if (routeCapture.isCapturing())
@@ -166,7 +166,7 @@ public class BarracudaTrialPlugin extends Plugin
 						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
 					{
 						gameState.markWaypointCompleted(waypoint.getLocation());
-						log.debug("Marked RUM_PICKUP waypoint as completed: {}", waypoint.getLocation());
+						log.info("Marked RUM_PICKUP waypoint as completed: {}", waypoint.getLocation());
 						break;
 					}
 				}
@@ -176,7 +176,7 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 		else if (chatMessage.contains("You deliver the rum"))
 		{
-			log.debug("Rum delivered! Message: {}", chatMessage);
+			log.info("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
 
 			if (gameState.getCurrentStaticRoute() != null)
@@ -187,20 +187,25 @@ public class BarracudaTrialPlugin extends Plugin
 						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
 					{
 						gameState.markWaypointCompleted(waypoint.getLocation());
-						log.debug("Marked RUM_DROPOFF waypoint as completed: {}", waypoint.getLocation());
+						log.info("Marked RUM_DROPOFF waypoint as completed: {}", waypoint.getLocation());
 						break;
 					}
 				}
 			}
 
+			var lapsRequired = gameState.getCurrentDifficulty().rumsRequired;
 			var nextLapNumber = gameState.getCurrentLap() + 1;
-			var isCompletingFinalLap = gameState.getCurrentDifficulty().rumsRequired == nextLapNumber;
+			var isCompletingFinalLap = lapsRequired == nextLapNumber;
 
-			// Reset will be handled by game, no need to reset here if isCompletingFinalLap
-			if (!isCompletingFinalLap)
+			if (isCompletingFinalLap)
+			{
+				// Reset will be handled by game, no need to reset here
+				log.info("Completed all {} laps!", lapsRequired);
+			}
+			else
 			{
 				gameState.setCurrentLap(nextLapNumber);
-				log.debug("Advanced to lap {}", nextLapNumber);
+				log.info("Advanced to lap {}/{}", nextLapNumber, lapsRequired);
 			}
 
 			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum delivered");
