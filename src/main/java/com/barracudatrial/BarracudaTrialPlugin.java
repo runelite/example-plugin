@@ -106,6 +106,12 @@ public class BarracudaTrialPlugin extends Plugin
 		if (cachedConfig.isDebugMode())
 		{
 			objectTracker.updateLostSuppliesTracking();
+
+			if (routeCapture.isCapturing())
+			{
+				List<WorldPoint> collected = objectTracker.checkAllVisibleShipmentsForCollection();
+				routeCapture.onShipmentsCollected(collected);
+			}
 		}
 
 		if (cachedConfig.isShowIDs())
@@ -147,6 +153,11 @@ public class BarracudaTrialPlugin extends Plugin
 			log.debug("Rum collected! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(true);
 
+			if (routeCapture.isCapturing())
+			{
+				routeCapture.onRumPickedUp();
+			}
+
 			if (gameState.getCurrentStaticRoute() != null)
 			{
 				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
@@ -167,6 +178,11 @@ public class BarracudaTrialPlugin extends Plugin
 		{
 			log.debug("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
+
+			if (routeCapture.isCapturing())
+			{
+				routeCapture.onRumDelivered();
+			}
 
 			if (gameState.getCurrentStaticRoute() != null)
 			{
@@ -263,21 +279,6 @@ public class BarracudaTrialPlugin extends Plugin
 			WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
 			routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
 		}
-		else if (objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
-		{
-			WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
-			routeCapture.onExamineRumPickup(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
-		}
-		else if (isLostShipmentId(objectId))
-		{
-			routeCapture.onExamineLostShipment(worldPoint);
-		}
-	}
-
-	private boolean isLostShipmentId(int objectId)
-	{
-		return objectTracker.LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
-			objectId == ObjectTracker.LOST_SUPPLIES_IMPOSTOR_ID;
 	}
 
 	public WorldPoint getPathfindingPickupLocation()

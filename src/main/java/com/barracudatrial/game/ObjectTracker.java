@@ -6,7 +6,9 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.ObjectID;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -337,53 +339,157 @@ public class ObjectTracker
 			return false;
 		}
 
+		Set<WorldPoint> waypointsToCheck = new HashSet<>();
+		for (com.barracudatrial.game.route.RouteWaypoint waypoint : state.getCurrentStaticRoute())
+		{
+			if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.SHIPMENT)
+			{
+				WorldPoint waypointLocation = waypoint.getLocation();
+				if (!state.isWaypointCompleted(waypointLocation))
+				{
+					waypointsToCheck.add(waypointLocation);
+				}
+			}
+		}
+
+		List<WorldPoint> collectedShipments = checkShipmentsForCollection(waypointsToCheck);
+
+		for (WorldPoint collected : collectedShipments)
+		{
+			state.markWaypointCompleted(collected);
+			log.debug("Shipment collected at route waypoint: {}", collected);
+		}
+
+		return !collectedShipments.isEmpty();
+	}
+
+	/**
+	 * Core shipment collection detection logic.
+	 * Checks a set of shipment locations and returns which ones were collected this tick.
+	 * Detection method: If a base shipment object exists BUT the impostor ID (59244) is missing,
+	 * the shipment has been collected.
+	 * Only checks locations within 7 tiles of the player (impostor ID only visible when close).
+	 *
+	 * @param shipmentsToCheck Set of shipment locations to check for collection
+	 * @return List of shipments that were collected this tick
+	 */
+	public List<WorldPoint> checkShipmentsForCollection(Set<WorldPoint> shipmentsToCheck)
+	{
+		List<WorldPoint> collectedShipments = new ArrayList<>();
+
+		if (shipmentsToCheck.isEmpty())
+		{
+			return collectedShipments;
+		}
+
 		Scene scene = client.getScene();
 		if (scene == null)
 		{
-			return false;
+			return collectedShipments;
 		}
 
 		WorldPoint playerBoatLocation = state.getBoatLocation();
 		if (playerBoatLocation == null)
 		{
-			return false;
+			return collectedShipments;
 		}
 
-		boolean anyShipmentsCollected = false;
-
-		for (com.barracudatrial.game.route.RouteWaypoint waypoint : state.getCurrentStaticRoute())
+		for (WorldPoint shipmentLocation : shipmentsToCheck)
 		{
-			if (waypoint.getType() != com.barracudatrial.game.route.RouteWaypoint.WaypointType.SHIPMENT)
-			{
-				continue;
-			}
-
-			WorldPoint waypointLocation = waypoint.getLocation();
-
-			if (state.isWaypointCompleted(waypointLocation))
-			{
-				continue;
-			}
-
 			// Only check waypoints within 7 tiles (impostor ID only visible when close)
 			double distance = Math.sqrt(
-				Math.pow(waypointLocation.getX() - playerBoatLocation.getX(), 2) +
-				Math.pow(waypointLocation.getY() - playerBoatLocation.getY(), 2)
+				Math.pow(shipmentLocation.getX() - playerBoatLocation.getX(), 2) +
+				Math.pow(shipmentLocation.getY() - playerBoatLocation.getY(), 2)
 			);
 			if (distance > 7)
 			{
 				continue;
 			}
 
-			if (hasBaseShipmentButNoImpostor(scene, waypointLocation))
+			if (hasBaseShipmentButNoImpostor(scene, shipmentLocation))
 			{
-				state.markWaypointCompleted(waypointLocation);
-				log.debug("Shipment collected at route waypoint: {} (distance: {} tiles)", waypointLocation, (int)distance);
-				anyShipmentsCollected = true;
+				collectedShipments.add(shipmentLocation);
 			}
 		}
 
-		return anyShipmentsCollected;
+		return collectedShipments;
+	}
+
+	/**
+	 * Scans all tiles (including extended tiles) for visible shipments and checks them for collection.
+	 * Used during route capture mode to detect shipments without a predefined route.
+	 *
+	 * @return List of shipments that were collected this tick
+	 */
+	public List<WorldPoint> checkAllVisibleShipmentsForCollection()
+	{
+		Scene scene = client.getScene();
+		if (scene == null)
+		{
+			return new ArrayList<>();
+		}
+
+		Set<WorldPoint> visibleShipments = new HashSet<>();
+		scanTileArrayForShipments(scene.getTiles(), visibleShipments);
+
+		Tile[][][] extendedTiles = scene.getExtendedTiles();
+		if (extendedTiles != null)
+		{
+			scanTileArrayForShipments(extendedTiles, visibleShipments);
+		}
+
+		return checkShipmentsForCollection(visibleShipments);
+	}
+
+	/**
+	 * Scans a tile array for shipment objects and adds their locations to the set.
+	 */
+	private void scanTileArrayForShipments(Tile[][][] tileArray, Set<WorldPoint> visibleShipments)
+	{
+		if (tileArray == null)
+		{
+			return;
+		}
+
+		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
+		{
+			if (tileArray[planeIndex] == null)
+			{
+				continue;
+			}
+
+			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
+			{
+				if (tileArray[planeIndex][xIndex] == null)
+				{
+					continue;
+				}
+
+				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
+				{
+					Tile tile = tileArray[planeIndex][xIndex][yIndex];
+					if (tile == null)
+					{
+						continue;
+					}
+
+					for (GameObject gameObject : tile.getGameObjects())
+					{
+						if (gameObject == null)
+						{
+							continue;
+						}
+
+						int objectId = gameObject.getId();
+						if (LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
+							objectId == LOST_SUPPLIES_IMPOSTOR_ID)
+						{
+							visibleShipments.add(gameObject.getWorldLocation());
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
