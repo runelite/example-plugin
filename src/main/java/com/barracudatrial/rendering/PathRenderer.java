@@ -45,9 +45,13 @@ public class PathRenderer
 			return;
 		}
 
-		int totalSegmentsInPath = calculateTotalSegmentsInPath(currentSegmentPath, visualFrontPositionTransformed);
+		// Trim the path to start from the closest point to our visual position
+		// This prevents visual lag when the pathfinding position is behind the rendering position
+		List<WorldPoint> trimmedPath = getTrimmedPathForRendering(visualFrontPositionTransformed, currentSegmentPath);
 
-		drawInterpolatedPathWithTracer(graphics, currentSegmentPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
+		int totalSegmentsInPath = calculateTotalSegmentsInPath(trimmedPath, visualFrontPositionTransformed);
+
+		drawInterpolatedPathWithTracer(graphics, trimmedPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
 
 		// Render waypoint labels in debug mode
 		if (cachedConfig.isDebugMode())
@@ -56,10 +60,6 @@ public class PathRenderer
 		}
 	}
 
-	/**
-	 * Gets the boat-relative front position and transforms it to main world coordinates.
-	 * This preserves sub-tile accuracy while ensuring compatibility with world-space waypoints.
-	 */
 	private LocalPoint getTransformedFrontPosition()
 	{
 		LocalPoint frontBoatTileLocal = plugin.getGameState().getFrontBoatTileLocal();
@@ -93,8 +93,62 @@ public class PathRenderer
 			return null;
 		}
 
-		// Transform from boat-relative to main world coordinates (preserves sub-tile accuracy)
 		return boatWorldEntity.transformToMainWorld(frontBoatTileLocal);
+	}
+
+	private List<WorldPoint> getTrimmedPathForRendering(LocalPoint visualPosition, List<WorldPoint> path)
+	{
+		if (path.isEmpty() || visualPosition == null)
+		{
+			return path;
+		}
+
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return path;
+		}
+
+		int closestIndex = findClosestPointOnPath(visualPosition, path, topLevelWorldView);
+
+		// Step forward along the path to bias toward showing "forward progress"
+		// This prevents the path from appearing to start "alongside" when moving fast
+		int forwardBiasOffset = 5;
+		int startIndex = Math.min(path.size() - 1, closestIndex + forwardBiasOffset);
+
+		if (startIndex >= path.size())
+		{
+			return new ArrayList<>();
+		}
+
+		return new ArrayList<>(path.subList(startIndex, path.size()));
+	}
+
+	private int findClosestPointOnPath(LocalPoint visualPosition, List<WorldPoint> path, WorldView worldView)
+	{
+		int closestIndex = 0;
+		double minDistance = Double.POSITIVE_INFINITY;
+
+		for (int i = 0; i < path.size(); i++)
+		{
+			LocalPoint pathPointLocal = LocalPoint.fromWorld(worldView, path.get(i));
+			if (pathPointLocal == null)
+			{
+				continue;
+			}
+
+			int dx = visualPosition.getX() - pathPointLocal.getX();
+			int dy = visualPosition.getY() - pathPointLocal.getY();
+			double distance = Math.sqrt(dx * dx + dy * dy);
+
+			if (distance < minDistance)
+			{
+				minDistance = distance;
+				closestIndex = i;
+			}
+		}
+
+		return closestIndex;
 	}
 
 	private void drawInterpolatedPathWithTracer(Graphics2D graphics, List<WorldPoint> waypoints, LocalPoint visualStartPosition, int totalSegmentsInPath, int frameCounterForTracerAnimation)
