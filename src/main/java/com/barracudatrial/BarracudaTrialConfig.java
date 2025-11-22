@@ -60,18 +60,6 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "startingDirection",
-		name = "Starting Direction",
-		description = "Direction to travel around the island from dropoff. Counter-clockwise goes west first, clockwise goes east first.",
-		section = pathSection,
-		position = 1
-	)
-	default StartingDirection startingDirection()
-	{
-		return StartingDirection.COUNTER_CLOCKWISE;
-	}
-
-	@ConfigItem(
 		keyName = "pathLookahead",
 		name = "Path Lookahead",
 		description = "Number of waypoints to calculate ahead. Lower values improve performance and reduce visual clutter.",
@@ -133,12 +121,6 @@ public interface BarracudaTrialConfig extends Config
 	default boolean showPathTracer()
 	{
 		return true;
-	}
-
-	enum StartingDirection
-	{
-		COUNTER_CLOCKWISE,
-		CLOCKWISE
 	}
 
 	@ConfigItem(

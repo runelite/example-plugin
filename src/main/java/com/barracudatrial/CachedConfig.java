@@ -18,7 +18,6 @@ public class CachedConfig
 	@Getter private Color tracerColor;
 	@Getter private int pathWidth;
 	@Getter private boolean showPathTracer;
-	@Getter private BarracudaTrialConfig.StartingDirection startingDirection;
 	@Getter private int pathLookahead;
 
 	// Lost supplies settings
@@ -60,7 +59,6 @@ public class CachedConfig
 		tracerColor = config.tracerColor();
 		pathWidth = config.pathWidth();
 		showPathTracer = config.showPathTracer();
-		startingDirection = config.startingDirection();
 		pathLookahead = config.pathLookahead();
 
 		highlightLostSupplies = config.highlightLostSupplies();

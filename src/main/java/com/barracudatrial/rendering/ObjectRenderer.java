@@ -43,7 +43,25 @@ public class ObjectRenderer
 			{
 				debugLabel = buildObjectLabelWithImpostorInfo(lostSupplyObject, "Lost Supplies");
 			}
-			renderGameObjectWithHighlight(graphics, lostSupplyObject, cachedConfig.getLostSuppliesColor(), cachedConfig.isShowLostSuppliesTile(), debugLabel);
+
+			// Check if this shipment has been examined during route capture
+			Color renderColor = cachedConfig.getLostSuppliesColor();
+			if (plugin.getRouteCapture() != null && plugin.getRouteCapture().isCapturing())
+			{
+				WorldPoint shipmentLocation = lostSupplyObject.getWorldLocation();
+				if (plugin.getRouteCapture().getExaminedShipmentLocations().contains(shipmentLocation))
+				{
+					// Invert RGB to show it's been examined
+					renderColor = new Color(
+						255 - renderColor.getRed(),
+						255 - renderColor.getGreen(),
+						255 - renderColor.getBlue(),
+						renderColor.getAlpha()
+					);
+				}
+			}
+
+			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, cachedConfig.isShowLostSuppliesTile(), debugLabel);
 		}
 	}
 

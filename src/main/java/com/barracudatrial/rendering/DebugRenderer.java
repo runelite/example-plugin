@@ -173,20 +173,11 @@ public class DebugRenderer
 
 		debugLines.add("=== BARRACUDA TRIAL DEBUG ===");
 		debugLines.add(String.format("Lap: %d / %d", plugin.getGameState().getCurrentLap() + 1, plugin.getGameState().getRumsNeeded()));
-		debugLines.add(String.format("Planned Laps: %d", plugin.getGameState().getPlannedLaps().size()));
 		debugLines.add(String.format("Lost Supplies Visible: %d", plugin.getGameState().getLostSupplies().size()));
 		debugLines.add(String.format("LostSupplies: %d / %d", plugin.getGameState().getLostSuppliesCollected(), plugin.getGameState().getLostSuppliesTotal()));
 		debugLines.add(String.format("Rum: %d / %d", plugin.getGameState().getRumsCollected(), plugin.getGameState().getRumsNeeded()));
 		debugLines.add(String.format("Current Path: %d points", plugin.getGameState().getCurrentSegmentPath().size()));
 		debugLines.add(String.format("Next Path: %d points", plugin.getGameState().getNextSegmentPath().size()));
-		debugLines.add("");
-		debugLines.add("--- Performance (ms) ---");
-		debugLines.add(String.format("Total Game Tick: %d ms", plugin.getGameState().getLastTotalGameTickTimeMs()));
-		debugLines.add(String.format("  Lost Supplies Update: %d ms", plugin.getGameState().getLastLostSuppliesUpdateTimeMs()));
-		debugLines.add(String.format("  Cloud Update: %d ms", plugin.getGameState().getLastCloudUpdateTimeMs()));
-		debugLines.add(String.format("  Rock Update: %d ms", plugin.getGameState().getLastRockUpdateTimeMs()));
-		debugLines.add(String.format("  Path Planning: %d ms", plugin.getGameState().getLastPathPlanningTimeMs()));
-		debugLines.add(String.format("  A* Pathfinding: %d ms", plugin.getGameState().getLastAStarTimeMs()));
 		debugLines.add(String.format("Last Path Recalc: %s", plugin.getGameState().getLastPathRecalcCaller()));
 		debugLines.add("");
 		debugLines.add("--- Visible Objects ---");

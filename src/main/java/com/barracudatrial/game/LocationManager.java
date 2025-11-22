@@ -68,6 +68,7 @@ public class LocationManager implements PathPlanner.LocationHelper
 			return;
 		}
 
+		// Scan all WorldEntities to find rum boats (they're on separate boats from player)
 		for (WorldEntity worldEntity : topLevelWorldView.worldEntities())
 		{
 			if (worldEntity == null)
@@ -87,11 +88,12 @@ public class LocationManager implements PathPlanner.LocationHelper
 				continue;
 			}
 
-			scanSceneForRumReturnAndPickupLocations(entityScene);
+			// Pass the WorldEntity so we can get its real world location
+			scanSceneForRumReturnAndPickupLocations(entityScene, worldEntity);
 		}
 	}
 
-	private void scanSceneForRumReturnAndPickupLocations(Scene scene)
+	private void scanSceneForRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
 	{
 		Tile[][][] tileArray = scene.getTiles();
 		if (tileArray == null)
@@ -99,6 +101,27 @@ public class LocationManager implements PathPlanner.LocationHelper
 			return;
 		}
 
+		// Get the boat's real world location once (it's the same for all objects on this boat)
+		WorldPoint boatWorldLocation = null;
+		try
+		{
+			var boatLocalLocation = worldEntity.getLocalLocation();
+			if (boatLocalLocation != null)
+			{
+				boatWorldLocation = WorldPoint.fromLocalInstance(client, boatLocalLocation);
+			}
+		}
+		catch (Exception e)
+		{
+			log.debug("Error getting boat world location: {}", e.getMessage());
+		}
+
+		if (boatWorldLocation == null)
+		{
+			return; // Can't determine boat location, skip this entity
+		}
+
+		// Scan all planes in this scene (WorldEntity scenes need all planes scanned)
 		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
 		{
 			if (tileArray[planeIndex] == null)
@@ -170,21 +193,23 @@ public class LocationManager implements PathPlanner.LocationHelper
 
 						if (isRumReturnObject)
 						{
-							WorldPoint rumReturnWorldLocation = gameObject.getWorldLocation();
-							if (state.getRumReturnLocation() == null || !state.getRumReturnLocation().equals(rumReturnWorldLocation))
+							// Use the boat's real world location, not the gameObject's location
+							if (state.getRumReturnLocation() == null || !state.getRumReturnLocation().equals(boatWorldLocation))
 							{
-								state.setRumReturnLocation(rumReturnWorldLocation);
-								log.info("Found rum return location: {}", rumReturnWorldLocation);
-								calculateExclusionZoneBounds(rumReturnWorldLocation);
+								state.setRumReturnLocation(boatWorldLocation);
+								log.info("Found rum return location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
+									boatWorldLocation, objectId, planeIndex, xIndex, yIndex);
+								calculateExclusionZoneBounds(boatWorldLocation);
 							}
 						}
 						else if (isRumPickupObject)
 						{
-							WorldPoint rumPickupWorldLocation = gameObject.getWorldLocation();
-							if (state.getRumPickupLocation() == null || !state.getRumPickupLocation().equals(rumPickupWorldLocation))
+							// Use the boat's real world location, not the gameObject's location
+							if (state.getRumPickupLocation() == null || !state.getRumPickupLocation().equals(boatWorldLocation))
 							{
-								state.setRumPickupLocation(rumPickupWorldLocation);
-								log.info("Found rum pickup location: {}", rumPickupWorldLocation);
+								state.setRumPickupLocation(boatWorldLocation);
+								log.info("Found rum pickup location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
+									boatWorldLocation, objectId, planeIndex, xIndex, yIndex);
 							}
 						}
 					}

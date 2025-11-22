@@ -49,6 +49,9 @@ public class BarracudaTrialPlugin extends Plugin
 	private ProgressTracker progressTracker;
 	private PathPlanner pathPlanner;
 
+	@Getter
+	private RouteCapture routeCapture;
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -62,6 +65,7 @@ public class BarracudaTrialPlugin extends Plugin
 		locationManager = new LocationManager(client, gameState, sceneScanner);
 		progressTracker = new ProgressTracker(client, gameState);
 		pathPlanner = new PathPlanner(client, gameState, cachedConfig, locationManager);
+		routeCapture = new RouteCapture(gameState);
 	}
 
 	@Override
@@ -76,34 +80,32 @@ public class BarracudaTrialPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		long gameTickStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
+		boolean trialAreaStateChanged = progressTracker.checkIfPlayerIsInTrialArea();
+		if (trialAreaStateChanged && !gameState.isInTrialArea())
+		{
+			// Left trial area - reset route capture
+			routeCapture.reset();
+		}
 
-		progressTracker.checkIfPlayerIsInTrialArea();
 		objectTracker.updatePlayerBoatLocation();
 
-		long cloudUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateLightningCloudTracking();
-		if (cachedConfig.isDebugMode())
-		{
-			gameState.setLastCloudUpdateTimeMs(System.currentTimeMillis() - cloudUpdateStartTimeMs);
-		}
 
 		locationManager.updateRumLocations();
 
-		long rockUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
 		objectTracker.updateRocksAndSpeedBoosts();
-		if (cachedConfig.isDebugMode())
-		{
-			gameState.setLastRockUpdateTimeMs(System.currentTimeMillis() - rockUpdateStartTimeMs);
-		}
 
 		progressTracker.updateTrialProgressFromWidgets();
 
-		long lostSuppliesUpdateStartTimeMs = cachedConfig.isDebugMode() ? System.currentTimeMillis() : 0;
-		objectTracker.updateLostSuppliesTracking();
+		boolean shipmentsCollected = objectTracker.updateRouteWaypointShipmentTracking();
+		if (shipmentsCollected)
+		{
+			pathPlanner.recalculateOptimalPathFromCurrentState("shipment collected");
+		}
+
 		if (cachedConfig.isDebugMode())
 		{
-			gameState.setLastLostSuppliesUpdateTimeMs(System.currentTimeMillis() - lostSuppliesUpdateStartTimeMs);
+			objectTracker.updateLostSuppliesTracking();
 		}
 
 		if (cachedConfig.isShowIDs())
@@ -123,11 +125,6 @@ public class BarracudaTrialPlugin extends Plugin
 				pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
 			}
 		}
-
-		if (cachedConfig.isDebugMode())
-		{
-			gameState.setLastTotalGameTickTimeMs(System.currentTimeMillis() - gameTickStartTimeMs);
-		}
 	}
 
 	@Subscribe
@@ -138,25 +135,56 @@ public class BarracudaTrialPlugin extends Plugin
 			return;
 		}
 
+		if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM)
+		{
+			return;
+		}
+
 		String chatMessage = event.getMessage();
 
-		if (chatMessage.startsWith("You collect the rum shipment"))
+		if (chatMessage.contains("You collect the rum"))
 		{
 			log.debug("Rum collected! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(true);
+
+			if (gameState.getCurrentStaticRoute() != null)
+			{
+				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
+				{
+					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_PICKUP
+						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
+					{
+						gameState.markWaypointCompleted(waypoint.getLocation());
+						log.debug("Marked RUM_PICKUP waypoint as completed: {}", waypoint.getLocation());
+						break;
+					}
+				}
+			}
+
 			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum collected");
 		}
-		else if (chatMessage.startsWith("You deliver the rum shipment"))
+		else if (chatMessage.contains("You deliver the rum"))
 		{
 			log.debug("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
 
+			if (gameState.getCurrentStaticRoute() != null)
+			{
+				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
+				{
+					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_DROPOFF
+						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
+					{
+						gameState.markWaypointCompleted(waypoint.getLocation());
+						log.debug("Marked RUM_DROPOFF waypoint as completed: {}", waypoint.getLocation());
+						break;
+					}
+				}
+			}
+
 			int nextLapNumber = gameState.getCurrentLap() + 1;
 			gameState.setCurrentLap(nextLapNumber);
 			log.debug("Advanced to lap {}", nextLapNumber);
-
-			gameState.getLostSuppliesForCurrentLap().clear();
-			gameState.getLostSuppliesForFutureLaps().clear();
 
 			pathPlanner.recalculateOptimalPathFromCurrentState("chat: rum delivered");
 		}
@@ -171,12 +199,85 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 
 		cachedConfig.updateCache();
+	}
 
-		// Recalculate path when starting direction config changes
-		if (event.getKey().equals("startingDirection") && gameState.isInTrialArea())
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked event)
+	{
+		if (!cachedConfig.isDebugMode() || !gameState.isInTrialArea())
 		{
-			pathPlanner.recalculateOptimalPathFromCurrentState("config: starting direction changed");
+			return;
 		}
+
+		if (!event.getMenuOption().equals("Examine"))
+		{
+			return;
+		}
+
+		int sceneX = event.getParam0();
+		int sceneY = event.getParam1();
+		if (sceneX < 0 || sceneY < 0)
+		{
+			return;
+		}
+
+		int plane = client.getPlane();
+		WorldPoint worldPoint = WorldPoint.fromScene(client, sceneX, sceneY, plane);
+		if (worldPoint == null)
+		{
+			return;
+		}
+
+		Scene scene = client.getScene();
+		int sceneBaseX = scene != null ? scene.getBaseX() : -1;
+		int sceneBaseY = scene != null ? scene.getBaseY() : -1;
+
+		WorldPoint boatWorldLocation = getBoatWorldLocationForSceneTile(sceneX, sceneY, plane);
+
+		int objectId = event.getId();
+
+		String impostorInfo = "none";
+		try
+		{
+			ObjectComposition objectComposition = client.getObjectDefinition(objectId);
+			if (objectComposition != null)
+			{
+				ObjectComposition activeImpostor = objectComposition.getImpostor();
+				if (activeImpostor != null)
+				{
+					impostorInfo = String.valueOf(activeImpostor.getId());
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			impostorInfo = "error: " + e.getClass().getSimpleName();
+		}
+
+		log.debug("[EXAMINE] ObjectID: {}, ImpostorID: {}, SceneXY: ({}, {}), SceneBase: ({}, {}), Plane: {}, WorldPoint: {}, BoatWorldLoc: {}",
+			objectId, impostorInfo, sceneX, sceneY, sceneBaseX, sceneBaseY, plane, worldPoint,
+			boatWorldLocation != null ? boatWorldLocation : "null");
+
+		if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID)
+		{
+			WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
+			routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
+		}
+		else if (objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
+		{
+			WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
+			routeCapture.onExamineRumPickup(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
+		}
+		else if (isLostShipmentId(objectId))
+		{
+			routeCapture.onExamineLostShipment(worldPoint);
+		}
+	}
+
+	private boolean isLostShipmentId(int objectId)
+	{
+		return objectTracker.LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
+			objectId == ObjectTracker.LOST_SUPPLIES_IMPOSTOR_ID;
 	}
 
 	public WorldPoint getPathfindingPickupLocation()
@@ -207,6 +308,133 @@ public class BarracudaTrialPlugin extends Plugin
 	public boolean isCloudSafe(int animationId)
 	{
 		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
+	}
+
+	/**
+	 * Gets the boat/entity world location for an object at the given scene coordinates.
+	 * Objects on boats have scene-local coordinates that shift as the boat moves.
+	 */
+	private WorldPoint getBoatWorldLocationForSceneTile(int sceneX, int sceneY, int plane)
+	{
+		try
+		{
+			Scene scene = client.getScene();
+			if (scene == null || sceneX < 0 || sceneY < 0 || sceneX >= 104 || sceneY >= 104)
+			{
+				return null;
+			}
+
+			Tile[][][] tiles = scene.getTiles();
+			if (tiles == null || tiles[plane] == null)
+			{
+				return null;
+			}
+
+			Tile tile = tiles[plane][sceneX][sceneY];
+			if (tile == null)
+			{
+				return null;
+			}
+
+			GameObject rumObject = null;
+			for (GameObject gameObject : tile.getGameObjects())
+			{
+				if (gameObject == null)
+				{
+					continue;
+				}
+
+				int objectId = gameObject.getId();
+				if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID ||
+					objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
+				{
+					rumObject = gameObject;
+					break;
+				}
+			}
+
+			if (rumObject == null)
+			{
+				return null;
+			}
+
+			WorldPoint rumWorldLocation = rumObject.getWorldLocation();
+
+			WorldView topLevelWorldView = client.getTopLevelWorldView();
+			if (topLevelWorldView == null)
+			{
+				return null;
+			}
+
+			for (WorldEntity worldEntity : topLevelWorldView.worldEntities())
+			{
+				if (worldEntity == null)
+				{
+					continue;
+				}
+
+				WorldView entityWorldView = worldEntity.getWorldView();
+				if (entityWorldView == null)
+				{
+					continue;
+				}
+
+				Scene entityScene = entityWorldView.getScene();
+				if (entityScene == null)
+				{
+					continue;
+				}
+
+				int entitySceneX = rumWorldLocation.getX() - entityScene.getBaseX();
+				int entitySceneY = rumWorldLocation.getY() - entityScene.getBaseY();
+
+				if (entitySceneX >= 0 && entitySceneX < 104 && entitySceneY >= 0 && entitySceneY < 104)
+				{
+					Tile[][][] entityTiles = entityScene.getTiles();
+					if (entityTiles == null || plane >= entityTiles.length || entityTiles[plane] == null)
+					{
+						continue;
+					}
+
+					Tile entityTile = entityTiles[plane][entitySceneX][entitySceneY];
+					if (entityTile != null)
+					{
+						boolean foundRumOnThisTile = false;
+						for (GameObject gameObject : entityTile.getGameObjects())
+						{
+							if (gameObject == null)
+							{
+								continue;
+							}
+
+							int objectId = gameObject.getId();
+							if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID ||
+								objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
+							{
+								foundRumOnThisTile = true;
+								break;
+							}
+						}
+
+						if (foundRumOnThisTile)
+						{
+							var boatLocalLocation = worldEntity.getLocalLocation();
+							if (boatLocalLocation != null)
+							{
+								return WorldPoint.fromLocalInstance(client, boatLocalLocation);
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+		catch (Exception e)
+		{
+			log.debug("Error getting boat world location: {}", e.getMessage());
+			return null;
+		}
 	}
 
 	@Provides

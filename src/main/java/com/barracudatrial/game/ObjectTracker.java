@@ -25,12 +25,12 @@ public class ObjectTracker
 
 	// Lost supplies use a multiloc/impostor system: the active impostor (59244) indicates collectible state
 	// Most IDs don't have constants, only 59244 has ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES
-	private static final Set<Integer> LOST_SUPPLIES_BASE_IDS = Set.of(
-		59240, 59241, 59242, 59243, ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES, 59245, 59246, 59247, 59248, 59249,
+	public static final Set<Integer> LOST_SUPPLIES_BASE_IDS = Set.of(
+		59234, 59235, 59236, 59240, 59241, 59242, 59243, ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES, 59245, 59246, 59247, 59248, 59249,
 		59250, 59251, 59252, 59253, 59254, 59255, 59256, 59257, 59258, 59259, 59260,
 		59261, 59262, 59263, 59264, 59265, 59266, 59267, 59268, 59269, 59270
 	);
-	private static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
+	public static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
 
 	// Most rock IDs don't have constants available
 	private static final Set<Integer> ROCK_IDS = Set.of(
@@ -286,19 +286,157 @@ public class ObjectTracker
 
 		if (!state.getLostSupplies().equals(newlyFoundLostSupplies))
 		{
+			// Detect collected shipments: supplies that disappeared while the collected count increased
+			detectAndMarkCollectedShipments(newlyFoundLostSupplies);
+
 			state.getLostSupplies().clear();
 			state.getLostSupplies().addAll(newlyFoundLostSupplies);
-			updateLostSuppliesLapAssignments(newlyFoundLostSupplies);
 			return true;
 		}
 
 		return false;
 	}
 
-	private void updateLostSuppliesLapAssignments(Set<GameObject> newlyFoundLostSupplies)
+	/**
+	 * Detects shipments that were collected (disappeared from scene while count increased)
+	 * DEPRECATED: This is the old scene-scanning approach. Use updateRouteWaypointShipmentTracking() instead.
+	 */
+	private void detectAndMarkCollectedShipments(Set<GameObject> currentSupplies)
 	{
-		state.getLostSuppliesForCurrentLap().retainAll(newlyFoundLostSupplies);
-		state.getLostSuppliesForFutureLaps().retainAll(newlyFoundLostSupplies);
+		Set<WorldPoint> disappearedSupplyLocations = new HashSet<>();
+		for (GameObject previousSupply : state.getLostSupplies())
+		{
+			if (!currentSupplies.contains(previousSupply))
+			{
+				disappearedSupplyLocations.add(previousSupply.getWorldLocation());
+			}
+		}
+
+		// Game quirk: Shipments only disappear when collected
+		if (!disappearedSupplyLocations.isEmpty())
+		{
+			for (WorldPoint location : disappearedSupplyLocations)
+			{
+				state.markWaypointCompleted(location);
+			}
+			log.debug("Marked {} shipments as collected: {}", disappearedSupplyLocations.size(), disappearedSupplyLocations);
+		}
+	}
+
+	/**
+	 * Checks route waypoint tiles for shipment collection.
+	 * Detection method: If a base shipment object exists on a tile BUT the impostor ID (59244)
+	 * is missing, the shipment has been collected.
+	 * Only checks waypoints within 7 tiles of the player - close enough that impostor ID would be visible.
+	 * @return true if any shipments were collected this tick
+	 */
+	public boolean updateRouteWaypointShipmentTracking()
+	{
+		if (!state.isInTrialArea() || state.getCurrentStaticRoute() == null)
+		{
+			return false;
+		}
+
+		Scene scene = client.getScene();
+		if (scene == null)
+		{
+			return false;
+		}
+
+		WorldPoint playerBoatLocation = state.getBoatLocation();
+		if (playerBoatLocation == null)
+		{
+			return false;
+		}
+
+		boolean anyShipmentsCollected = false;
+
+		for (com.barracudatrial.game.route.RouteWaypoint waypoint : state.getCurrentStaticRoute())
+		{
+			if (waypoint.getType() != com.barracudatrial.game.route.RouteWaypoint.WaypointType.SHIPMENT)
+			{
+				continue;
+			}
+
+			WorldPoint waypointLocation = waypoint.getLocation();
+
+			if (state.isWaypointCompleted(waypointLocation))
+			{
+				continue;
+			}
+
+			// Only check waypoints within 7 tiles (impostor ID only visible when close)
+			double distance = Math.sqrt(
+				Math.pow(waypointLocation.getX() - playerBoatLocation.getX(), 2) +
+				Math.pow(waypointLocation.getY() - playerBoatLocation.getY(), 2)
+			);
+			if (distance > 7)
+			{
+				continue;
+			}
+
+			if (hasBaseShipmentButNoImpostor(scene, waypointLocation))
+			{
+				state.markWaypointCompleted(waypointLocation);
+				log.debug("Shipment collected at route waypoint: {} (distance: {} tiles)", waypointLocation, (int)distance);
+				anyShipmentsCollected = true;
+			}
+		}
+
+		return anyShipmentsCollected;
+	}
+
+	/**
+	 * Checks if a base shipment object exists at a location BUT the impostor ID does not.
+	 * This indicates the shipment has been collected (base remains, impostor disappears).
+	 */
+	private boolean hasBaseShipmentButNoImpostor(Scene scene, WorldPoint worldLocation)
+	{
+		int plane = worldLocation.getPlane();
+		int sceneX = worldLocation.getX() - scene.getBaseX();
+		int sceneY = worldLocation.getY() - scene.getBaseY();
+
+		if (sceneX < 0 || sceneX >= 104 || sceneY < 0 || sceneY >= 104)
+		{
+			return false;
+		}
+
+		Tile[][][] tiles = scene.getTiles();
+		if (tiles == null || tiles[plane] == null)
+		{
+			return false;
+		}
+
+		Tile tile = tiles[plane][sceneX][sceneY];
+		if (tile == null)
+		{
+			return false;
+		}
+
+		boolean hasBaseShipment = false;
+		boolean hasImpostor = false;
+
+		for (GameObject gameObject : tile.getGameObjects())
+		{
+			if (gameObject == null)
+			{
+				continue;
+			}
+
+			int objectId = gameObject.getId();
+
+			if (LOST_SUPPLIES_BASE_IDS.contains(objectId))
+			{
+				hasBaseShipment = true;
+			}
+
+			if (objectId == LOST_SUPPLIES_IMPOSTOR_ID)
+			{
+				hasImpostor = true;
+			}
+		}
+
+		return hasBaseShipment && !hasImpostor;
 	}
 
 	public void scanSceneForLostSupplies(Scene scene, Set<GameObject> newlyFoundLostSupplies)

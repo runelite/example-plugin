@@ -7,7 +7,7 @@ import net.runelite.api.coords.WorldPoint;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BarracudaTileCostCalculator implements TileCostCalculator
+public class BarracudaTileCostCalculator
 {
 	private final Set<WorldPoint> knownSpeedBoostLocations;
 	private final Set<WorldPoint> knownRockLocations;
@@ -52,7 +52,6 @@ public class BarracudaTileCostCalculator implements TileCostCalculator
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
 	}
 
-	@Override
 	public double getTileCost(WorldPoint from, WorldPoint to)
 	{
 		if (lastTile == null || !lastTile.equals(from))

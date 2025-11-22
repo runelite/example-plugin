@@ -1,5 +1,7 @@
 package com.barracudatrial.game;
 
+import com.barracudatrial.game.route.Difficulty;
+import com.barracudatrial.game.route.RouteWaypoint;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.GameObject;
@@ -87,13 +89,13 @@ public class State
 	private int lostSuppliesTotal = 0;
 
 	@Getter @Setter
-	private int previousRumCount = 0;
-
-	@Getter @Setter
 	private boolean hasRumOnUs = false;
 
 	@Getter @Setter
 	private int lastKnownDifficulty = 0;
+
+	@Getter @Setter
+	private String currentTrialName = null;
 
 	@Getter @Setter
 	private WorldPoint boatLocation = null;
@@ -105,40 +107,10 @@ public class State
 	private List<WorldPoint> optimalPath = new ArrayList<>();
 
 	@Getter @Setter
-	private List<List<WorldPoint>> plannedLaps = new ArrayList<>();
-
-	@Getter @Setter
 	private List<WorldPoint> currentSegmentPath = new ArrayList<>();
 
 	@Getter @Setter
 	private List<WorldPoint> nextSegmentPath = new ArrayList<>();
-
-	@Getter
-	private final Set<GameObject> remainingLostSupplies = new HashSet<>();
-
-	@Getter
-	private final Set<GameObject> lostSuppliesForCurrentLap = new HashSet<>();
-
-	@Getter
-	private final Set<GameObject> lostSuppliesForFutureLaps = new HashSet<>();
-
-	@Getter @Setter
-	private long lastAStarTimeMs = 0;
-
-	@Getter @Setter
-	private long lastLostSuppliesUpdateTimeMs = 0;
-
-	@Getter @Setter
-	private long lastCloudUpdateTimeMs = 0;
-
-	@Getter @Setter
-	private long lastPathPlanningTimeMs = 0;
-
-	@Getter @Setter
-	private long lastRockUpdateTimeMs = 0;
-
-	@Getter @Setter
-	private long lastTotalGameTickTimeMs = 0;
 
 	@Getter @Setter
 	private String lastPathRecalcCaller = "none";
@@ -167,6 +139,34 @@ public class State
 	@Getter @Setter
 	private int exclusionZoneMaxY = 0;
 
+	@Getter @Setter
+	private List<RouteWaypoint> currentStaticRoute = null;
+
+	@Getter @Setter
+	private int nextWaypointIndex = 0;
+
+	@Getter
+	private final Set<WorldPoint> completedWaypoints = new HashSet<>();
+
+	/**
+	 * Maps rumsNeeded to Difficulty enum
+	 * @return Difficulty level based on rumsNeeded (1=SWORDFISH, 2=SHARK, 3=MARLIN)
+	 */
+	public Difficulty getCurrentDifficulty()
+	{
+		switch (rumsNeeded)
+		{
+			case 1:
+				return Difficulty.SWORDFISH;
+			case 2:
+				return Difficulty.SHARK;
+			case 3:
+				return Difficulty.MARLIN;
+			default:
+				return Difficulty.SWORDFISH; // Default to easiest difficulty
+		}
+	}
+
 	/**
 	 * Clears all temporary state (called when leaving trial area)
 	 */
@@ -184,22 +184,37 @@ public class State
 		rumsNeeded = 0;
 		lostSuppliesCollected = 0;
 		lostSuppliesTotal = 0;
-		previousRumCount = 0;
 		hasRumOnUs = false;
+		currentTrialName = null;
 		boatLocation = null;
 		currentLap = 0;
 		optimalPath = new ArrayList<>();
-		plannedLaps = new ArrayList<>();
 		currentSegmentPath = new ArrayList<>();
 		nextSegmentPath = new ArrayList<>();
-		remainingLostSupplies.clear();
-		lostSuppliesForCurrentLap.clear();
-		lostSuppliesForFutureLaps.clear();
 		ticksSinceLastPathRecalc = 0;
 		exclusionZoneMinX = 0;
 		exclusionZoneMaxX = 0;
 		exclusionZoneMinY = 0;
 		exclusionZoneMaxY = 0;
+		currentStaticRoute = null;
+		nextWaypointIndex = 0;
+		completedWaypoints.clear();
+	}
+
+	/**
+	 * Mark a waypoint as completed
+	 */
+	public void markWaypointCompleted(WorldPoint location)
+	{
+		completedWaypoints.add(location);
+	}
+
+	/**
+	 * Check if a waypoint at the given location has been completed
+	 */
+	public boolean isWaypointCompleted(WorldPoint location)
+	{
+		return completedWaypoints.contains(location);
 	}
 
 	/**

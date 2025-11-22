@@ -10,9 +10,9 @@ import java.util.*;
  */
 public class AStarPathfinder
 {
-	private final TileCostCalculator costCalculator;
+	private final BarracudaTileCostCalculator costCalculator;
 
-	public AStarPathfinder(TileCostCalculator costCalculator)
+	public AStarPathfinder(BarracudaTileCostCalculator costCalculator)
 	{
 		this.costCalculator = costCalculator;
 	}
