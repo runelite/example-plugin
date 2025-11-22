@@ -24,7 +24,6 @@ public class CachedConfig
 	// Lost supplies settings
 	@Getter private boolean highlightLostSupplies;
 	@Getter private Color lostSuppliesColor;
-	@Getter private boolean showLostSuppliesTile;
 	@Getter private boolean highlightRumLocations;
 	@Getter private Color rumLocationColor;
 
@@ -65,7 +64,6 @@ public class CachedConfig
 
 		highlightLostSupplies = config.highlightLostSupplies();
 		lostSuppliesColor = config.lostSuppliesColor();
-		showLostSuppliesTile = config.showLostSuppliesTile();
 		highlightRumLocations = config.highlightRumLocations();
 		rumLocationColor = config.rumLocationColor();
 

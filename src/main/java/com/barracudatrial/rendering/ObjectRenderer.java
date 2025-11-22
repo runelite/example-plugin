@@ -61,7 +61,17 @@ public class ObjectRenderer
 				}
 			}
 
-			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, cachedConfig.isShowLostSuppliesTile(), debugLabel);
+			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, false, debugLabel);
+		}
+	}
+
+	public void renderVisibleSupplyLocations(Graphics2D graphics)
+	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
+		Color highlightColor = cachedConfig.getLostSuppliesColor();
+		for (WorldPoint supplyLocation : plugin.getGameState().getVisibleSupplyLocations())
+		{
+			renderTileHighlightAtWorldPoint(graphics, supplyLocation, highlightColor);
 		}
 	}
 
@@ -159,10 +169,6 @@ public class ObjectRenderer
 	private void renderGameObjectWithHighlight(Graphics2D graphics, GameObject gameObject, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
 	{
 		LocalPoint objectLocalPoint = gameObject.getLocalLocation();
-		if (objectLocalPoint == null)
-		{
-			return;
-		}
 
 		if (shouldHighlightTile)
 		{

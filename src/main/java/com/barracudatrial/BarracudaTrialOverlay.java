@@ -64,6 +64,11 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderLostSupplies(graphics);
 		}
 
+		if (cachedConfig.isDebugMode())
+		{
+			objectRenderer.renderVisibleSupplyLocations(graphics);
+		}
+
 		if (cachedConfig.isHighlightClouds())
 		{
 			objectRenderer.renderLightningClouds(graphics);

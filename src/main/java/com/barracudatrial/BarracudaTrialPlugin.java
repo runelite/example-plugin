@@ -95,6 +95,8 @@ public class BarracudaTrialPlugin extends Plugin
 
 		objectTracker.updateRocksAndSpeedBoosts();
 
+		objectTracker.updateVisibleSupplyLocations();
+
 		progressTracker.updateTrialProgressFromWidgets();
 
 		boolean shipmentsCollected = objectTracker.updateRouteWaypointShipmentTracking();

@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.barracudatrial.game.RouteCapture.formatWorldPoint;
+
 /**
  * Handles tracking of game objects in the Barracuda Trial minigame
  * Tracks clouds, rocks, speed boosts, lost supplies, and boat location
@@ -32,7 +34,7 @@ public class ObjectTracker
 		59250, 59251, 59252, 59253, 59254, 59255, 59256, 59257, 59258, 59259,
 		59260, 59261, 59262, 59263, 59264, 59265, 59266, 59267, 59268, 59269,
 		59270, 59271, 59272, 59273, 59274, 59275, 59276, 59277, 59278, 59279,
-		59280, 59281, 59282, 59283, 59284, 59285, 59286, 59287, 59288, 59289
+		59280, 59281
 	);
 	public static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
 
@@ -418,39 +420,60 @@ public class ObjectTracker
 	}
 
 	/**
-	 * Scans all tiles (including extended tiles) for visible shipments and checks them for collection.
+	 * Updates visible supply locations by scanning all tiles (including extended tiles).
+	 * This populates state.visibleSupplyLocations with all shipment WorldPoints currently visible in the scene.
+	 * Optimized to skip tiles we already know have shipments.
+	 */
+	public void updateVisibleSupplyLocations()
+	{
+		if (!state.isInTrialArea())
+		{
+			state.setVisibleSupplyLocations(new HashSet<>());
+			return;
+		}
+
+		Scene scene = client.getScene();
+		if (scene == null)
+		{
+			state.setVisibleSupplyLocations(new HashSet<>());
+			return;
+		}
+
+		Set<WorldPoint> oldSupplyLocations = state.getVisibleSupplyLocations();
+		Set<WorldPoint> newVisibleSupplyLocations = scanTileArrayForShipments(scene.getTiles(), oldSupplyLocations);
+
+		Tile[][][] extendedTiles = scene.getExtendedTiles();
+		if (extendedTiles != null)
+		{
+			newVisibleSupplyLocations.addAll(scanTileArrayForShipments(extendedTiles, oldSupplyLocations));
+		}
+
+		state.setVisibleSupplyLocations(newVisibleSupplyLocations);
+	}
+
+	/**
+	 * Checks all currently visible shipments for collection.
 	 * Used during route capture mode to detect shipments without a predefined route.
+	 * Assumes updateVisibleSupplyLocations() has already been called this tick.
 	 *
 	 * @return List of shipments that were collected this tick
 	 */
 	public List<WorldPoint> checkAllVisibleShipmentsForCollection()
 	{
-		Scene scene = client.getScene();
-		if (scene == null)
-		{
-			return new ArrayList<>();
-		}
-
-		Set<WorldPoint> visibleShipments = new HashSet<>();
-		scanTileArrayForShipments(scene.getTiles(), visibleShipments);
-
-		Tile[][][] extendedTiles = scene.getExtendedTiles();
-		if (extendedTiles != null)
-		{
-			scanTileArrayForShipments(extendedTiles, visibleShipments);
-		}
-
-		return checkShipmentsForCollection(visibleShipments);
+		return checkShipmentsForCollection(state.getVisibleSupplyLocations());
 	}
 
 	/**
-	 * Scans a tile array for shipment objects and adds their locations to the set.
+	 * Scans a tile array for shipment objects and returns their locations.
+	 * Skips logging for locations already in the old set for efficiency.
 	 */
-	private void scanTileArrayForShipments(Tile[][][] tileArray, Set<WorldPoint> visibleShipments)
+	private Set<WorldPoint> scanTileArrayForShipments(Tile[][][] tileArray, Set<WorldPoint> oldSupplyLocations)
 	{
+		Set<WorldPoint> foundSupplyLocations = new HashSet<>();
+
 		if (tileArray == null)
 		{
-			return;
+			return foundSupplyLocations;
 		}
 
 		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
@@ -486,12 +509,22 @@ public class ObjectTracker
 						if (LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
 							objectId == LOST_SUPPLIES_IMPOSTOR_ID)
 						{
-							visibleShipments.add(gameObject.getWorldLocation());
+							var worldLocation = gameObject.getWorldLocation();
+							// Skip logging if we already know about this location
+							if (oldSupplyLocations.contains(worldLocation))
+							{
+								foundSupplyLocations.add(worldLocation);
+								continue;
+							}
+							log.info("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}",gameObject.getId(), formatWorldPoint(worldLocation));
+							foundSupplyLocations.add(worldLocation);
 						}
 					}
 				}
 			}
 		}
+
+		return foundSupplyLocations;
 	}
 
 	/**

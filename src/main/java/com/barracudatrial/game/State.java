@@ -59,6 +59,9 @@ public class State
 	@Getter
 	private final Set<GameObject> lostSupplies = new HashSet<>();
 
+	@Getter @Setter
+	private Set<WorldPoint> visibleSupplyLocations = new HashSet<>();
+
 	@Getter
 	private final Set<NPC> lightningClouds = new HashSet<>();
 
@@ -181,6 +184,7 @@ public class State
 	{
 		inTrialArea = false;
 		lostSupplies.clear();
+		visibleSupplyLocations.clear();
 		lightningClouds.clear();
 		rocks.clear();
 		speedBoosts.clear();

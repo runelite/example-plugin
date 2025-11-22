@@ -161,23 +161,11 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "showLostSuppliesTile",
-		name = "Show Lost Supplies Tile",
-		description = "Highlight the tile under lost supplies",
-		section = lostSuppliesSection,
-		position = 2
-	)
-	default boolean showLostSuppliesTile()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 		keyName = "highlightRumLocations",
 		name = "Highlight Rum Locations",
 		description = "Highlight rum pickup and dropoff locations",
 		section = lostSuppliesSection,
-		position = 3
+		position = 2
 	)
 	default boolean highlightRumLocations()
 	{
@@ -189,7 +177,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Rum Location Color",
 		description = "Color for rum location highlights",
 		section = lostSuppliesSection,
-		position = 4
+		position = 3
 	)
 	@Alpha
 	default Color rumLocationColor()

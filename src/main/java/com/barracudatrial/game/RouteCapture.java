@@ -214,7 +214,7 @@ public class RouteCapture
 	/**
 	 * Format a WorldPoint for logging.
 	 */
-	private String formatWorldPoint(WorldPoint point)
+	public static String formatWorldPoint(WorldPoint point)
 	{
 		return String.format("WorldPoint(%d, %d, %d)", point.getX(), point.getY(), point.getPlane());
 	}
