@@ -857,17 +857,16 @@ public class ObjectTracker
 				return;
 			}
 
-			// Transform from boat's coordinate system to main world
+			// Store the boat-relative LocalPoint (smooth sub-tile positioning, for visual rendering)
+			state.setFrontBoatTileLocal(frontLocalPoint);
+
+			// Transform from boat's coordinate system to main world (for tile-based pathfinding)
 			LocalPoint frontMainWorldLocal = boatWorldEntity.transformToMainWorld(frontLocalPoint);
 			if (frontMainWorldLocal == null)
 			{
 				state.setFrontBoatTileEstimatedActual(null);
-				state.setFrontBoatTileLocal(null);
 				return;
 			}
-
-			// Store the main-world LocalPoint (rotates with boat, used for rendering, in main world coords)
-			state.setFrontBoatTileLocal(frontMainWorldLocal);
 
 			// Convert to WorldPoint (for pathfinding A* algorithm)
 			WorldPoint frontWorldPoint = WorldPoint.fromLocalInstance(client, frontMainWorldLocal);
