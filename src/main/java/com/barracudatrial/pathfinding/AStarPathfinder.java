@@ -157,7 +157,7 @@ public class AStarPathfinder
 			else
 			{
 				// Relaxed: Higher cost to discourage all turns (smoother routes)
-				wastedMovement = ticksToTurn * 0.5;
+				wastedMovement = 0.3 + ticksToTurn * 0.7;
 			}
 		}
 		else
