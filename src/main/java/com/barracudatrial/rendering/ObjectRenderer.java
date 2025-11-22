@@ -127,7 +127,7 @@ public class ObjectRenderer
 			{
 				debugLabel = String.format("Cloud (ID: %d, Anim: %d)", cloudNpc.getId(), cloudNpc.getAnimation());
 			}
-			renderNpcWithHighlight(graphics, cloudNpc, dangerousCloudColor, true, debugLabel);
+			renderNpcWithHighlight(graphics, cloudNpc, dangerousCloudColor, debugLabel);
 		}
 	}
 
@@ -217,7 +217,7 @@ public class ObjectRenderer
 		}
 	}
 
-	private void renderNpcWithHighlight(Graphics2D graphics, NPC npc, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
+	private void renderNpcWithHighlight(Graphics2D graphics, NPC npc, Color highlightColor, String debugLabel)
 	{
 		LocalPoint npcLocalPoint = npc.getLocalLocation();
 		if (npcLocalPoint == null)
@@ -225,13 +225,10 @@ public class ObjectRenderer
 			return;
 		}
 
-		if (shouldHighlightTile)
+		Polygon tilePolygon = Perspective.getCanvasTilePoly(client, npcLocalPoint);
+		if (tilePolygon != null)
 		{
-			Polygon tilePolygon = Perspective.getCanvasTilePoly(client, npcLocalPoint);
-			if (tilePolygon != null)
-			{
-				OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
-			}
+			OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
 		}
 
 		modelOutlineRenderer.drawOutline(npc, 2, highlightColor, 4);

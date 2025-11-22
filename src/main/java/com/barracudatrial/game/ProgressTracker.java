@@ -127,11 +127,6 @@ public class ProgressTracker
 		}
 	}
 
-	public int calculateRemainingLostSupplies()
-	{
-		return state.getLostSuppliesTotal() - state.getLostSuppliesCollected();
-	}
-
 	/**
 	 * Detect the current trial type from HUD widget text.
 	 * Looks for trial names: "Tempor Tantrum", "Jubbly Jive", "Gwenith Glide"

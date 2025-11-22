@@ -217,7 +217,7 @@ public interface BarracudaTrialConfig extends Config
 		section = cloudSection,
 		position = 2
 	)
-	@Range(min = 0, max = 5)
+	@Range(max = 5)
 	default int cloudDangerRadius()
 	{
 		return 2;

@@ -20,142 +20,114 @@ import java.util.Set;
 /**
  * Holds all game state for Barracuda Trial
  */
+@Getter
 public class State
 {
-	// Constants - Widget IDs (kept for backwards compatibility, prefer using InterfaceID.SailingBtHud directly)
-	public static final int BARRACUDA_TRIALS_HUD = InterfaceID.SAILING_BT_HUD;
-
-	// Constants - NPC IDs
-	public static final int LIGHTNING_CLOUD_IDLE = NpcID.SAILING_SEA_STORMY_CLOUD;
-	public static final int LIGHTNING_CLOUD_ATTACKING = NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE;
-
-	// Constants - Animations
 	public static final int CLOUD_ANIM_HARMLESS = -1;
 	public static final int CLOUD_ANIM_HARMLESS_ALT = 8879;
-	public static final int CLOUD_ANIM_DANGEROUS = 8877;
-	public static final int CLOUD_ANIM_ATTACKING = 13141;
 
-	// Can pick up lost supplies from 2 tiles away
 	public static final int LOST_SUPPLIES_PICKUP_RANGE = 2;
 	public static final int PATH_RECALC_INTERVAL = 2;
 
-	// Constants - Object IDs
 	public static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available
 	public static final int RUM_RETURN_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
 	public static final int RUM_PICKUP_BASE_OBJECT_ID = 59240; // No constant available
 	public static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
 
-	// Constants - Offsets
-	public static final int PICKUP_OFFSET_X = 24;
-	public static final int PICKUP_OFFSET_Y = -128;
-	public static final int EXCLUSION_MIN_X_OFFSET = 47;
-	public static final int EXCLUSION_MAX_X_OFFSET = 102;
-	public static final int EXCLUSION_MIN_Y_OFFSET = -51;
-	public static final int EXCLUSION_MAX_Y_OFFSET = 12;
-
-	@Getter @Setter
+	@Setter
 	private boolean inTrialArea = false;
 
-	@Getter
 	private final Set<GameObject> lostSupplies = new HashSet<>();
 
-	@Getter @Setter
+	@Setter
 	private Set<WorldPoint> visibleSupplyLocations = new HashSet<>();
 
-	@Getter
 	private final Set<NPC> lightningClouds = new HashSet<>();
 
-	@Getter
 	private final Set<GameObject> rocks = new HashSet<>();
 
-	@Getter
 	private final Set<GameObject> speedBoosts = new HashSet<>();
 
-	@Getter
 	private final Set<GameObject> allRocksInScene = new HashSet<>();
 
-	@Getter @Setter
+	@Setter
 	private WorldPoint rumPickupLocation = null;
 
-	@Getter @Setter
+	@Setter
 	private WorldPoint rumReturnLocation = null;
 
-	@Getter @Setter
+	@Setter
 	private int rumsCollected = 0;
 
-	@Getter @Setter
+	@Setter
 	private int rumsNeeded = 0;
 
-	@Getter @Setter
+	@Setter
 	private int lostSuppliesCollected = 0;
 
-	@Getter @Setter
+	@Setter
 	private int lostSuppliesTotal = 0;
 
-	@Getter @Setter
+	@Setter
 	private boolean hasRumOnUs = false;
 
-	@Getter @Setter
+	@Setter
 	private int lastKnownDifficulty = 0;
 
-	@Getter @Setter
+	@Setter
 	private String currentTrialName = null;
 
-	@Getter @Setter
+	@Setter
 	private WorldPoint boatLocation = null;
 
-	@Getter @Setter
+	@Setter
 	private WorldPoint frontBoatTileEstimatedActual = null;
 
-	@Getter @Setter
+	@Setter
 	private LocalPoint frontBoatTileLocal = null;
 
-	@Getter @Setter
+	@Setter
 	private int currentLap = 0;
 
-	@Getter @Setter
+	@Setter
 	private List<WorldPoint> optimalPath = new ArrayList<>();
 
-	@Getter @Setter
+	@Setter
 	private List<WorldPoint> currentSegmentPath = new ArrayList<>();
 
-	@Getter @Setter
+	@Setter
 	private List<WorldPoint> nextSegmentPath = new ArrayList<>();
 
-	@Getter @Setter
+	@Setter
 	private String lastPathRecalcCaller = "none";
 
-	@Getter
 	private final Set<WorldPoint> knownRockLocations = new HashSet<>();
 
-	@Getter
 	private final Set<WorldPoint> knownSpeedBoostLocations = new HashSet<>();
 
-	@Getter
 	private final Set<WorldPoint> knownLostSuppliesSpawnLocations = new HashSet<>();
 
-	@Getter @Setter
+	@Setter
 	private int ticksSinceLastPathRecalc = 0;
 
-	@Getter @Setter
+	@Setter
 	private int exclusionZoneMinX = 0;
 
-	@Getter @Setter
+	@Setter
 	private int exclusionZoneMaxX = 0;
 
-	@Getter @Setter
+	@Setter
 	private int exclusionZoneMinY = 0;
 
-	@Getter @Setter
+	@Setter
 	private int exclusionZoneMaxY = 0;
 
-	@Getter @Setter
+	@Setter
 	private List<RouteWaypoint> currentStaticRoute = null;
 
-	@Getter @Setter
+	@Setter
 	private int nextWaypointIndex = 0;
 
-	@Getter
 	private final Set<WorldPoint> completedWaypoints = new HashSet<>();
 
 	/**

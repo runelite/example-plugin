@@ -265,26 +265,6 @@ public class PathRenderer
 		return startValue + (endValue - startValue) * ratio;
 	}
 
-	private void drawStraightLineBetweenLocalPoints(Graphics2D graphics, LocalPoint fromLocalPoint, LocalPoint toLocalPoint, Color lineColor)
-	{
-		if (fromLocalPoint == null || toLocalPoint == null)
-		{
-			return;
-		}
-
-		Point fromCanvasPoint = Perspective.localToCanvas(client, fromLocalPoint, client.getPlane(), 0);
-		Point toCanvasPoint = Perspective.localToCanvas(client, toLocalPoint, client.getPlane(), 0);
-
-		if (fromCanvasPoint == null || toCanvasPoint == null)
-		{
-			return;
-		}
-
-		graphics.setColor(lineColor);
-		graphics.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		graphics.drawLine(fromCanvasPoint.getX(), fromCanvasPoint.getY(), toCanvasPoint.getX(), toCanvasPoint.getY());
-	}
-
 	private List<LocalPoint> interpolateLineBetweenLocalPoints(LocalPoint startPoint, LocalPoint endPoint)
 	{
 		List<LocalPoint> interpolatedPoints = new ArrayList<>();

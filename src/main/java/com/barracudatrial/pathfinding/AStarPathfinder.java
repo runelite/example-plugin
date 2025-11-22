@@ -108,14 +108,9 @@ public class AStarPathfinder
 
 				double tentativeGScore = current.gScore + tileCost + turningCost;
 
-				Node neighborNode = allNodes.get(neighbor);
-				if (neighborNode == null)
-				{
-					neighborNode = new Node(neighbor);
-					allNodes.put(neighbor, neighborNode);
-				}
+                Node neighborNode = allNodes.computeIfAbsent(neighbor, Node::new);
 
-				// If this path to neighbor is better than previous, update it
+                // If this path to neighbor is better than previous, update it
 				if (tentativeGScore < neighborNode.gScore)
 				{
 					neighborNode.parent = current;
@@ -175,7 +170,10 @@ public class AStarPathfinder
 		// Clamp to [-1, 1] to avoid floating point errors
 		dotProduct = Math.max(-1.0, Math.min(1.0, dotProduct));
 
-		// Calculate turn angle in radians
+		return getWastedMovement(dotProduct);
+	}
+
+	private double getWastedMovement(double dotProduct) {
 		double turnAngleRadians = Math.acos(dotProduct);
 		double turnAngleDegrees = Math.toDegrees(turnAngleRadians);
 
@@ -202,7 +200,6 @@ public class AStarPathfinder
 			double ticksOver90 = ticksToTurn - 6.0; // 90° = 6 ticks
 			wastedMovement = 1.0 + Math.pow(ticksOver90, 2.5) * 8.0;
 		}
-
 		return wastedMovement;
 	}
 

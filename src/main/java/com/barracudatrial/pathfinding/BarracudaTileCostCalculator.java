@@ -13,7 +13,6 @@ public class BarracudaTileCostCalculator
 	private final Set<WorldPoint> knownSpeedBoostLocations;
 	private final Set<WorldPoint> knownRockLocations;
 	private final Set<GameObject> visibleRocks;
-	private final Set<NPC> lightningClouds;
 	private final int exclusionZoneMinX;
 	private final int exclusionZoneMaxX;
 	private final int exclusionZoneMinY;
@@ -33,7 +32,6 @@ public class BarracudaTileCostCalculator
 		Set<WorldPoint> knownSpeedBoostLocations,
 		Set<WorldPoint> knownRockLocations,
 		Set<GameObject> visibleRocks,
-		Set<NPC> lightningClouds,
 		int exclusionZoneMinX,
 		int exclusionZoneMaxX,
 		int exclusionZoneMinY,
@@ -43,7 +41,6 @@ public class BarracudaTileCostCalculator
 		this.knownSpeedBoostLocations = knownSpeedBoostLocations;
 		this.knownRockLocations = knownRockLocations;
 		this.visibleRocks = visibleRocks;
-		this.lightningClouds = lightningClouds;
 		this.exclusionZoneMinX = exclusionZoneMinX;
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
 		this.exclusionZoneMinY = exclusionZoneMinY;

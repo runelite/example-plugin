@@ -22,10 +22,10 @@ public class BarracudaTrialOverlay extends Overlay
 	private final DebugRenderer debugRenderer;
 
 	private int currentFrameNumber = 0;
-	private Map<Point, Integer> screenPositionLabelCounts = new HashMap<>();
+	private final Map<Point, Integer> screenPositionLabelCounts = new HashMap<>();
 
 	@Inject
-	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, BarracudaTrialConfig config, ModelOutlineRenderer modelOutlineRenderer)
+	public BarracudaTrialOverlay(Client client, BarracudaTrialPlugin plugin, ModelOutlineRenderer modelOutlineRenderer)
 	{
 		this.plugin = plugin;
 		this.pathRenderer = new PathRenderer(client, plugin);

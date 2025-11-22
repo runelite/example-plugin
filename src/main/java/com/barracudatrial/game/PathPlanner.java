@@ -1,6 +1,5 @@
 package com.barracudatrial.game;
 
-import com.barracudatrial.BarracudaTrialConfig;
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.game.route.Difficulty;
 import com.barracudatrial.game.route.RouteWaypoint;
@@ -8,9 +7,6 @@ import com.barracudatrial.game.route.TemporTantrumRoutes;
 import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.GameObject;
-import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
@@ -22,14 +18,12 @@ import java.util.*;
 @Slf4j
 public class PathPlanner
 {
-	private final Client client;
 	private final State state;
 	private final CachedConfig cachedConfig;
 	private final LocationHelper locationHelper;
 
-	public PathPlanner(Client client, State state, CachedConfig cachedConfig, LocationHelper locationHelper)
+	public PathPlanner(State state, CachedConfig cachedConfig, LocationHelper locationHelper)
 	{
-		this.client = client;
 		this.state = state;
 		this.cachedConfig = cachedConfig;
 		this.locationHelper = locationHelper;
@@ -209,20 +203,10 @@ public class PathPlanner
 	 */
 	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target)
 	{
-		Set<NPC> currentlyDangerousClouds = new HashSet<>();
-		for (NPC lightningCloud : state.getLightningClouds())
-		{
-			if (!isCloudAnimationSafe(lightningCloud.getAnimation()))
-			{
-				currentlyDangerousClouds.add(lightningCloud);
-			}
-		}
-
 		BarracudaTileCostCalculator tileCostCalculator = new BarracudaTileCostCalculator(
 			state.getKnownSpeedBoostLocations(),
 			state.getKnownRockLocations(),
 			state.getRocks(),
-			currentlyDangerousClouds,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
@@ -255,22 +239,12 @@ public class PathPlanner
 		}
 
 		// Remove starting position from path (we're already there)
-		if (!path.isEmpty() && path.get(0).equals(start))
+		if (path.get(0).equals(start))
 		{
 			path.remove(0);
 		}
 
 		return path;
-	}
-
-	/**
-	 * Checks if a cloud animation indicates it's safe
-	 * @param cloudAnimationId The cloud's current animation ID
-	 * @return true if the cloud is safe (harmless animation)
-	 */
-	private boolean isCloudAnimationSafe(int cloudAnimationId)
-	{
-		return cloudAnimationId == State.CLOUD_ANIM_HARMLESS || cloudAnimationId == State.CLOUD_ANIM_HARMLESS_ALT;
 	}
 
 	/**

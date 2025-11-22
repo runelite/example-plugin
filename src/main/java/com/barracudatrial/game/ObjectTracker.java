@@ -137,51 +137,39 @@ public class ObjectTracker
 
 	private void scanTileArrayForRocksAndSpeedBoosts(Tile[][][] tileArray)
 	{
-		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
-		{
-			if (tileArray[planeIndex] == null)
-			{
-				continue;
-			}
+        for (Tile[][] tiles : tileArray) {
+            if (tiles == null) {
+                continue;
+            }
 
-			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
-			{
-				if (tileArray[planeIndex][xIndex] == null)
-				{
-					continue;
-				}
+            for (Tile[] value : tiles) {
+                if (value == null) {
+                    continue;
+                }
 
-				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
-				{
-					Tile tile = tileArray[planeIndex][xIndex][yIndex];
-					if (tile == null)
-					{
-						continue;
-					}
+                for (Tile tile : value) {
+                    if (tile == null) {
+                        continue;
+                    }
 
-					for (GameObject gameObject : tile.getGameObjects())
-					{
-						if (gameObject == null)
-						{
-							continue;
-						}
+                    for (GameObject gameObject : tile.getGameObjects()) {
+                        if (gameObject == null) {
+                            continue;
+                        }
 
-						int objectId = gameObject.getId();
+                        int objectId = gameObject.getId();
 
-						if (ROCK_IDS.contains(objectId))
-						{
-							state.getRocks().add(gameObject);
-							state.getKnownRockLocations().add(gameObject.getWorldLocation());
-						}
-						else if (SPEED_BOOST_IDS.contains(objectId))
-						{
-							state.getSpeedBoosts().add(gameObject);
-							state.getKnownSpeedBoostLocations().add(gameObject.getWorldLocation());
-						}
-					}
-				}
-			}
-		}
+                        if (ROCK_IDS.contains(objectId)) {
+                            state.getRocks().add(gameObject);
+                            state.getKnownRockLocations().add(gameObject.getWorldLocation());
+                        } else if (SPEED_BOOST_IDS.contains(objectId)) {
+                            state.getSpeedBoosts().add(gameObject);
+                            state.getKnownSpeedBoostLocations().add(gameObject.getWorldLocation());
+                        }
+                    }
+                }
+            }
+        }
 	}
 
 	/**
@@ -271,13 +259,12 @@ public class ObjectTracker
 
 	/**
 	 * Updates lost supplies by scanning the scene
-	 * Returns true if supplies changed (requiring path recalculation)
 	 */
-	public boolean updateLostSuppliesTracking()
+	public void updateLostSuppliesTracking()
 	{
 		if (!state.isInTrialArea())
 		{
-			return false;
+			return;
 		}
 
 		Set<GameObject> newlyFoundLostSupplies = new HashSet<>();
@@ -285,7 +272,7 @@ public class ObjectTracker
 		Scene scene = client.getScene();
 		if (scene == null)
 		{
-			return false;
+			return;
 		}
 
 		scanSceneForLostSupplies(scene, newlyFoundLostSupplies);
@@ -297,10 +284,7 @@ public class ObjectTracker
 
 			state.getLostSupplies().clear();
 			state.getLostSupplies().addAll(newlyFoundLostSupplies);
-			return true;
 		}
-
-		return false;
 	}
 
 	/**
@@ -476,53 +460,42 @@ public class ObjectTracker
 			return foundSupplyLocations;
 		}
 
-		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
-		{
-			if (tileArray[planeIndex] == null)
-			{
-				continue;
-			}
+        for (Tile[][] tiles : tileArray) {
+            if (tiles == null) {
+                continue;
+            }
 
-			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
-			{
-				if (tileArray[planeIndex][xIndex] == null)
-				{
-					continue;
-				}
+            for (Tile[] value : tiles) {
+                if (value == null) {
+                    continue;
+                }
 
-				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
-				{
-					Tile tile = tileArray[planeIndex][xIndex][yIndex];
-					if (tile == null)
-					{
-						continue;
-					}
+                for (Tile tile : value) {
+                    if (tile == null) {
+                        continue;
+                    }
 
-					for (GameObject gameObject : tile.getGameObjects())
-					{
-						if (gameObject == null)
-						{
-							continue;
-						}
+                    for (GameObject gameObject : tile.getGameObjects()) {
+                        if (gameObject == null) {
+                            continue;
+                        }
 
-						int objectId = gameObject.getId();
-						if (LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
-							objectId == LOST_SUPPLIES_IMPOSTOR_ID)
-						{
-							var worldLocation = gameObject.getWorldLocation();
-							// Skip logging if we already know about this location
-							if (oldSupplyLocations.contains(worldLocation))
-							{
-								foundSupplyLocations.add(worldLocation);
-								continue;
-							}
-							log.info("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}",gameObject.getId(), formatWorldPoint(worldLocation));
-							foundSupplyLocations.add(worldLocation);
-						}
-					}
-				}
-			}
-		}
+                        int objectId = gameObject.getId();
+                        if (LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
+                                objectId == LOST_SUPPLIES_IMPOSTOR_ID) {
+                            var worldLocation = gameObject.getWorldLocation();
+                            // Skip logging if we already know about this location
+                            if (oldSupplyLocations.contains(worldLocation)) {
+                                foundSupplyLocations.add(worldLocation);
+                                continue;
+                            }
+                            log.info("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}", gameObject.getId(), formatWorldPoint(worldLocation));
+                            foundSupplyLocations.add(worldLocation);
+                        }
+                    }
+                }
+            }
+        }
 
 		return foundSupplyLocations;
 	}
@@ -597,32 +570,25 @@ public class ObjectTracker
 
 	private void scanTileArrayForLostSupplies(Tile[][][] tileArray, Set<GameObject> newlyFoundLostSupplies)
 	{
-		for (int planeIndex = 0; planeIndex < tileArray.length; planeIndex++)
-		{
-			if (tileArray[planeIndex] == null)
-			{
-				continue;
-			}
+        for (Tile[][] tiles : tileArray) {
+            if (tiles == null) {
+                continue;
+            }
 
-			for (int xIndex = 0; xIndex < tileArray[planeIndex].length; xIndex++)
-			{
-				if (tileArray[planeIndex][xIndex] == null)
-				{
-					continue;
-				}
+            for (Tile[] value : tiles) {
+                if (value == null) {
+                    continue;
+                }
 
-				for (int yIndex = 0; yIndex < tileArray[planeIndex][xIndex].length; yIndex++)
-				{
-					Tile tile = tileArray[planeIndex][xIndex][yIndex];
-					if (tile == null)
-					{
-						continue;
-					}
+                for (Tile tile : value) {
+                    if (tile == null) {
+                        continue;
+                    }
 
-					processLostSupplyTile(tile, newlyFoundLostSupplies);
-				}
-			}
-		}
+                    processLostSupplyTile(tile, newlyFoundLostSupplies);
+                }
+            }
+        }
 	}
 
 	public void processLostSupplyTile(Tile tile, Set<GameObject> newlyFoundLostSupplies)
@@ -883,13 +849,6 @@ public class ObjectTracker
 			int baseX = boatScene.getBaseX();
 			int baseY = boatScene.getBaseY();
 			LocalPoint frontLocalPoint = LocalPoint.fromScene(baseX + frontSceneX, baseY + frontSceneY, boatScene);
-
-			if (frontLocalPoint == null)
-			{
-				state.setFrontBoatTileEstimatedActual(null);
-				state.setFrontBoatTileLocal(null);
-				return;
-			}
 
 			// Store the boat-relative LocalPoint (smooth sub-tile positioning, for visual rendering)
 			state.setFrontBoatTileLocal(frontLocalPoint);

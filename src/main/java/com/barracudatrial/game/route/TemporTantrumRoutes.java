@@ -170,26 +170,4 @@ public class TemporTantrumRoutes
 	{
 		return ROUTES.getOrDefault(difficulty, new ArrayList<>());
 	}
-
-	/**
-	 * Check if a route has been defined for a given difficulty.
-	 * @param difficulty The difficulty level
-	 * @return true if a non-empty route exists for this difficulty
-	 */
-	public static boolean hasRoute(Difficulty difficulty)
-	{
-		List<RouteWaypoint> route = ROUTES.get(difficulty);
-		return route != null && !route.isEmpty();
-	}
-
-	/**
-	 * Get the total number of waypoints in a route for a given difficulty.
-	 * @param difficulty The difficulty level
-	 * @return The number of waypoints in the route, or 0 if no route exists
-	 */
-	public static int getRouteLength(Difficulty difficulty)
-	{
-		List<RouteWaypoint> route = ROUTES.get(difficulty);
-		return route != null ? route.size() : 0;
-	}
 }

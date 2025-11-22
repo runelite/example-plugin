@@ -62,7 +62,7 @@ public class BarracudaTrialPlugin extends Plugin
 		objectTracker = new ObjectTracker(client, gameState);
 		locationManager = new LocationManager(client, gameState);
 		progressTracker = new ProgressTracker(client, gameState);
-		pathPlanner = new PathPlanner(client, gameState, cachedConfig, locationManager);
+		pathPlanner = new PathPlanner(gameState, cachedConfig, locationManager);
 		routeCapture = new RouteCapture(gameState);
 	}
 
@@ -249,10 +249,6 @@ public class BarracudaTrialPlugin extends Plugin
 
 		int plane = client.getPlane();
 		WorldPoint worldPoint = WorldPoint.fromScene(client, sceneX, sceneY, plane);
-		if (worldPoint == null)
-		{
-			return;
-		}
 
 		Scene scene = client.getScene();
 		int sceneBaseX = scene != null ? scene.getBaseX() : -1;
@@ -292,43 +288,27 @@ public class BarracudaTrialPlugin extends Plugin
 			objectId, impostorInfo, sceneX, sceneY, sceneBaseX, sceneBaseY, plane, worldPoint,
 			boatWorldLocation != null ? boatWorldLocation : "null");
 
-
-		var tiles = scene.getTiles();
-		var tile = tiles[plane][sceneX][sceneY];
-
-		for (GameObject gameObject : tile.getGameObjects())
+		if(scene != null)
 		{
-			if (gameObject == null)
-				continue;
+			var tiles = scene.getTiles();
+			var tile = tiles[plane][sceneX][sceneY];
 
-			var id = gameObject.getId();
-			if (id == objectId)
-				continue;
+			for (GameObject gameObject : tile.getGameObjects()) {
+				if (gameObject == null)
+					continue;
 
-			log.info("[EXAMINE] Found another Object on this tile: {}", id);
+				var id = gameObject.getId();
+				if (id == objectId)
+					continue;
+
+				log.info("[EXAMINE] Found another Object on this tile: {}", id);
+			}
+
+			if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID) {
+				WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
+				routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
+			}
 		}
-
-
-		if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID)
-		{
-			WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
-			routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
-		}
-	}
-
-	public WorldPoint getPathfindingPickupLocation()
-	{
-		return locationManager.getPathfindingPickupLocation();
-	}
-
-	public WorldPoint getPathfindingDropoffLocation()
-	{
-		return locationManager.getPathfindingDropoffLocation();
-	}
-
-	public int getLostSuppliesRemaining()
-	{
-		return gameState.getLostSuppliesTotal() - gameState.getLostSuppliesCollected();
 	}
 
 	public boolean isPointInExclusionZone(WorldPoint point)

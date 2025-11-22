@@ -209,29 +209,6 @@ public class LocationManager implements PathPlanner.LocationHelper
 	}
 
 	/**
-	 * Initializes trial locations by searching for rum objects
-	 * Called when entering trial area
-	 */
-	public void initializeTrialLocations()
-	{
-		WorldView topLevelWorldView = client.getTopLevelWorldView();
-		if (topLevelWorldView == null)
-		{
-			log.debug("Cannot initialize trial locations - no world view");
-			return;
-		}
-
-		Scene scene = topLevelWorldView.getScene();
-		if (scene == null)
-		{
-			log.debug("Cannot initialize trial locations - no scene");
-			return;
-		}
-
-		searchForRumLocationsInWorldEntities();
-	}
-
-	/**
 	 * Calculates exclusion zone boundaries from rum return location
 	 * The exclusion zone is the center island area we circle around
 	 */
@@ -263,69 +240,11 @@ public class LocationManager implements PathPlanner.LocationHelper
 			&& worldPoint.getY() <= state.getExclusionZoneMaxY();
 	}
 
-	public double calculateDistanceFromPointToExclusionZone(WorldPoint worldPoint)
-	{
-		int pointX = worldPoint.getX();
-		int pointY = worldPoint.getY();
-
-		if (isPointInsideExclusionZone(worldPoint))
-		{
-			return 0;
-		}
-
-		double distanceToExclusionZoneInXDirection;
-		if (pointX < state.getExclusionZoneMinX())
-		{
-			distanceToExclusionZoneInXDirection = state.getExclusionZoneMinX() - pointX;
-		}
-		else if (pointX > state.getExclusionZoneMaxX())
-		{
-			distanceToExclusionZoneInXDirection = pointX - state.getExclusionZoneMaxX();
-		}
-		else
-		{
-			distanceToExclusionZoneInXDirection = 0;
-		}
-
-		double distanceToExclusionZoneInYDirection;
-		if (pointY < state.getExclusionZoneMinY())
-		{
-			distanceToExclusionZoneInYDirection = state.getExclusionZoneMinY() - pointY;
-		}
-		else if (pointY > state.getExclusionZoneMaxY())
-		{
-			distanceToExclusionZoneInYDirection = pointY - state.getExclusionZoneMaxY();
-		}
-		else
-		{
-			distanceToExclusionZoneInYDirection = 0;
-		}
-
-		if (distanceToExclusionZoneInXDirection == 0)
-		{
-			return distanceToExclusionZoneInYDirection;
-		}
-		else if (distanceToExclusionZoneInYDirection == 0)
-		{
-			return distanceToExclusionZoneInXDirection;
-		}
-		else
-		{
-			return Math.sqrt(distanceToExclusionZoneInXDirection * distanceToExclusionZoneInXDirection + distanceToExclusionZoneInYDirection * distanceToExclusionZoneInYDirection);
-		}
-	}
-
-	/**
-	 * Gets the pickup location for pathfinding
-	 */
 	public WorldPoint getPathfindingPickupLocation()
 	{
 		return state.getRumPickupLocation();
 	}
 
-	/**
-	 * Gets the dropoff location for pathfinding
-	 */
 	public WorldPoint getPathfindingDropoffLocation()
 	{
 		return state.getRumReturnLocation();
