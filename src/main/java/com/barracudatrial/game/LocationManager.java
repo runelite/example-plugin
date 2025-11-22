@@ -13,7 +13,6 @@ public class LocationManager implements PathPlanner.LocationHelper
 {
 	private final Client client;
 	private final State state;
-	private final SceneScanner sceneScanner;
 
 	private static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available
 	private static final int RUM_RETURN_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
@@ -25,11 +24,10 @@ public class LocationManager implements PathPlanner.LocationHelper
 	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
 	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
 
-	public LocationManager(Client client, State state, SceneScanner sceneScanner)
+	public LocationManager(Client client, State state)
 	{
 		this.client = client;
 		this.state = state;
-		this.sceneScanner = sceneScanner;
 	}
 
 	/**

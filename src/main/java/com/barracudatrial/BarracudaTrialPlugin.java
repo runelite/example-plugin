@@ -43,7 +43,6 @@ public class BarracudaTrialPlugin extends Plugin
 	@Getter
 	private CachedConfig cachedConfig;
 
-	private SceneScanner sceneScanner;
 	private ObjectTracker objectTracker;
 	private LocationManager locationManager;
 	private ProgressTracker progressTracker;
@@ -60,9 +59,8 @@ public class BarracudaTrialPlugin extends Plugin
 
 		cachedConfig = new CachedConfig(config);
 
-		sceneScanner = new SceneScanner(client);
-		objectTracker = new ObjectTracker(client, gameState, sceneScanner);
-		locationManager = new LocationManager(client, gameState, sceneScanner);
+		objectTracker = new ObjectTracker(client, gameState);
+		locationManager = new LocationManager(client, gameState);
 		progressTracker = new ProgressTracker(client, gameState);
 		pathPlanner = new PathPlanner(client, gameState, cachedConfig, locationManager);
 		routeCapture = new RouteCapture(gameState);
@@ -265,21 +263,46 @@ public class BarracudaTrialPlugin extends Plugin
 			ObjectComposition objectComposition = client.getObjectDefinition(objectId);
 			if (objectComposition != null)
 			{
-				ObjectComposition activeImpostor = objectComposition.getImpostor();
-				if (activeImpostor != null)
+				impostorInfo = "none (with object comp)";
+
+				var impostorIds = objectComposition.getImpostorIds();
+				if(impostorIds == null)
 				{
-					impostorInfo = String.valueOf(activeImpostor.getId());
+					impostorInfo = "none (null ids)";
+				}
+				else {
+					ObjectComposition activeImpostor = objectComposition.getImpostor();
+					if (activeImpostor != null) {
+						impostorInfo = String.valueOf(activeImpostor.getId());
+					}
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			impostorInfo = "error: " + e.getClass().getSimpleName();
+			impostorInfo += "[error: " + e + "]";
 		}
 
-		log.debug("[EXAMINE] ObjectID: {}, ImpostorID: {}, SceneXY: ({}, {}), SceneBase: ({}, {}), Plane: {}, WorldPoint: {}, BoatWorldLoc: {}",
+		log.info("[EXAMINE] ObjectID: {}, ImpostorID: {}, SceneXY: ({}, {}), SceneBase: ({}, {}), Plane: {}, WorldPoint: {}, BoatWorldLoc: {}",
 			objectId, impostorInfo, sceneX, sceneY, sceneBaseX, sceneBaseY, plane, worldPoint,
 			boatWorldLocation != null ? boatWorldLocation : "null");
+
+
+		var tiles = scene.getTiles();
+		var tile = tiles[plane][sceneX][sceneY];
+
+		for (GameObject gameObject : tile.getGameObjects())
+		{
+			if (gameObject == null)
+				continue;
+
+			var id = gameObject.getId();
+			if (id == objectId)
+				continue;
+
+			log.info("[EXAMINE] Found another Object on this tile: {}", id);
+		}
+
 
 		if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID)
 		{

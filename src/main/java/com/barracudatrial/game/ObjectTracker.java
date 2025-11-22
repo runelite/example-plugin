@@ -21,7 +21,6 @@ public class ObjectTracker
 {
 	private final Client client;
 	private final State state;
-	private final SceneScanner sceneScanner;
 
 	private static final int LIGHTNING_CLOUD_IDLE = NpcID.SAILING_SEA_STORMY_CLOUD;
 	private static final int LIGHTNING_CLOUD_ATTACKING = NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE;
@@ -30,8 +29,10 @@ public class ObjectTracker
 	// Most IDs don't have constants, only 59244 has ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES
 	public static final Set<Integer> LOST_SUPPLIES_BASE_IDS = Set.of(
 		59234, 59235, 59236, 59240, 59241, 59242, 59243, ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES, 59245, 59246, 59247, 59248, 59249,
-		59250, 59251, 59252, 59253, 59254, 59255, 59256, 59257, 59258, 59259, 59260,
-		59261, 59262, 59263, 59264, 59265, 59266, 59267, 59268, 59269, 59270
+		59250, 59251, 59252, 59253, 59254, 59255, 59256, 59257, 59258, 59259,
+		59260, 59261, 59262, 59263, 59264, 59265, 59266, 59267, 59268, 59269,
+		59270, 59271, 59272, 59273, 59274, 59275, 59276, 59277, 59278, 59279,
+		59280, 59281, 59282, 59283, 59284, 59285, 59286, 59287, 59288, 59289
 	);
 	public static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
 
@@ -45,11 +46,10 @@ public class ObjectTracker
 		ObjectID.SAILING_RAPIDS_POWERFUL, ObjectID.SAILING_RAPIDS_DEADLY
 	);
 
-	public ObjectTracker(Client client, State state, SceneScanner sceneScanner)
+	public ObjectTracker(Client client, State state)
 	{
 		this.client = client;
 		this.state = state;
-		this.sceneScanner = sceneScanner;
 	}
 
 	/**
