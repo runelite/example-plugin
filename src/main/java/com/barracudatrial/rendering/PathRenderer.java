@@ -4,7 +4,9 @@ import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
+import net.runelite.api.Player;
 import net.runelite.api.Point;
+import net.runelite.api.WorldEntity;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -35,12 +37,58 @@ public class PathRenderer
 			return;
 		}
 
-		// Get the visual front position (boat-relative, rotates with boat)
-		LocalPoint visualFrontPosition = plugin.getGameState().getFrontBoatTileLocal();
+		// Get the visual front position transformed to main world coordinates
+		// This preserves sub-tile accuracy while being in the correct coordinate system for interpolation
+		LocalPoint visualFrontPositionTransformed = getTransformedFrontPosition();
+		if (visualFrontPositionTransformed == null)
+		{
+			return;
+		}
 
-		int totalSegmentsInPath = calculateTotalSegmentsInPath(currentSegmentPath, visualFrontPosition);
+		int totalSegmentsInPath = calculateTotalSegmentsInPath(currentSegmentPath, visualFrontPositionTransformed);
 
-		drawInterpolatedPathWithTracer(graphics, currentSegmentPath, visualFrontPosition, totalSegmentsInPath, frameCounterForTracerAnimation);
+		drawInterpolatedPathWithTracer(graphics, currentSegmentPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
+	}
+
+	/**
+	 * Gets the boat-relative front position and transforms it to main world coordinates.
+	 * This preserves sub-tile accuracy while ensuring compatibility with world-space waypoints.
+	 */
+	private LocalPoint getTransformedFrontPosition()
+	{
+		LocalPoint frontBoatTileLocal = plugin.getGameState().getFrontBoatTileLocal();
+		if (frontBoatTileLocal == null)
+		{
+			return null;
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null)
+		{
+			return null;
+		}
+
+		WorldView playerWorldView = localPlayer.getWorldView();
+		if (playerWorldView == null)
+		{
+			return null;
+		}
+
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return null;
+		}
+
+		int playerWorldViewId = playerWorldView.getId();
+		WorldEntity boatWorldEntity = topLevelWorldView.worldEntities().byIndex(playerWorldViewId);
+		if (boatWorldEntity == null)
+		{
+			return null;
+		}
+
+		// Transform from boat-relative to main world coordinates (preserves sub-tile accuracy)
+		return boatWorldEntity.transformToMainWorld(frontBoatTileLocal);
 	}
 
 	private void drawInterpolatedPathWithTracer(Graphics2D graphics, List<WorldPoint> waypoints, LocalPoint visualStartPosition, int totalSegmentsInPath, int frameCounterForTracerAnimation)
