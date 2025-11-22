@@ -494,7 +494,7 @@ public class ObjectTracker
                                 foundSupplyLocations.add(worldLocation);
                                 continue;
                             }
-                            log.info("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}", gameObject.getId(), formatWorldPoint(worldLocation));
+                            log.debug("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}", gameObject.getId(), formatWorldPoint(worldLocation));
                             foundSupplyLocations.add(worldLocation);
                         }
                     }
