@@ -71,6 +71,28 @@ public class RouteCapture
 
 		for (WorldPoint collectedLocation : collectedShipments)
 		{
+			var alreadyCollected = false;
+			for (var existingWaypoint : capturedWaypoints)
+			{
+				if (existingWaypoint.getType() != RouteWaypoint.WaypointType.SHIPMENT)
+					continue;
+
+				var location = existingWaypoint.getLocation();
+
+				if (location.getX() == collectedLocation.getX()
+						&& location.getY() == collectedLocation.getY()
+						&& location.getPlane() == collectedLocation.getPlane())
+				{
+					alreadyCollected = true;
+					break;
+				}
+			}
+
+			if (alreadyCollected)
+			{
+				continue;
+			}
+			
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.SHIPMENT, collectedLocation));
 			shipmentLocationsForVisualFeedback.add(collectedLocation);
 			int waypointNumber = capturedWaypoints.size();
