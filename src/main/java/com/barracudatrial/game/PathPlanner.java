@@ -6,27 +6,28 @@ import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.game.route.TemporTantrumRoutes;
 import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
+import com.barracudatrial.pathfinding.PathStabilizer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
 
-/**
- * Orchestrates path calculation for the Barracuda Trial plugin
- * Uses static routes for strategic planning and A* pathfinding for tactical navigation
- */
 @Slf4j
 public class PathPlanner
 {
 	private final State state;
 	private final CachedConfig cachedConfig;
 	private final LocationHelper locationHelper;
+	private final PathStabilizer pathStabilizer;
 
 	public PathPlanner(State state, CachedConfig cachedConfig, LocationHelper locationHelper)
 	{
 		this.state = state;
 		this.cachedConfig = cachedConfig;
 		this.locationHelper = locationHelper;
+
+		AStarPathfinder aStarPathfinder = new AStarPathfinder();
+		this.pathStabilizer = new PathStabilizer(aStarPathfinder);
 	}
 
 	/**
@@ -226,10 +227,8 @@ public class PathPlanner
 			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
 		}
 
-		AStarPathfinder aStarPathfinder = new AStarPathfinder(tileCostCalculator, cachedConfig.getRouteOptimization());
 		int maximumAStarSearchDistance = 100;
-
-		List<WorldPoint> path = aStarPathfinder.findPath(start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy);
+		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy);
 
 		if (path.isEmpty())
 		{
@@ -238,13 +237,17 @@ public class PathPlanner
 			return fallbackPath;
 		}
 
-		// Remove starting position from path (we're already there)
 		if (path.get(0).equals(start))
 		{
 			path.remove(0);
 		}
 
 		return path;
+	}
+
+	public void reset()
+	{
+		pathStabilizer.clearActivePath();
 	}
 
 	/**

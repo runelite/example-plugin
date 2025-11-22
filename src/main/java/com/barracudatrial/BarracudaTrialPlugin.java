@@ -72,6 +72,7 @@ public class BarracudaTrialPlugin extends Plugin
 		log.info("Barracuda Trial plugin stopped!");
 		overlayManager.remove(overlay);
 		gameState.resetAllTemporaryState();
+		pathPlanner.reset();
 		gameState.clearPersistentStorage();
 	}
 
@@ -81,8 +82,8 @@ public class BarracudaTrialPlugin extends Plugin
 		boolean trialAreaStateChanged = progressTracker.checkIfPlayerIsInTrialArea();
 		if (trialAreaStateChanged && !gameState.isInTrialArea())
 		{
-			// Left trial area - reset route capture
 			routeCapture.reset();
+			pathPlanner.reset();
 		}
 
 		objectTracker.updatePlayerBoatLocation();

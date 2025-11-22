@@ -11,35 +11,14 @@ import java.util.*;
  */
 public class AStarPathfinder
 {
-	private final BarracudaTileCostCalculator costCalculator;
-	private final RouteOptimization routeOptimization;
-
-	public AStarPathfinder(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization)
+	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy)
 	{
-		this.costCalculator = costCalculator;
-		this.routeOptimization = routeOptimization;
-	}
-
-	/**
-	 * Finds the optimal path from start to goal using A* algorithm
-	 * @param start Starting position
-	 * @param goal Goal position
-	 * @param maxSearchDistance Maximum tiles to search (prevents infinite loops)
-	 * @param boatDirectionDx Boat's forward direction X component (0 if not on boat)
-	 * @param boatDirectionDy Boat's forward direction Y component (0 if not on boat)
-	 * @return List of WorldPoints representing the path, or empty list if no path found
-	 */
-	public List<WorldPoint> findPath(WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy)
-	{
-		// Priority queue ordered by f-score (g + h), with tie-breaking towards goal
-		// When f-scores are equal, prefer nodes closer to goal (Manhattan distance)
 		PriorityQueue<Node> openSet = new PriorityQueue<>(
 			Comparator.comparingDouble((Node n) -> n.fScore)
 				.thenComparingDouble(n -> manhattanDistance(n.position, goal))
 		);
 		Map<WorldPoint, Node> allNodes = new HashMap<>();
 
-		// Create start node
 		Node startNode = new Node(start);
 		startNode.gScore = 0;
 		startNode.hScore = heuristic(start, goal);
@@ -55,16 +34,14 @@ public class AStarPathfinder
 		{
 			Node current = openSet.poll();
 
-			// Skip if already processed (can happen with duplicates in openSet)
 			if (closedSet.contains(current.position))
 			{
 				continue;
 			}
 
-			// Check if we've reached the goal
 			if (current.position.equals(goal))
 			{
-				return reconstructPath(current);
+				return new PathResult(reconstructPath(current), current.gScore);
 			}
 
 			closedSet.add(current.position);
@@ -103,8 +80,7 @@ public class AStarPathfinder
 					continue;
 				}
 
-				// Calculate turning cost (wasted movement while turning)
-				double turningCost = calculateTurningCost(current, neighbor);
+				double turningCost = calculateTurningCost(routeOptimization, current, neighbor);
 
 				double tentativeGScore = current.gScore + tileCost + turningCost;
 
@@ -125,16 +101,10 @@ public class AStarPathfinder
 			}
 		}
 
-		// No path found - return empty list
-		return new ArrayList<>();
+		return new PathResult(new ArrayList<>(), Double.POSITIVE_INFINITY);
 	}
 
-	/**
-	 * Calculates turning cost based on wasted movement while turning
-	 * Boat turns max 15°/tick and always moves forward
-	 * Large turns waste distance traveling in wrong direction
-	 */
-	private double calculateTurningCost(Node current, WorldPoint neighbor)
+	private double calculateTurningCost(RouteOptimization routeOptimization, Node current, WorldPoint neighbor)
 	{
 		// No turning cost for first move (no previous direction)
 		if (current.parent == null)
@@ -142,15 +112,12 @@ public class AStarPathfinder
 			return 0.0;
 		}
 
-		// Calculate previous direction vector (parent → current)
 		double prevDx = current.position.getX() - current.parent.position.getX();
 		double prevDy = current.position.getY() - current.parent.position.getY();
 
-		// Calculate new direction vector (current → neighbor)
 		double newDx = neighbor.getX() - current.position.getX();
 		double newDy = neighbor.getY() - current.position.getY();
 
-		// Normalize vectors
 		double prevLength = Math.sqrt(prevDx * prevDx + prevDy * prevDy);
 		double newLength = Math.sqrt(newDx * newDx + newDy * newDy);
 
@@ -164,16 +131,15 @@ public class AStarPathfinder
 		newDx /= newLength;
 		newDy /= newLength;
 
-		// Calculate dot product (cosine of angle)
 		double dotProduct = prevDx * newDx + prevDy * newDy;
 
 		// Clamp to [-1, 1] to avoid floating point errors
 		dotProduct = Math.max(-1.0, Math.min(1.0, dotProduct));
 
-		return getWastedMovement(dotProduct);
+		return getWastedMovement(routeOptimization, dotProduct);
 	}
 
-	private double getWastedMovement(double dotProduct) {
+	private double getWastedMovement(RouteOptimization routeOptimization, double dotProduct) {
 		double turnAngleRadians = Math.acos(dotProduct);
 		double turnAngleDegrees = Math.toDegrees(turnAngleRadians);
 
