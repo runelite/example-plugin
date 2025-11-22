@@ -89,6 +89,11 @@ public class ObjectTracker
 		}
 	}
 
+	public static boolean IsCloudSafe(int animationId)
+	{
+		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
+	}
+
 	/**
 	 * Updates rocks and speed boosts by scanning the scene
 	 * Also maintains persistent storage of known locations

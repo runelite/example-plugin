@@ -8,6 +8,7 @@ import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import com.barracudatrial.pathfinding.PathStabilizer;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
@@ -204,10 +205,20 @@ public class PathPlanner
 	 */
 	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target)
 	{
+		Set<NPC> currentlyDangerousClouds = new HashSet<>();
+		for (NPC lightningCloud : state.getLightningClouds())
+		{
+			if (!ObjectTracker.IsCloudSafe(lightningCloud.getAnimation()))
+			{
+				currentlyDangerousClouds.add(lightningCloud);
+			}
+		}
+
 		BarracudaTileCostCalculator tileCostCalculator = new BarracudaTileCostCalculator(
 			state.getKnownSpeedBoostLocations(),
 			state.getKnownRockLocations(),
 			state.getRocks(),
+			currentlyDangerousClouds,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),

@@ -32,6 +32,7 @@ public class BarracudaTileCostCalculator
 		Set<WorldPoint> knownSpeedBoostLocations,
 		Set<WorldPoint> knownRockLocations,
 		Set<GameObject> visibleRocks,
+		Set<NPC> lightningClouds,
 		int exclusionZoneMinX,
 		int exclusionZoneMaxX,
 		int exclusionZoneMinY,

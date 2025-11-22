@@ -101,7 +101,7 @@ public class AStarPathfinder
 			}
 		}
 
-		return new PathResult(new ArrayList<>(), Double.POSITIVE_INFINITY);
+		return new PathResult(new ArrayList<PathNode>(), Double.POSITIVE_INFINITY);
 	}
 
 	private double calculateTurningCost(RouteOptimization routeOptimization, Node current, WorldPoint neighbor)
@@ -243,23 +243,20 @@ public class AStarPathfinder
 		return neighbors;
 	}
 
-	/**
-	 * Reconstructs the path from start to goal by following parent pointers
-	 */
-	private List<WorldPoint> reconstructPath(Node goalNode)
+	private List<PathNode> reconstructPath(Node goalNode)
 	{
-		List<WorldPoint> path = new ArrayList<>();
+		List<PathNode> pathNodes = new ArrayList<>();
 		Node current = goalNode;
 
 		while (current != null)
 		{
-			path.add(current.position);
+			pathNodes.add(new PathNode(current.position, current.gScore));
 			current = current.parent;
 		}
 
 		// Reverse to get path from start to goal
-		Collections.reverse(path);
-		return path;
+		Collections.reverse(pathNodes);
+		return pathNodes;
 	}
 
 	/**

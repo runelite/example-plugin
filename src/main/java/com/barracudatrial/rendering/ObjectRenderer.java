@@ -2,6 +2,7 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
+import com.barracudatrial.game.ObjectTracker;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -112,7 +113,7 @@ public class ObjectRenderer
 		{
 			int currentAnimation = cloudNpc.getAnimation();
 
-			boolean isCloudSafe = plugin.isCloudSafe(currentAnimation);
+			boolean isCloudSafe = ObjectTracker.IsCloudSafe(currentAnimation);
 			if (isCloudSafe)
 			{
 				continue;

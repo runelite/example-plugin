@@ -3,6 +3,7 @@ package com.barracudatrial.pathfinding;
 import com.barracudatrial.RouteOptimization;
 import net.runelite.api.coords.WorldPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PathStabilizer
@@ -33,9 +34,9 @@ public class PathStabilizer
 			return newPathResult.getPath();
 		}
 
-		if (shouldKeepActivePath(costCalculator, routeOptimization, start, newPathResult))
+		if (shouldKeepActivePath(routeOptimization, start, newPathResult))
 		{
-			return activePathResult.getPath();
+			return getTrimmedPath(start, activePathResult);
 		}
 
 		activePathResult = newPathResult;
@@ -59,7 +60,7 @@ public class PathStabilizer
         return !activeGoal.equals(goal);
     }
 
-	private boolean shouldKeepActivePath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
+	private boolean shouldKeepActivePath(RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
 	{
 		List<WorldPoint> activePath = activePathResult.getPath();
 
@@ -68,7 +69,7 @@ public class PathStabilizer
 			return false;
 		}
 
-        return !isNewPathSignificantlyBetter(costCalculator, routeOptimization, start, newPathResult);
+        return !isNewPathSignificantlyBetter(routeOptimization, start, newPathResult);
     }
 
 	private boolean isWithinProximityOfPath(WorldPoint start, List<WorldPoint> path)
@@ -87,29 +88,36 @@ public class PathStabilizer
 		return false;
 	}
 
-	private boolean isNewPathSignificantlyBetter(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
+	private boolean isNewPathSignificantlyBetter(RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
 	{
 		double newCost = newPathResult.getCost();
-		double oldRemainingCost = estimateRemainingCost(costCalculator, start, activePathResult.getPath());
+
+		int closestIndex = findClosestPointOnPath(start, activePathResult.getPath());
+		double oldRemainingCost = activePathResult.getCostFromIndex(closestIndex);
+
 		double improvementThreshold = getImprovementThreshold(routeOptimization);
 
 		return newCost <= improvementThreshold * oldRemainingCost;
 	}
 
-	private double estimateRemainingCost(BarracudaTileCostCalculator costCalculator, WorldPoint currentPosition, List<WorldPoint> oldPath)
+	private List<WorldPoint> getTrimmedPath(WorldPoint start, PathResult pathResult)
 	{
-		int closestIndex = findClosestPointOnPath(currentPosition, oldPath);
-		WorldPoint closestPoint = oldPath.get(closestIndex);
+		List<WorldPoint> fullPath = pathResult.getPath();
+		int closestIndex = findClosestPointOnPath(start, fullPath);
 
-		double costToPath = costCalculator.getTileCost(currentPosition, closestPoint);
-
-		double costAlongPath = 0.0;
-		for (int i = closestIndex; i < oldPath.size() - 1; i++)
+		// If player is exactly on the closest path tile, start from next tile
+		if (closestIndex < fullPath.size() && fullPath.get(closestIndex).equals(start))
 		{
-			costAlongPath += costCalculator.getTileCost(oldPath.get(i), oldPath.get(i + 1));
+			closestIndex++;
 		}
 
-		return costToPath + costAlongPath;
+		// Return remaining path from that point forward
+		if (closestIndex >= fullPath.size())
+		{
+			return new ArrayList<>();
+		}
+
+		return new ArrayList<>(fullPath.subList(closestIndex, fullPath.size()));
 	}
 
 	private int findClosestPointOnPath(WorldPoint position, List<WorldPoint> path)

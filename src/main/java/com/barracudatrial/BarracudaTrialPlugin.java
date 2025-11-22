@@ -322,11 +322,6 @@ public class BarracudaTrialPlugin extends Plugin
 		return new java.util.ArrayList<>(gameState.getAllRocksInScene());
 	}
 
-	public boolean isCloudSafe(int animationId)
-	{
-		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
-	}
-
 	/**
 	 * Gets the boat/entity world location for an object at the given scene coordinates.
 	 * Objects on boats have scene-local coordinates that shift as the boat moves.
