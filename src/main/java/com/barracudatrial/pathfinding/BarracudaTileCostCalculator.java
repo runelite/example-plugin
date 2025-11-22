@@ -1,5 +1,6 @@
 package com.barracudatrial.pathfinding;
 
+import com.barracudatrial.RouteOptimization;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
@@ -17,6 +18,7 @@ public class BarracudaTileCostCalculator
 	private final int exclusionZoneMaxX;
 	private final int exclusionZoneMinY;
 	private final int exclusionZoneMaxY;
+	private final RouteOptimization routeOptimization;
 
 	private int speedBoostTilesRemaining = 0;
 	private WorldPoint lastTile = null;
@@ -35,7 +37,8 @@ public class BarracudaTileCostCalculator
 		int exclusionZoneMinX,
 		int exclusionZoneMaxX,
 		int exclusionZoneMinY,
-		int exclusionZoneMaxY)
+		int exclusionZoneMaxY,
+		RouteOptimization routeOptimization)
 	{
 		this.knownSpeedBoostLocations = knownSpeedBoostLocations;
 		this.knownRockLocations = knownRockLocations;
@@ -45,6 +48,7 @@ public class BarracudaTileCostCalculator
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
 		this.exclusionZoneMinY = exclusionZoneMinY;
 		this.exclusionZoneMaxY = exclusionZoneMaxY;
+		this.routeOptimization = routeOptimization;
 
 		this.visibleRockLocations = precomputeVisibleRockLocations(visibleRocks);
 		this.veryCloseToRocks = precomputeRockProximity(1);
@@ -74,7 +78,7 @@ public class BarracudaTileCostCalculator
 
 		if (knownSpeedBoostLocations.contains(to))
 		{
-			cost = -10.0;
+			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -10.0 : -5.0;
 			speedBoostTilesRemaining = 5;
 		}
 		else if (speedBoostTilesRemaining > 0)

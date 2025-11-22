@@ -14,6 +14,7 @@ public class CachedConfig
 
 	// Path settings
 	@Getter private boolean showOptimalPath;
+	@Getter private RouteOptimization routeOptimization;
 	@Getter private Color pathColor;
 	@Getter private Color tracerColor;
 	@Getter private int pathWidth;
@@ -55,6 +56,7 @@ public class CachedConfig
 	public void updateCache()
 	{
 		showOptimalPath = config.showOptimalPath();
+		routeOptimization = config.routeOptimization();
 		pathColor = config.pathColor();
 		tracerColor = config.tracerColor();
 		pathWidth = config.pathWidth();

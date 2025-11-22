@@ -217,6 +217,11 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 
 		cachedConfig.updateCache();
+
+		if (event.getKey().equals("routeOptimization") && gameState.isInTrialArea())
+		{
+			pathPlanner.recalculateOptimalPathFromCurrentState("config: route optimization changed");
+		}
 	}
 
 	@Subscribe

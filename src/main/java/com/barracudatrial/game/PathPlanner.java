@@ -226,7 +226,8 @@ public class PathPlanner
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
-			state.getExclusionZoneMaxY()
+			state.getExclusionZoneMaxY(),
+			cachedConfig.getRouteOptimization()
 		);
 
 		// Calculate boat direction for A* forward constraint
@@ -241,7 +242,7 @@ public class PathPlanner
 			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
 		}
 
-		AStarPathfinder aStarPathfinder = new AStarPathfinder(tileCostCalculator);
+		AStarPathfinder aStarPathfinder = new AStarPathfinder(tileCostCalculator, cachedConfig.getRouteOptimization());
 		int maximumAStarSearchDistance = 100;
 
 		List<WorldPoint> path = aStarPathfinder.findPath(start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy);

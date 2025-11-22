@@ -60,6 +60,18 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "routeOptimization",
+		name = "Route Optimization",
+		description = "Relaxed: fewer turns overall (smoother). Efficient: grab nearby boosts (more dynamic).",
+		section = pathSection,
+		position = 1
+	)
+	default RouteOptimization routeOptimization()
+	{
+		return RouteOptimization.RELAXED;
+	}
+
+	@ConfigItem(
 		keyName = "pathLookahead",
 		name = "Path Lookahead",
 		description = "Number of waypoints to calculate ahead. Lower values improve performance and reduce visual clutter.",
@@ -77,7 +89,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Path Color",
 		description = "Color of the optimal path line",
 		section = pathSection,
-		position = 3
+		position = 4
 	)
 	@Alpha
 	default Color pathColor()
@@ -90,7 +102,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Tracer Color",
 		description = "Color of the animated tracer pulse",
 		section = pathSection,
-		position = 4
+		position = 5
 	)
 	@Alpha
 	default Color tracerColor()
@@ -103,7 +115,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Path Width",
 		description = "Width of the path line",
 		section = pathSection,
-		position = 5
+		position = 6
 	)
 	@Range(min = 1, max = 10)
 	default int pathWidth()
@@ -116,7 +128,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Animated Tracer",
 		description = "Show an animated tracer along the path",
 		section = pathSection,
-		position = 6
+		position = 7
 	)
 	default boolean showPathTracer()
 	{

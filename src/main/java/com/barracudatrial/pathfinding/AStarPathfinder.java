@@ -1,5 +1,6 @@
 package com.barracudatrial.pathfinding;
 
+import com.barracudatrial.RouteOptimization;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
@@ -11,10 +12,12 @@ import java.util.*;
 public class AStarPathfinder
 {
 	private final BarracudaTileCostCalculator costCalculator;
+	private final RouteOptimization routeOptimization;
 
-	public AStarPathfinder(BarracudaTileCostCalculator costCalculator)
+	public AStarPathfinder(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization)
 	{
 		this.costCalculator = costCalculator;
+		this.routeOptimization = routeOptimization;
 	}
 
 	/**
@@ -179,16 +182,23 @@ public class AStarPathfinder
 		// Calculate ticks needed to turn (15°/tick turn rate)
 		double ticksToTurn = turnAngleDegrees / 15.0;
 
-		// Piecewise function: gentle up to 90°, then explosive penalty
 		double wastedMovement;
 		if (turnAngleDegrees <= 90)
 		{
-			// Gentle linear cost for turns up to 90°
-			wastedMovement = ticksToTurn * 0.17;
+			if (routeOptimization == RouteOptimization.EFFICIENT)
+			{
+				// Efficient: Gentle linear cost (good for grabbing nearby boosts)
+				wastedMovement = ticksToTurn * 0.17;
+			}
+			else
+			{
+				// Relaxed: Higher cost to discourage all turns (smoother routes)
+				wastedMovement = ticksToTurn * 0.5;
+			}
 		}
 		else
 		{
-			// Explosive cost for turns over 90°
+			// Explosive cost for turns over 90° (same for both modes)
 			double ticksOver90 = ticksToTurn - 6.0; // 90° = 6 ticks
 			wastedMovement = 1.0 + Math.pow(ticksOver90, 2.5) * 8.0;
 		}
