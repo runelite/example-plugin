@@ -66,7 +66,6 @@ public class TemporTantrumRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3001, 2788, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3012, 2768, 0)),
 			new RouteWaypoint(WaypointType.RUM_PICKUP),
-			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3037, 2762, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3057, 2792, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3065, 2811, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(3077, 2825, 0)),
