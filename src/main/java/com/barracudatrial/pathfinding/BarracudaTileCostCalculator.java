@@ -82,19 +82,20 @@ public class BarracudaTileCostCalculator
 		WorldPoint nearbyBoost = findNearbyUnconsumedBoost(to);
 		if (nearbyBoost != null)
 		{
-			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -10.0 : -5.0;
-			speedBoostTilesRemaining = 5;
+			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -8.0 : -3.0;
+			speedBoostTilesRemaining = 15;
 			consumedBoosts.add(nearbyBoost);
 		}
 		else if (speedBoostTilesRemaining > 0)
 		{
-			cost /= 3.0;
+			cost /= 2.0; // Double speed
 			speedBoostTilesRemaining--;
 		}
 
 		if (veryCloseToRocks.contains(to))
 		{
 			cost += 1000;
+			speedBoostTilesRemaining = 0;
 		}
 		else if (closeToRocks.contains(to))
 		{
@@ -115,10 +116,10 @@ public class BarracudaTileCostCalculator
 			cost += 50;
 		}
 
-		// Use single penalty instead of distance-based since precompute would need 3 separate sets for each distance tier (memory tradeoff)
 		if (cloudDangerZones.contains(to))
 		{
 			cost += 200;
+			speedBoostTilesRemaining = 0;
 		}
 
 		return cost;
