@@ -68,21 +68,6 @@ public class BarracudaTileCostCalculator
 
 		double cost = 1.0;
 
-		if (isInExclusionZone(to))
-		{
-			return 999999;
-		}
-
-		if (isInBoatExclusionZone(to))
-		{
-			return 999999;
-		}
-
-		if (knownRockLocations.contains(to) || visibleRockLocations.contains(to))
-		{
-			return 999999;
-		}
-
 		WorldPoint nearbyBoost = findNearbyUnconsumedBoost(to);
 		if (nearbyBoost != null)
 		{
@@ -96,14 +81,29 @@ public class BarracudaTileCostCalculator
 			speedBoostTilesRemaining--;
 		}
 
-		if (veryCloseToRocks.contains(to))
+		if (isInExclusionZone(to))
 		{
-			cost += 1000;
+			cost += 250;
+		}
+
+		if (isInBoatExclusionZone(to))
+		{
+			cost += 25; // Discouraged but allowed for pathmaking
+		}
+
+		if (knownRockLocations.contains(to) || visibleRockLocations.contains(to))
+		{
+			cost += 250;
+			speedBoostTilesRemaining = 0;
+		}
+		else if (veryCloseToRocks.contains(to))
+		{
+			cost += 100;
 			speedBoostTilesRemaining = 0;
 		}
 		else if (closeToRocks.contains(to))
 		{
-			cost += 100;
+			cost += 50;
 		}
 
 		double distToZone = distanceToExclusionZone(to);
