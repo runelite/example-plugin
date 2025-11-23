@@ -66,7 +66,7 @@ public class BarracudaTrialOverlay extends Overlay
 
 		if (cachedConfig.isDebugMode())
 		{
-			objectRenderer.renderVisibleSupplyLocations(graphics);
+			objectRenderer.renderRouteCaptureSupplyLocations(graphics);
 		}
 
 		if (cachedConfig.isHighlightClouds())

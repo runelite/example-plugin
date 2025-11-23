@@ -6,9 +6,3 @@ Uses A\* pathfinding to handle real-time navigation around moving lightning clou
 Supports all three difficulties of Tempor Tantrum trials.
 
 ![Barracuda Trial Example](docs/barracuda_trial_example.png)
-
-## Known Issues
-
-- **Navigation not provided for distant waypoints.** When a supply's tile is out of view we do not currently render a path towards it.
-- **Pathfinding can be improved.** There is a lot of tweaking we can do.
-- **Debug mode needs cleanup.** Once everything is stable, debug logging and performance tracking should be removed.

@@ -249,4 +249,9 @@ public class LocationManager implements PathPlanner.LocationHelper
 	{
 		return state.getRumReturnLocation();
 	}
+
+	public WorldView getTopLevelWorldView()
+	{
+		return client.getTopLevelWorldView();
+	}
 }

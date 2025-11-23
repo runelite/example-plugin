@@ -70,7 +70,7 @@ public class ObjectRenderer
 		}
 	}
 
-	public void renderVisibleSupplyLocations(Graphics2D graphics)
+	public void renderRouteCaptureSupplyLocations(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		Color highlightColor = cachedConfig.getLostSuppliesColor();
@@ -82,7 +82,7 @@ public class ObjectRenderer
 			lostSupplyLocations.add(lostSupply.getWorldLocation());
 		}
 
-		for (WorldPoint supplyLocation : plugin.getGameState().getVisibleSupplyLocations())
+		for (WorldPoint supplyLocation : plugin.getGameState().getRouteCaptureSupplyLocations())
 		{
 			renderTileHighlightAtWorldPoint(graphics, supplyLocation, highlightColor);
 

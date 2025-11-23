@@ -96,8 +96,6 @@ public class BarracudaTrialPlugin extends Plugin
 
 		objectTracker.updateRocksAndSpeedBoosts();
 
-		objectTracker.updateVisibleSupplyLocations();
-
 		progressTracker.updateTrialProgressFromWidgets();
 
 		boolean shipmentsCollected = objectTracker.updateRouteWaypointShipmentTracking();
@@ -108,9 +106,11 @@ public class BarracudaTrialPlugin extends Plugin
 
 		objectTracker.updateLostSuppliesTracking();
 
+		// Route capture mode: scan for all supply locations to build routes
 		if (cachedConfig.isDebugMode() && routeCapture.isCapturing())
 		{
-			List<WorldPoint> collected = objectTracker.checkAllVisibleShipmentsForCollection();
+			objectTracker.updateRouteCaptureSupplyLocations();
+			List<WorldPoint> collected = objectTracker.checkAllRouteCaptureShipmentsForCollection();
 			routeCapture.onShipmentsCollected(collected);
 		}
 

@@ -179,7 +179,11 @@ public class PathPlanner
 		for (RouteWaypoint waypoint : waypoints)
 		{
 			WorldPoint target = waypoint.getLocation();
-			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, target, waypoint.getType().getToleranceTiles());
+
+			// If target is out of the extended scene, find the nearest in-scene tile along the path
+			WorldPoint pathfindingTarget = getInSceneTarget(currentPosition, target);
+
+			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, pathfindingTarget, waypoint.getType().getToleranceTiles());
 
 			if (fullPath.isEmpty())
 			{
@@ -191,7 +195,7 @@ public class PathPlanner
 				fullPath.addAll(segmentPath.subList(1, segmentPath.size()));
 			}
 
-			currentPosition = target;
+			currentPosition = pathfindingTarget;
 		}
 
 		return fullPath;
@@ -239,7 +243,7 @@ public class PathPlanner
 			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
 		}
 
-		int maximumAStarSearchDistance = 100;
+		int maximumAStarSearchDistance = 250;
 		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 
 		if (path.isEmpty())
@@ -257,6 +261,65 @@ public class PathPlanner
 		return path;
 	}
 
+	/**
+	 * Returns the target if it's in the extended scene, otherwise finds the nearest in-scene tile
+	 * along the path from start to target using efficient binary search.
+	 * @param start Starting position
+	 * @param target Desired target position
+	 * @return Target if in scene, otherwise nearest in-scene tile toward target
+	 */
+	private WorldPoint getInSceneTarget(WorldPoint start, WorldPoint target)
+	{
+		net.runelite.api.WorldView worldView = locationHelper.getTopLevelWorldView();
+		if (worldView == null)
+		{
+			return target;
+		}
+
+		// Check if target is already in scene
+		net.runelite.api.coords.LocalPoint targetLocal = net.runelite.api.coords.LocalPoint.fromWorld(worldView, target);
+		if (targetLocal != null)
+		{
+			return target;
+		}
+
+		// Target is out of scene - binary search for the furthest visible tile
+		int dx = target.getX() - start.getX();
+		int dy = target.getY() - start.getY();
+		int maxDistance = Math.max(Math.abs(dx), Math.abs(dy));
+
+		if (maxDistance < 1)
+		{
+			return start;
+		}
+
+		int plane = start.getPlane();
+		int low = 0;
+		int high = maxDistance;
+		WorldPoint bestCandidate = start;
+
+		while (low <= high)
+		{
+			int mid = (low + high) / 2;
+			int x = start.getX() + (dx * mid / maxDistance);
+			int y = start.getY() + (dy * mid / maxDistance);
+			WorldPoint candidate = new WorldPoint(x, y, plane);
+
+			net.runelite.api.coords.LocalPoint lp = net.runelite.api.coords.LocalPoint.fromWorld(worldView, candidate);
+			if (lp != null)
+			{
+				bestCandidate = candidate;
+				low = mid + 1;
+			}
+			else
+			{
+				high = mid - 1;
+			}
+		}
+
+		return bestCandidate;
+	}
+
 	public void reset()
 	{
 		pathStabilizer.clearActivePath();
@@ -270,5 +333,6 @@ public class PathPlanner
 	{
 		WorldPoint getPathfindingPickupLocation();
 		WorldPoint getPathfindingDropoffLocation();
+		net.runelite.api.WorldView getTopLevelWorldView();
 	}
 }

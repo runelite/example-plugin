@@ -447,47 +447,47 @@ public class ObjectTracker
 	}
 
 	/**
-	 * Updates visible supply locations by scanning all tiles (including extended tiles).
-	 * This populates state.visibleSupplyLocations with all shipment WorldPoints currently visible in the scene.
-	 * Optimized to skip tiles we already know have shipments.
+	 * Updates route capture supply locations by scanning all tiles (including extended tiles).
+	 * This is ONLY used for route capture mode to discover all supply spawn locations.
+	 * Normal pathfinding uses route waypoints instead.
 	 */
-	public void updateVisibleSupplyLocations()
+	public void updateRouteCaptureSupplyLocations()
 	{
 		if (!state.isInTrialArea())
 		{
-			state.setVisibleSupplyLocations(new HashSet<>());
+			state.setRouteCaptureSupplyLocations(new HashSet<>());
 			return;
 		}
 
 		Scene scene = client.getScene();
 		if (scene == null)
 		{
-			state.setVisibleSupplyLocations(new HashSet<>());
+			state.setRouteCaptureSupplyLocations(new HashSet<>());
 			return;
 		}
 
-		Set<WorldPoint> oldSupplyLocations = state.getVisibleSupplyLocations();
-		Set<WorldPoint> newVisibleSupplyLocations = scanTileArrayForShipments(scene.getTiles(), oldSupplyLocations);
+		Set<WorldPoint> oldSupplyLocations = state.getRouteCaptureSupplyLocations();
+		Set<WorldPoint> newSupplyLocations = scanTileArrayForShipments(scene.getTiles(), oldSupplyLocations);
 
 		Tile[][][] extendedTiles = scene.getExtendedTiles();
 		if (extendedTiles != null)
 		{
-			newVisibleSupplyLocations.addAll(scanTileArrayForShipments(extendedTiles, oldSupplyLocations));
+			newSupplyLocations.addAll(scanTileArrayForShipments(extendedTiles, oldSupplyLocations));
 		}
 
-		state.setVisibleSupplyLocations(newVisibleSupplyLocations);
+		state.setRouteCaptureSupplyLocations(newSupplyLocations);
 	}
 
 	/**
-	 * Checks all currently visible shipments for collection.
-	 * Used during route capture mode to detect shipments without a predefined route.
-	 * Assumes updateVisibleSupplyLocations() has already been called this tick.
+	 * Checks all route capture supply locations for collection.
+	 * ONLY used during route capture mode to detect shipments without a predefined route.
+	 * Assumes updateRouteCaptureSupplyLocations() has already been called this tick.
 	 *
 	 * @return List of shipments that were collected this tick
 	 */
-	public List<WorldPoint> checkAllVisibleShipmentsForCollection()
+	public List<WorldPoint> checkAllRouteCaptureShipmentsForCollection()
 	{
-		return checkShipmentsForCollection(state.getVisibleSupplyLocations());
+		return checkShipmentsForCollection(state.getRouteCaptureSupplyLocations());
 	}
 
 	/**
