@@ -3,6 +3,7 @@ package com.barracudatrial.rendering;
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import com.barracudatrial.game.ObjectTracker;
+import com.barracudatrial.game.route.RouteWaypoint;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -13,6 +14,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -166,20 +168,31 @@ public class ObjectRenderer
 		Color rumHighlightColor = cachedConfig.getRumLocationColor();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
+		WorldPoint targetRumLocation = null;
+
 		if (isCarryingRum)
 		{
-			WorldPoint rumDropoffLocation = plugin.getGameState().getRumReturnLocation();
-			if (rumDropoffLocation != null)
-			{
-				renderRumLocationHighlight(graphics, rumDropoffLocation, rumHighlightColor);
-			}
+			targetRumLocation = plugin.getGameState().getRumReturnLocation();
 		}
 		else
 		{
-			WorldPoint rumPickupLocation = plugin.getGameState().getRumPickupLocation();
-			if (rumPickupLocation != null)
+			targetRumLocation = plugin.getGameState().getRumPickupLocation();
+		}
+
+		if (targetRumLocation != null)
+		{
+			// Check if this rum location is the next waypoint
+			boolean isNextWaypoint = isRumLocationNextWaypoint(targetRumLocation);
+
+			if (isNextWaypoint)
 			{
-				renderRumLocationHighlight(graphics, rumPickupLocation, rumHighlightColor);
+				// Draw filled rectangle around entire boat exclusion zone
+				renderBoatZoneRectangle(graphics, targetRumLocation, rumHighlightColor);
+			}
+			else
+			{
+				// Fallback: try to highlight the game object (doesn't work well currently)
+				renderRumLocationHighlight(graphics, targetRumLocation, rumHighlightColor);
 			}
 		}
 	}
@@ -413,5 +426,115 @@ public class ObjectRenderer
 		}
 
 		return null;
+	}
+
+	private boolean isRumLocationNextWaypoint(WorldPoint rumLocation)
+	{
+		List<RouteWaypoint> staticRoute = plugin.getGameState().getCurrentStaticRoute();
+		if (staticRoute == null || staticRoute.isEmpty())
+		{
+			return false;
+		}
+
+		int nextWaypointIndex = plugin.getGameState().getNextWaypointIndex();
+		if (nextWaypointIndex >= staticRoute.size())
+		{
+			return false;
+		}
+
+		com.barracudatrial.game.route.RouteWaypoint nextWaypoint = staticRoute.get(nextWaypointIndex);
+		WorldPoint nextWaypointLocation = nextWaypoint.getLocation();
+
+		return nextWaypointLocation != null && nextWaypointLocation.equals(rumLocation);
+	}
+
+	private void renderBoatZoneRectangle(Graphics2D graphics, WorldPoint center, Color baseColor)
+	{
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return;
+		}
+
+		int width = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH;
+		int height = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT;
+
+		int halfWidth = width / 2;
+		int halfHeight = height / 2;
+
+		int minX = center.getX() - halfWidth;
+		int maxX = center.getX() + halfWidth;
+		int minY = center.getY() - halfHeight;
+		int maxY = center.getY() + halfHeight;
+
+		Color fillColor = new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), 150);
+
+		// Collect all corner points of the rectangle boundary
+		Polygon rectangleBoundary = new Polygon();
+
+		// Walk around the perimeter clockwise: bottom-left -> bottom-right -> top-right -> top-left
+		// Bottom edge (south)
+		for (int x = minX; x <= maxX; x++)
+		{
+			WorldPoint tile = new WorldPoint(x, minY, 0);
+			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			if (local != null)
+			{
+				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
+				if (tilePoly != null && tilePoly.npoints >= 4)
+				{
+					// Add bottom-left and bottom-right corners
+					if (x == minX)
+					{
+						rectangleBoundary.addPoint(tilePoly.xpoints[0], tilePoly.ypoints[0]); // SW corner
+					}
+					if (x == maxX)
+					{
+						rectangleBoundary.addPoint(tilePoly.xpoints[1], tilePoly.ypoints[1]); // SE corner
+					}
+				}
+			}
+		}
+
+		// Right edge (east)
+		for (int y = minY; y <= maxY; y++)
+		{
+			WorldPoint tile = new WorldPoint(maxX, y, 0);
+			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			if (local != null)
+			{
+				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
+				if (tilePoly != null && tilePoly.npoints >= 4)
+				{
+					if (y == maxY)
+					{
+						rectangleBoundary.addPoint(tilePoly.xpoints[2], tilePoly.ypoints[2]); // NE corner
+					}
+				}
+			}
+		}
+
+		// Top edge (north)
+		for (int x = maxX; x >= minX; x--)
+		{
+			WorldPoint tile = new WorldPoint(x, maxY, 0);
+			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			if (local != null)
+			{
+				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
+				if (tilePoly != null && tilePoly.npoints >= 4)
+				{
+					if (x == minX)
+					{
+						rectangleBoundary.addPoint(tilePoly.xpoints[3], tilePoly.ypoints[3]); // NW corner
+					}
+				}
+			}
+		}
+
+		if (rectangleBoundary.npoints > 0)
+		{
+			OverlayUtil.renderPolygon(graphics, rectangleBoundary, fillColor);
+		}
 	}
 }

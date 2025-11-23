@@ -17,4 +17,12 @@ public class RumLocations
 	 * Tempor Tantrum rum dropoff location (north boat)
 	 */
 	public static final WorldPoint TEMPOR_TANTRUM_DROPOFF = new WorldPoint(3035, 2926, 0);
+
+	/**
+	 * Boat exclusion zone dimensions (cannot navigate through boats)
+	 * Width = east-west dimension, Height = north-south dimension
+	 * These define a rectangle centered on the boat location
+	 */
+	public static final int BOAT_EXCLUSION_WIDTH = 8;  // East-West
+	public static final int BOAT_EXCLUSION_HEIGHT = 3; // North-South
 }

@@ -43,6 +43,7 @@ public class DebugRenderer
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		renderExclusionZoneVisualization(graphics);
+		renderBoatExclusionZones(graphics);
 
 		if (cachedConfig.isShowIDs())
 		{
@@ -99,6 +100,67 @@ public class DebugRenderer
 			if (labelCanvasPoint != null)
 			{
 				OverlayUtil.renderTextLocation(graphics, labelCanvasPoint, "EXCLUSION ZONE", new Color(255, 0, 255, 255));
+			}
+		}
+	}
+
+	private void renderBoatExclusionZones(Graphics2D graphics)
+	{
+		WorldView topLevelWorldView = client.getTopLevelWorldView();
+		if (topLevelWorldView == null)
+		{
+			return;
+		}
+
+		Color boatExclusionColor = new Color(255, 100, 0, 60); // Orange
+
+		renderBoatExclusionZone(graphics, topLevelWorldView,
+			com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_PICKUP,
+			"BOAT (PICKUP)", boatExclusionColor);
+
+		renderBoatExclusionZone(graphics, topLevelWorldView,
+			com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_DROPOFF,
+			"BOAT (DROPOFF)", boatExclusionColor);
+	}
+
+	private void renderBoatExclusionZone(Graphics2D graphics, WorldView worldView, WorldPoint center, String label, Color color)
+	{
+		int width = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH;
+		int height = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT;
+
+		int halfWidth = width / 2;
+		int halfHeight = height / 2;
+
+		int minX = center.getX() - halfWidth;
+		int maxX = center.getX() + halfWidth;
+		int minY = center.getY() - halfHeight;
+		int maxY = center.getY() + halfHeight;
+
+		for (int x = minX; x <= maxX; x++)
+		{
+			for (int y = minY; y <= maxY; y++)
+			{
+				WorldPoint tileWorldPoint = new WorldPoint(x, y, 0);
+				LocalPoint tileLocalPoint = LocalPoint.fromWorld(worldView, tileWorldPoint);
+
+				if (tileLocalPoint != null)
+				{
+					Polygon tilePolygon = Perspective.getCanvasTilePoly(client, tileLocalPoint);
+					if (tilePolygon != null)
+					{
+						OverlayUtil.renderPolygon(graphics, tilePolygon, color);
+					}
+				}
+			}
+		}
+
+		LocalPoint centerLocalPoint = LocalPoint.fromWorld(worldView, center);
+		if (centerLocalPoint != null)
+		{
+			Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, centerLocalPoint, label, 0);
+			if (labelCanvasPoint != null)
+			{
+				OverlayUtil.renderTextLocation(graphics, labelCanvasPoint, label, new Color(255, 100, 0, 255));
 			}
 		}
 	}

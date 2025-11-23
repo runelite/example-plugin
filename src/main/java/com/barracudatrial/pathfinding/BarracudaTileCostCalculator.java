@@ -74,6 +74,11 @@ public class BarracudaTileCostCalculator
 			return 999999;
 		}
 
+		if (isInBoatExclusionZone(to))
+		{
+			return 999999;
+		}
+
 		if (knownRockLocations.contains(to) || visibleRockLocations.contains(to))
 		{
 			return 999999;
@@ -185,6 +190,30 @@ public class BarracudaTileCostCalculator
 			&& point.getX() <= exclusionZoneMaxX
 			&& point.getY() >= exclusionZoneMinY
 			&& point.getY() <= exclusionZoneMaxY;
+	}
+
+	private boolean isInBoatExclusionZone(WorldPoint point)
+	{
+		return isInRectangularZone(point, com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_PICKUP,
+				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH,
+				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT)
+			|| isInRectangularZone(point, com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_DROPOFF,
+				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH,
+				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT);
+	}
+
+	private boolean isInRectangularZone(WorldPoint point, WorldPoint center, int width, int height)
+	{
+		int halfWidth = width / 2;
+		int halfHeight = height / 2;
+
+		int minX = center.getX() - halfWidth;
+		int maxX = center.getX() + halfWidth;
+		int minY = center.getY() - halfHeight;
+		int maxY = center.getY() + halfHeight;
+
+		return point.getX() >= minX && point.getX() <= maxX
+			&& point.getY() >= minY && point.getY() <= maxY;
 	}
 
 	private double distanceToExclusionZone(WorldPoint point)
