@@ -152,7 +152,7 @@ public class AStarPathfinder
 		double ticksToTurn = turnAngleDegrees / 15.0;
 
 		double wastedMovement;
-		if (turnAngleDegrees <= 90)
+		if (turnAngleDegrees < 90)
 		{
 			if (routeOptimization == RouteOptimization.EFFICIENT)
 			{
@@ -167,7 +167,7 @@ public class AStarPathfinder
 		}
 		else
 		{
-			// Explosive cost for turns over 90° (same for both modes)
+			// Explosive cost for 90° turns and sharper (same for both modes)
 			double ticksOver90 = ticksToTurn - 6.0; // 90° = 6 ticks
 			wastedMovement = 1.0 + Math.pow(ticksOver90, 2.5) * 8.0;
 		}
