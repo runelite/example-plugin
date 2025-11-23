@@ -145,9 +145,8 @@ public class PathPlanner
 		{
 			int checkIndex = (state.getNextWaypointIndex() + offset) % routeSize;
 			RouteWaypoint waypoint = state.getCurrentStaticRoute().get(checkIndex);
-			WorldPoint waypointLocation = waypoint.getLocation();
 
-			if (!state.isWaypointCompleted(waypointLocation))
+			if (!state.isWaypointCompleted(checkIndex))
 			{
 				if (!foundFirst)
 				{

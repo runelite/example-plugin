@@ -160,13 +160,14 @@ public class BarracudaTrialPlugin extends Plugin
 
 			if (gameState.getCurrentStaticRoute() != null)
 			{
-				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
+				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
 				{
+					com.barracudatrial.game.route.RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
 					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_PICKUP
-						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
+						&& !gameState.isWaypointCompleted(i))
 					{
-						gameState.markWaypointCompleted(waypoint.getLocation());
-						log.info("Marked RUM_PICKUP waypoint as completed: {}", waypoint.getLocation());
+						gameState.markWaypointCompleted(i);
+						log.info("Marked RUM_PICKUP waypoint as completed at index {}: {}", i, waypoint.getLocation());
 						break;
 					}
 				}
@@ -181,13 +182,14 @@ public class BarracudaTrialPlugin extends Plugin
 
 			if (gameState.getCurrentStaticRoute() != null)
 			{
-				for (com.barracudatrial.game.route.RouteWaypoint waypoint : gameState.getCurrentStaticRoute())
+				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
 				{
+					com.barracudatrial.game.route.RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
 					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_DROPOFF
-						&& !gameState.isWaypointCompleted(waypoint.getLocation()))
+						&& !gameState.isWaypointCompleted(i))
 					{
-						gameState.markWaypointCompleted(waypoint.getLocation());
-						log.info("Marked RUM_DROPOFF waypoint as completed: {}", waypoint.getLocation());
+						gameState.markWaypointCompleted(i);
+						log.info("Marked RUM_DROPOFF waypoint as completed at index {}: {}", i, waypoint.getLocation());
 						break;
 					}
 				}

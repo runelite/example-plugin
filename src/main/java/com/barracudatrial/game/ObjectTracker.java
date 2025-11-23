@@ -341,9 +341,14 @@ public class ObjectTracker
 		{
 			for (WorldPoint location : disappearedSupplyLocations)
 			{
-				state.markWaypointCompleted(location);
+				int waypointIndex = state.findWaypointIndexByLocation(location);
+				if (waypointIndex != -1)
+				{
+					state.markWaypointCompleted(waypointIndex);
+					log.debug("Marked shipment waypoint as collected at index {}: {}", waypointIndex, location);
+				}
 			}
-			log.debug("Marked {} shipments as collected: {}", disappearedSupplyLocations.size(), disappearedSupplyLocations);
+			log.debug("Marked {} shipments as collected", disappearedSupplyLocations.size());
 		}
 	}
 
@@ -362,14 +367,14 @@ public class ObjectTracker
 		}
 
 		Set<WorldPoint> waypointsToCheck = new HashSet<>();
-		for (com.barracudatrial.game.route.RouteWaypoint waypoint : state.getCurrentStaticRoute())
+		for (int i = 0; i < state.getCurrentStaticRoute().size(); i++)
 		{
+			com.barracudatrial.game.route.RouteWaypoint waypoint = state.getCurrentStaticRoute().get(i);
 			if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.SHIPMENT)
 			{
-				WorldPoint waypointLocation = waypoint.getLocation();
-				if (!state.isWaypointCompleted(waypointLocation))
+				if (!state.isWaypointCompleted(i))
 				{
-					waypointsToCheck.add(waypointLocation);
+					waypointsToCheck.add(waypoint.getLocation());
 				}
 			}
 		}
@@ -378,8 +383,12 @@ public class ObjectTracker
 
 		for (WorldPoint collected : collectedShipments)
 		{
-			state.markWaypointCompleted(collected);
-			log.debug("Shipment collected at route waypoint: {}", collected);
+			int waypointIndex = state.findWaypointIndexByLocation(collected);
+			if (waypointIndex != -1)
+			{
+				state.markWaypointCompleted(waypointIndex);
+				log.debug("Shipment collected at route waypoint index {}: {}", waypointIndex, collected);
+			}
 		}
 
 		return !collectedShipments.isEmpty();

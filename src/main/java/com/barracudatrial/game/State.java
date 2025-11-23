@@ -128,7 +128,7 @@ public class State
 	@Setter
 	private int nextWaypointIndex = 0;
 
-	private final Set<WorldPoint> completedWaypoints = new HashSet<>();
+	private final Set<Integer> completedWaypointIndices = new HashSet<>();
 
 	/**
 	 * Maps rumsNeeded to Difficulty enum
@@ -181,23 +181,39 @@ public class State
 		exclusionZoneMaxY = 0;
 		currentStaticRoute = null;
 		nextWaypointIndex = 0;
-		completedWaypoints.clear();
+		completedWaypointIndices.clear();
+	}
+
+	public void markWaypointCompleted(int waypointIndex)
+	{
+		completedWaypointIndices.add(waypointIndex);
+	}
+
+	public boolean isWaypointCompleted(int waypointIndex)
+	{
+		return completedWaypointIndices.contains(waypointIndex);
 	}
 
 	/**
-	 * Mark a waypoint as completed
+	 * Find the first waypoint index that matches the given location
+	 * @return waypoint index, or -1 if not found
 	 */
-	public void markWaypointCompleted(WorldPoint location)
+	public int findWaypointIndexByLocation(WorldPoint location)
 	{
-		completedWaypoints.add(location);
-	}
+		if (currentStaticRoute == null)
+		{
+			return -1;
+		}
 
-	/**
-	 * Check if a waypoint at the given location has been completed
-	 */
-	public boolean isWaypointCompleted(WorldPoint location)
-	{
-		return completedWaypoints.contains(location);
+		for (int i = 0; i < currentStaticRoute.size(); i++)
+		{
+			RouteWaypoint waypoint = currentStaticRoute.get(i);
+			if (waypoint.getLocation() != null && waypoint.getLocation().equals(location))
+			{
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -205,8 +221,6 @@ public class State
 	 */
 	public void clearPersistentStorage()
 	{
-		knownRockLocations.clear();
-		knownSpeedBoostLocations.clear();
 		knownLostSuppliesSpawnLocations.clear();
 	}
 }
