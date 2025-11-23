@@ -15,6 +15,7 @@ import net.runelite.api.coords.WorldPoint;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,9 +55,7 @@ public class PathRenderer
 		// This prevents visual lag when the pathfinding position is behind the rendering position
 		List<WorldPoint> trimmedPath = getTrimmedPathForRendering(visualFrontPositionTransformed, currentSegmentPath);
 
-		int totalSegmentsInPath = calculateTotalSegmentsInPath(trimmedPath, visualFrontPositionTransformed);
-
-		drawInterpolatedPathWithTracer(graphics, trimmedPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
+		drawSmoothPathWithBezier(graphics, trimmedPath, visualFrontPositionTransformed);
 
 		// Render debug visualizations
 		if (cachedConfig.isDebugMode())
@@ -127,10 +126,7 @@ public class PathRenderer
 			return new ArrayList<>();
 		}
 
-		List<WorldPoint> trimmedPath = new ArrayList<>(path.subList(startIndex, path.size()));
-
-		// Apply Catmull-Rom smoothing for curved paths
-		return smoothPathWithCatmullRom(trimmedPath);
+		return new ArrayList<>(path.subList(startIndex, path.size()));
 	}
 
 	private int findClosestPointOnPath(LocalPoint visualPosition, List<WorldPoint> path, WorldView worldView)
@@ -160,60 +156,7 @@ public class PathRenderer
 		return closestIndex;
 	}
 
-	private List<WorldPoint> smoothPathWithCatmullRom(List<WorldPoint> waypoints)
-	{
-		if (waypoints.size() < 2)
-		{
-			return waypoints;
-		}
-
-		List<WorldPoint> smoothedPath = new ArrayList<>();
-		int segmentsPerWaypoint = 8;
-		double tension = 0.5;
-
-		for (int i = 0; i < waypoints.size() - 1; i++)
-		{
-			WorldPoint p0 = i > 0 ? waypoints.get(i - 1) : waypoints.get(i);
-			WorldPoint p1 = waypoints.get(i);
-			WorldPoint p2 = waypoints.get(i + 1);
-			WorldPoint p3 = i < waypoints.size() - 2 ? waypoints.get(i + 2) : waypoints.get(i + 1);
-
-			for (int seg = 0; seg < segmentsPerWaypoint; seg++)
-			{
-				double t = seg / (double) segmentsPerWaypoint;
-				WorldPoint interpolated = interpolateCatmullRom(p0, p1, p2, p3, t, tension);
-				smoothedPath.add(interpolated);
-			}
-		}
-
-		smoothedPath.add(waypoints.get(waypoints.size() - 1));
-
-		return smoothedPath;
-	}
-
-	private WorldPoint interpolateCatmullRom(WorldPoint p0, WorldPoint p1, WorldPoint p2, WorldPoint p3, double t, double tension)
-	{
-		double t2 = t * t;
-		double t3 = t2 * t;
-
-		double x = tension * (
-			(2 * p1.getX()) +
-			(-p0.getX() + p2.getX()) * t +
-			(2 * p0.getX() - 5 * p1.getX() + 4 * p2.getX() - p3.getX()) * t2 +
-			(-p0.getX() + 3 * p1.getX() - 3 * p2.getX() + p3.getX()) * t3
-		);
-
-		double y = tension * (
-			(2 * p1.getY()) +
-			(-p0.getY() + p2.getY()) * t +
-			(2 * p0.getY() - 5 * p1.getY() + 4 * p2.getY() - p3.getY()) * t2 +
-			(-p0.getY() + 3 * p1.getY() - 3 * p2.getY() + p3.getY()) * t3
-		);
-
-		return new WorldPoint((int) Math.round(x), (int) Math.round(y), p1.getPlane());
-	}
-
-	private void drawInterpolatedPathWithTracer(Graphics2D graphics, List<WorldPoint> waypoints, LocalPoint visualStartPosition, int totalSegmentsInPath, int frameCounterForTracerAnimation)
+	private void drawSmoothPathWithBezier(Graphics2D graphics, List<WorldPoint> waypoints, LocalPoint visualStartPosition)
 	{
 		if (waypoints.isEmpty() || visualStartPosition == null)
 		{
@@ -228,244 +171,78 @@ public class PathRenderer
 
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 
-		// Draw direct line from ship to first smoothed waypoint (no extra interpolation needed - smoothed path has many points already)
-		LocalPoint firstWaypointLocal = LocalPoint.fromWorld(topLevelWorldView, waypoints.get(0));
-		if (firstWaypointLocal != null)
+		// Convert visual start position to canvas coordinates
+		Point startCanvas = Perspective.localToCanvas(client, visualStartPosition, client.getPlane(), 0);
+		if (startCanvas == null)
 		{
-			Point startCanvas = Perspective.localToCanvas(client, visualStartPosition, client.getPlane(), 0);
-			Point endCanvas = Perspective.localToCanvas(client, firstWaypointLocal, client.getPlane(), 0);
+			return;
+		}
 
-			if (startCanvas != null && endCanvas != null)
+		// Create Path2D for smooth Bezier curves
+		Path2D.Double path = new Path2D.Double();
+		path.moveTo(startCanvas.getX(), startCanvas.getY());
+
+		// Convert all waypoints to canvas coordinates
+		List<Point> canvasPoints = new ArrayList<>();
+		for (WorldPoint wp : waypoints)
+		{
+			LocalPoint lp = LocalPoint.fromWorld(topLevelWorldView, wp);
+			if (lp != null)
 			{
-				graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-				graphics.setColor(cachedConfig.getPathColor());
-				graphics.drawLine(startCanvas.getX(), startCanvas.getY(), endCanvas.getX(), endCanvas.getY());
+				Point cp = Perspective.localToCanvas(client, lp, wp.getPlane(), 0);
+				if (cp != null)
+				{
+					canvasPoints.add(cp);
+				}
 			}
 		}
 
-		// Draw all smoothed segments between waypoints
-		for (int i = 0; i < waypoints.size() - 1; i++)
+		if (canvasPoints.isEmpty())
 		{
-			WorldPoint previousWaypoint = waypoints.get(i);
-			WorldPoint waypoint = waypoints.get(i + 1);
-			drawInterpolatedSegment(graphics, previousWaypoint, waypoint, cachedConfig.getPathColor(), totalSegmentsInPath, 0, frameCounterForTracerAnimation);
-		}
-	}
-
-	private int calculateTotalSegmentsInPath(List<WorldPoint> waypoints, LocalPoint visualStartPosition)
-	{
-		if (waypoints.isEmpty() || visualStartPosition == null)
-		{
-			return 0;
+			return;
 		}
 
-		WorldView topLevelWorldView = client.getTopLevelWorldView();
-		if (topLevelWorldView == null)
+		// Draw line from boat to first waypoint
+		path.lineTo(canvasPoints.get(0).getX(), canvasPoints.get(0).getY());
+
+		// Draw smooth Bezier curves through waypoints
+		if (canvasPoints.size() == 1)
 		{
-			return 0;
+			// Just one point, already connected above
 		}
-
-		int totalSegmentCount = 0;
-
-		// Count segments from visual front to first waypoint
-		LocalPoint firstWaypointLocal = LocalPoint.fromWorld(topLevelWorldView, waypoints.get(0));
-		if (firstWaypointLocal != null)
+		else if (canvasPoints.size() == 2)
 		{
-			List<LocalPoint> interpolatedPoints = interpolateLineBetweenLocalPoints(visualStartPosition, firstWaypointLocal);
-			totalSegmentCount += Math.max(0, interpolatedPoints.size() - 1);
+			// Two points - just draw a line
+			path.lineTo(canvasPoints.get(1).getX(), canvasPoints.get(1).getY());
 		}
-
-		// Count segments between waypoints
-		for (int i = 1; i < waypoints.size(); i++)
+		else
 		{
-			WorldPoint previousWaypoint = waypoints.get(i - 1);
-			WorldPoint waypoint = waypoints.get(i);
-			List<WorldPoint> interpolatedPoints = interpolateLineBetweenPoints(previousWaypoint, waypoint);
-			totalSegmentCount += Math.max(0, interpolatedPoints.size() - 1);
-		}
-
-		return totalSegmentCount;
-	}
-
-	private int drawInterpolatedSegment(Graphics2D graphics, WorldPoint fromPoint, WorldPoint toPoint, Color pathColor, int totalSegmentsInPath, int globalSegmentOffset, int frameCounterForTracerAnimation)
-	{
-		CachedConfig cachedConfig = plugin.getCachedConfig();
-		WorldView topLevelWorldView = client.getTopLevelWorldView();
-		if (topLevelWorldView == null)
-		{
-			return globalSegmentOffset;
-		}
-
-		if (fromPoint == null || toPoint == null)
-		{
-			return globalSegmentOffset;
-		}
-
-		if (fromPoint.equals(new WorldPoint(0, 0, 0)) || toPoint.equals(new WorldPoint(0, 0, 0)))
-		{
-			return globalSegmentOffset;
-		}
-
-		if (fromPoint.getPlane() != toPoint.getPlane())
-		{
-			return globalSegmentOffset;
-		}
-
-		List<WorldPoint> interpolatedPoints = interpolateLineBetweenPoints(fromPoint, toPoint);
-		if (interpolatedPoints.isEmpty())
-		{
-			return globalSegmentOffset;
-		}
-
-		int segmentCountInThisLine = interpolatedPoints.size() - 1;
-		if (segmentCountInThisLine <= 0)
-		{
-			return globalSegmentOffset;
-		}
-
-		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
-		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
-
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-
-		for (int i = 0; i < segmentCountInThisLine; i++)
-		{
-			WorldPoint segmentStartPoint = interpolatedPoints.get(i);
-			WorldPoint segmentEndPoint = interpolatedPoints.get(i + 1);
-
-			LocalPoint segmentStartLocal = LocalPoint.fromWorld(topLevelWorldView, segmentStartPoint);
-			LocalPoint segmentEndLocal = LocalPoint.fromWorld(topLevelWorldView, segmentEndPoint);
-
-			if (segmentStartLocal == null || segmentEndLocal == null)
+			// Three or more points - use Bezier curves
+			for (int i = 0; i < canvasPoints.size() - 1; i++)
 			{
-				continue;
+				Point p0 = i > 0 ? canvasPoints.get(i - 1) : canvasPoints.get(i);
+				Point p1 = canvasPoints.get(i);
+				Point p2 = canvasPoints.get(i + 1);
+				Point p3 = (i + 2 < canvasPoints.size()) ? canvasPoints.get(i + 2) : p2;
+
+				// Calculate control points for cubic Bezier
+				// Using a tension factor to control curve smoothness
+				double tension = 0.3;
+
+				double cp1x = p1.getX() + (p2.getX() - p0.getX()) * tension;
+				double cp1y = p1.getY() + (p2.getY() - p0.getY()) * tension;
+
+				double cp2x = p2.getX() - (p3.getX() - p1.getX()) * tension;
+				double cp2y = p2.getY() - (p3.getY() - p1.getY()) * tension;
+
+				path.curveTo(cp1x, cp1y, cp2x, cp2y, p2.getX(), p2.getY());
 			}
-
-			Point segmentStartCanvas = Perspective.localToCanvas(client, segmentStartLocal, segmentStartPoint.getPlane(), 0);
-			Point segmentEndCanvas = Perspective.localToCanvas(client, segmentEndLocal, segmentEndPoint.getPlane(), 0);
-
-			if (segmentStartCanvas == null || segmentEndCanvas == null)
-			{
-				continue;
-			}
-
-			int globalSegmentIndexForAnimation = globalSegmentOffset + i;
-			Color segmentColor = (globalSegmentIndexForAnimation == globalTracerPosition) ? cachedConfig.getTracerColor() : pathColor;
-
-			graphics.setColor(segmentColor);
-			graphics.drawLine(segmentStartCanvas.getX(), segmentStartCanvas.getY(), segmentEndCanvas.getX(), segmentEndCanvas.getY());
 		}
 
-		return globalSegmentOffset + segmentCountInThisLine;
-	}
-
-	private List<WorldPoint> interpolateLineBetweenPoints(WorldPoint startPoint, WorldPoint endPoint)
-	{
-		List<WorldPoint> interpolatedPoints = new ArrayList<>();
-
-		int distanceBetweenPoints = startPoint.distanceTo(endPoint);
-		if (distanceBetweenPoints > 500)
-		{
-			return interpolatedPoints;
-		}
-
-		int interpolationSteps = Math.max(distanceBetweenPoints, 1);
-
-		for (int i = 0; i <= interpolationSteps; i++)
-		{
-			double interpolationRatio = i / (double) interpolationSteps;
-			int interpolatedX = (int) Math.round(linearInterpolate(startPoint.getX(), endPoint.getX(), interpolationRatio));
-			int interpolatedY = (int) Math.round(linearInterpolate(startPoint.getY(), endPoint.getY(), interpolationRatio));
-			int plane = startPoint.getPlane();
-			interpolatedPoints.add(new WorldPoint(interpolatedX, interpolatedY, plane));
-		}
-
-		return interpolatedPoints;
-	}
-
-	private double linearInterpolate(int startValue, int endValue, double ratio)
-	{
-		return startValue + (endValue - startValue) * ratio;
-	}
-
-	private List<LocalPoint> interpolateLineBetweenLocalPoints(LocalPoint startPoint, LocalPoint endPoint)
-	{
-		List<LocalPoint> interpolatedPoints = new ArrayList<>();
-
-		if (startPoint == null || endPoint == null)
-		{
-			return interpolatedPoints;
-		}
-
-		int dx = endPoint.getX() - startPoint.getX();
-		int dy = endPoint.getY() - startPoint.getY();
-		int distanceBetweenPoints = (int) Math.sqrt(dx * dx + dy * dy) / 128; // Convert to tiles
-
-		if (distanceBetweenPoints > 500)
-		{
-			return interpolatedPoints;
-		}
-
-		int interpolationSteps = Math.max(distanceBetweenPoints, 1);
-
-		for (int i = 0; i <= interpolationSteps; i++)
-		{
-			double interpolationRatio = i / (double) interpolationSteps;
-			int interpolatedX = (int) Math.round(linearInterpolate(startPoint.getX(), endPoint.getX(), interpolationRatio));
-			int interpolatedY = (int) Math.round(linearInterpolate(startPoint.getY(), endPoint.getY(), interpolationRatio));
-			interpolatedPoints.add(new LocalPoint(interpolatedX, interpolatedY));
-		}
-
-		return interpolatedPoints;
-	}
-
-	private int drawInterpolatedSegmentFromLocal(Graphics2D graphics, LocalPoint fromLocalPoint, LocalPoint toLocalPoint, Color pathColor, int totalSegmentsInPath, int globalSegmentOffset, int frameCounterForTracerAnimation)
-	{
-		CachedConfig cachedConfig = plugin.getCachedConfig();
-
-		if (fromLocalPoint == null || toLocalPoint == null)
-		{
-			return globalSegmentOffset;
-		}
-
-		List<LocalPoint> interpolatedPoints = interpolateLineBetweenLocalPoints(fromLocalPoint, toLocalPoint);
-		if (interpolatedPoints.isEmpty())
-		{
-			return globalSegmentOffset;
-		}
-
-		int segmentCountInThisLine = interpolatedPoints.size() - 1;
-		if (segmentCountInThisLine <= 0)
-		{
-			return globalSegmentOffset;
-		}
-
-		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
-		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
-
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-
-		for (int i = 0; i < segmentCountInThisLine; i++)
-		{
-			LocalPoint segmentStartLocal = interpolatedPoints.get(i);
-			LocalPoint segmentEndLocal = interpolatedPoints.get(i + 1);
-
-			Point segmentStartCanvas = Perspective.localToCanvas(client, segmentStartLocal, client.getPlane(), 0);
-			Point segmentEndCanvas = Perspective.localToCanvas(client, segmentEndLocal, client.getPlane(), 0);
-
-			if (segmentStartCanvas == null || segmentEndCanvas == null)
-			{
-				continue;
-			}
-
-			int globalSegmentIndexForAnimation = globalSegmentOffset + i;
-			Color segmentColor = (globalSegmentIndexForAnimation == globalTracerPosition) ? cachedConfig.getTracerColor() : pathColor;
-
-			graphics.setColor(segmentColor);
-			graphics.drawLine(segmentStartCanvas.getX(), segmentStartCanvas.getY(), segmentEndCanvas.getX(), segmentEndCanvas.getY());
-		}
-
-		return globalSegmentOffset + segmentCountInThisLine;
+		// Draw the path
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		graphics.setColor(cachedConfig.getPathColor());
+		graphics.draw(path);
 	}
 
 	private void renderPathTiles(Graphics2D graphics, List<WorldPoint> path)
