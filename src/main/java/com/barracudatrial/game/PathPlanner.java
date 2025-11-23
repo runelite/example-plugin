@@ -9,6 +9,7 @@ import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import com.barracudatrial.pathfinding.PathStabilizer;
 import com.barracudatrial.rendering.ObjectRenderer;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
@@ -21,14 +22,14 @@ public class PathPlanner
 {
 	private final State state;
 	private final CachedConfig cachedConfig;
-	private final LocationHelper locationHelper;
+	private final Client client;
 	private final PathStabilizer pathStabilizer;
 
-	public PathPlanner(State state, CachedConfig cachedConfig, LocationHelper locationHelper)
+	public PathPlanner(Client client, State state, CachedConfig cachedConfig)
 	{
+		this.client = client;
 		this.state = state;
 		this.cachedConfig = cachedConfig;
-		this.locationHelper = locationHelper;
 
 		AStarPathfinder aStarPathfinder = new AStarPathfinder();
 		this.pathStabilizer = new PathStabilizer(aStarPathfinder);
@@ -68,37 +69,6 @@ public class PathPlanner
 		if (state.getCurrentStaticRoute() == null)
 		{
 			loadStaticRouteForCurrentDifficulty();
-		}
-
-		if (state.getLostSupplies().isEmpty())
-		{
-			List<WorldPoint> rumPath = new ArrayList<>();
-
-			if (state.isHasRumOnUs())
-			{
-				if (state.getRumReturnLocation() != null)
-				{
-					rumPath.add(locationHelper.getPathfindingDropoffLocation());
-				}
-				log.debug("No supplies and have rum, pathing to dropoff");
-			}
-			else
-			{
-				if (state.getRumPickupLocation() != null)
-				{
-					rumPath.add(locationHelper.getPathfindingPickupLocation());
-				}
-				if (state.getRumReturnLocation() != null)
-				{
-					rumPath.add(locationHelper.getPathfindingDropoffLocation());
-				}
-				log.debug("No supplies and no rum, pathing to pickup then dropoff");
-			}
-
-			state.setCurrentSegmentPath(rumPath);
-			state.setNextSegmentPath(new ArrayList<>());
-			state.setOptimalPath(new ArrayList<>(rumPath));
-			return;
 		}
 
 		List<RouteWaypoint> nextWaypoints = findNextUncompletedWaypoints(cachedConfig.getPathLookahead());
@@ -294,7 +264,7 @@ public class PathPlanner
 	 */
 	private WorldPoint getInSceneTarget(WorldPoint start, WorldPoint target)
 	{
-		WorldView worldView = locationHelper.getTopLevelWorldView();
+		WorldView worldView = client.getTopLevelWorldView();
 		if (worldView == null)
 		{
 			return target;
@@ -391,16 +361,5 @@ public class PathPlanner
 	public void reset()
 	{
 		pathStabilizer.clearActivePath();
-	}
-
-	/**
-	 * Helper interface for location calculations
-	 * Provides pathfinding-adjusted locations for rum pickup/dropoff
-	 */
-	public interface LocationHelper
-	{
-		WorldPoint getPathfindingPickupLocation();
-		WorldPoint getPathfindingDropoffLocation();
-		WorldView getTopLevelWorldView();
 	}
 }

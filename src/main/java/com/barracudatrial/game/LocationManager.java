@@ -9,7 +9,7 @@ import net.runelite.api.gameval.ObjectID;
  * Manages rum locations and exclusion zone calculations for Barracuda Trial
  */
 @Slf4j
-public class LocationManager implements PathPlanner.LocationHelper
+public class LocationManager
 {
 	private final Client client;
 	private final State state;
@@ -238,20 +238,5 @@ public class LocationManager implements PathPlanner.LocationHelper
 			&& worldPoint.getX() <= state.getExclusionZoneMaxX()
 			&& worldPoint.getY() >= state.getExclusionZoneMinY()
 			&& worldPoint.getY() <= state.getExclusionZoneMaxY();
-	}
-
-	public WorldPoint getPathfindingPickupLocation()
-	{
-		return state.getRumPickupLocation();
-	}
-
-	public WorldPoint getPathfindingDropoffLocation()
-	{
-		return state.getRumReturnLocation();
-	}
-
-	public WorldView getTopLevelWorldView()
-	{
-		return client.getTopLevelWorldView();
 	}
 }

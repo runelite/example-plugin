@@ -63,7 +63,7 @@ public class BarracudaTrialPlugin extends Plugin
 		objectTracker = new ObjectTracker(client, gameState);
 		locationManager = new LocationManager(client, gameState);
 		progressTracker = new ProgressTracker(client, gameState);
-		pathPlanner = new PathPlanner(gameState, cachedConfig, locationManager);
+		pathPlanner = new PathPlanner(client, gameState, cachedConfig);
 		routeCapture = new RouteCapture(gameState);
 	}
 
