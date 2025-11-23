@@ -412,10 +412,10 @@ public class ObjectRenderer
 		int sceneX = localPoint.getSceneX();
 		int sceneY = localPoint.getSceneY();
 
-		Tile tile = scene.getTile(sceneX, sceneY, worldPoint.getPlane());
+		Tile tile = scene.getTiles()[sceneX][sceneY][worldPoint.getPlane()];
 		if (tile == null)
 		{
-			tile = scene.getExtendedTile(sceneX, sceneY, worldPoint.getPlane());
+			tile = scene.getExtendedTiles()[sceneX][sceneY][worldPoint.getPlane()];
 		}
 
 		if (tile == null)

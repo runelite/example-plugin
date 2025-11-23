@@ -79,7 +79,7 @@ public class PathStabilizer
 			int dy = Math.abs(start.getY() - pathPoint.getY());
 			int chebyshevDistance = Math.max(dx, dy);
 
-            int pathProximityTolerance = 2.5;
+            int pathProximityTolerance = 3;
             if (chebyshevDistance <= pathProximityTolerance)
 			{
 				return true;
