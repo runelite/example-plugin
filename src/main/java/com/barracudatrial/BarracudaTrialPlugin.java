@@ -151,7 +151,7 @@ public class BarracudaTrialPlugin extends Plugin
 
 		if (chatMessage.contains("You collect the rum"))
 		{
-			log.info("Rum collected! Message: {}", chatMessage);
+			log.debug("Rum collected! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(true);
 
 			if (routeCapture.isCapturing())
@@ -178,7 +178,7 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 		else if (chatMessage.contains("You deliver the rum"))
 		{
-			log.info("Rum delivered! Message: {}", chatMessage);
+			log.debug("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
 
 			if (gameState.getCurrentStaticRoute() != null)

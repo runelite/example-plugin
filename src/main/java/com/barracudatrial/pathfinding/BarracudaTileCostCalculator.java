@@ -81,11 +81,6 @@ public class BarracudaTileCostCalculator
 			speedBoostTilesRemaining--;
 		}
 
-		if (isInExclusionZone(to))
-		{
-			cost += 250;
-		}
-
 		if (isInBoatExclusionZone(to))
 		{
 			cost += 25; // Discouraged but allowed for pathmaking
@@ -106,18 +101,25 @@ public class BarracudaTileCostCalculator
 			cost += 50;
 		}
 
-		double distToZone = distanceToExclusionZone(to);
-		if (distToZone <= 1)
+		if (isInExclusionZone(to))
 		{
-			cost += 1000;
+			cost += 250;
 		}
-		else if (distToZone <= 2)
+		else
 		{
-			cost += 100;
-		}
-		else if (distToZone <= 3)
-		{
-			cost += 50;
+			double distToZone = distanceToExclusionZone(to);
+			if (distToZone <= 1)
+			{
+				cost += 100;
+			}
+			else if (distToZone <= 2)
+			{
+				cost += 50;
+			}
+			else if (distToZone <= 3)
+			{
+				cost += 25;
+			}
 		}
 
 		if (cloudDangerZones.contains(to))
