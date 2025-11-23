@@ -61,9 +61,7 @@ public class PathStabilizer
 
 	private boolean shouldKeepActivePath(RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
 	{
-		List<WorldPoint> activePath = activePathResult.getPath();
-
-		if (!isWithinProximityOfPath(start, activePath))
+		if (!isWithinProximityOfPath(start, activePathResult))
 		{
 			return false;
 		}
@@ -71,12 +69,20 @@ public class PathStabilizer
         return !isNewPathSignificantlyBetter(routeOptimization, start, newPathResult);
     }
 
-	private boolean isWithinProximityOfPath(WorldPoint start, List<WorldPoint> path)
+	private boolean isWithinProximityOfPath(WorldPoint start, PathResult pathResult)
 	{
-		for (WorldPoint pathPoint : path)
+		var pathNodes = pathResult.getPathNodes();
+		for (var pathNode : pathNodes)
 		{
-			int dx = Math.abs(start.getX() - pathPoint.getX());
-			int dy = Math.abs(start.getY() - pathPoint.getY());
+			if (pathNode.getWaypointType() != null)
+			{
+				// Don't allow skipping past required waypoints
+				break;
+			}
+
+			var nodePosition = pathNode.getPosition();
+			int dx = Math.abs(start.getX() - nodePosition.getX());
+			int dy = Math.abs(start.getY() - nodePosition.getY());
 			int chebyshevDistance = Math.max(dx, dy);
 
             int pathProximityTolerance = 3;
