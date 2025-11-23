@@ -2,6 +2,7 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
+import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
@@ -16,6 +17,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class PathRenderer
 {
@@ -472,11 +475,21 @@ public class PathRenderer
 			return;
 		}
 
-		Color tileColor = new Color(255, 255, 0, 80);
+		Set<WorldPoint> boostLocations = plugin.getGameState().getKnownSpeedBoostLocations();
+		Map<WorldPoint, WorldPoint> boostGrabbableTiles = (boostLocations != null && !boostLocations.isEmpty())
+			? BarracudaTileCostCalculator.computeBoostGrabbableTiles(boostLocations)
+			: Map.of();
 
-		for (WorldPoint point : path)
+		Color normalTileColor = new Color(255, 255, 0, 80);
+		Color boostTileColor = new Color(135, 206, 250, 100);
+
+		for (WorldPoint pathTile : path)
 		{
-			objectRenderer.renderTileHighlightAtWorldPoint(graphics, point, tileColor);
+			boolean isBoostTile = boostGrabbableTiles.containsKey(pathTile);
+			Color tileColor = isBoostTile ? boostTileColor : normalTileColor;
+			String label = isBoostTile ? "Boost!" : null;
+
+			objectRenderer.renderTileHighlightAtWorldPoint(graphics, pathTile, tileColor, label);
 		}
 	}
 

@@ -280,6 +280,11 @@ public class ObjectRenderer
 
 	void renderTileHighlightAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color highlightColor)
 	{
+		renderTileHighlightAtWorldPoint(graphics, worldPoint, highlightColor, null);
+	}
+
+	void renderTileHighlightAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color highlightColor, String label)
+	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
 		{
@@ -296,6 +301,16 @@ public class ObjectRenderer
 		if (tilePolygon != null)
 		{
 			OverlayUtil.renderPolygon(graphics, tilePolygon, highlightColor);
+		}
+
+		if (label != null)
+		{
+			Point labelPoint = Perspective.getCanvasTextLocation(client, graphics, tileLocalPoint, "", 30);
+			if (labelPoint != null)
+			{
+				graphics.setColor(highlightColor);
+				graphics.drawString(label, labelPoint.getX(), labelPoint.getY());
+			}
 		}
 	}
 

@@ -56,7 +56,7 @@ public class BarracudaTileCostCalculator
 		this.veryCloseToRocks = precomputeRockProximity(1);
 		this.closeToRocks = precomputeRockProximity(2);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
-		this.boostGrabbableTiles = precomputeBoostGrabbableTiles();
+		this.boostGrabbableTiles = computeBoostGrabbableTiles(knownSpeedBoostLocations);
 	}
 
 	public double getTileCost(WorldPoint from, WorldPoint to)
@@ -140,15 +140,18 @@ public class BarracudaTileCostCalculator
 		return null;
 	}
 
-	private Map<WorldPoint, WorldPoint> precomputeBoostGrabbableTiles()
+	/**
+	 * Computes all tiles where a boost can be grabbed, mapping each tile to its boost center.
+	 * Boosts can be grabbed from a 3x3 area (Chebyshev distance <= 1) around their center.
+	 */
+	public static Map<WorldPoint, WorldPoint> computeBoostGrabbableTiles(Set<WorldPoint> boostLocations)
 	{
 		Map<WorldPoint, WorldPoint> grabbableTiles = new HashMap<>();
 
-		for (WorldPoint boost : knownSpeedBoostLocations)
+		for (WorldPoint boost : boostLocations)
 		{
 			int plane = boost.getPlane();
 
-			// Boosts can be grabbed from 3x3 area (Chebyshev distance <= 1)
 			for (int dx = -1; dx <= 1; dx++)
 			{
 				for (int dy = -1; dy <= 1; dy++)
