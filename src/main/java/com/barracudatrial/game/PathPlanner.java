@@ -91,9 +91,6 @@ public class PathPlanner
 		log.debug("Pathing through {} waypoints starting at index {}", nextWaypoints.size(), state.getNextWaypointIndex());
 	}
 
-	/**
-	 * Loads the static route for the current difficulty from TemporTantrumRoutes
-	 */
 	private void loadStaticRouteForCurrentDifficulty()
 	{
 		Difficulty difficulty = state.getCurrentDifficulty();
@@ -123,18 +120,19 @@ public class PathPlanner
 	{
 		List<RouteWaypoint> uncompletedWaypoints = new ArrayList<>();
 
-		if (state.getCurrentStaticRoute() == null || state.getCurrentStaticRoute().isEmpty())
+		var route = state.getCurrentStaticRoute();
+		if (route == null || route.isEmpty())
 		{
 			return uncompletedWaypoints;
 		}
 
-		int routeSize = state.getCurrentStaticRoute().size();
+		int routeSize = route.size();
 		boolean foundFirst = false;
 
 		for (int offset = 0; offset < routeSize && uncompletedWaypoints.size() < count; offset++)
 		{
 			int checkIndex = (state.getNextWaypointIndex() + offset) % routeSize;
-			RouteWaypoint waypoint = state.getCurrentStaticRoute().get(checkIndex);
+			RouteWaypoint waypoint = route.get(checkIndex);
 
 			if (!state.isWaypointCompleted(checkIndex))
 			{

@@ -91,28 +91,43 @@ public class BarracudaTrialPlugin extends Plugin
 			return;
 		}
 
-		objectTracker.updatePlayerBoatLocation();
-
-		objectTracker.updateFrontBoatTile();
-
-		objectTracker.updateLightningCloudTracking();
-
-		locationManager.updateRumLocations();
-
-		objectTracker.updateRocksAndSpeedBoosts();
-
-		progressTracker.updateTrialProgressFromWidgets();
-
-		boolean shipmentsCollected = objectTracker.updateRouteWaypointShipmentTracking();
-		if (shipmentsCollected)
+		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightClouds())
 		{
-			pathPlanner.recalculateOptimalPathFromCurrentState("shipment collected");
+			objectTracker.updateLightningCloudTracking();
 		}
 
-		objectTracker.updateLostSuppliesTracking();
+		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRumLocations())
+		{
+			locationManager.updateRumLocations();
+		}
+
+		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRocks() || cachedConfig.isHighlightSpeedBoosts())
+		{
+			objectTracker.updateRocksAndSpeedBoosts();
+		}
+
+		progressTracker.updateTrialProgressFromWidgets();
+		
+		if (cachedConfig.isShowOptimalPath())
+		{
+			objectTracker.updatePlayerBoatLocation();
+
+			objectTracker.updateFrontBoatTile();
+		
+			boolean shipmentsCollected = objectTracker.updateRouteWaypointShipmentTracking();
+			if (shipmentsCollected)
+			{
+				pathPlanner.recalculateOptimalPathFromCurrentState("shipment collected");
+			}
+		}
+
+		if (cachedConfig.isShowOptimalPath() || routeCapture.isCapturing())
+		{
+			objectTracker.updateLostSuppliesTracking();
+		}
 
 		// Route capture mode: scan for all supply locations to build routes
-		if (cachedConfig.isDebugMode() && routeCapture.isCapturing())
+		if (routeCapture.isCapturing())
 		{
 			objectTracker.updateRouteCaptureSupplyLocations();
 			List<WorldPoint> collected = objectTracker.checkAllRouteCaptureShipmentsForCollection();
@@ -124,14 +139,17 @@ public class BarracudaTrialPlugin extends Plugin
 			objectTracker.updateAllRocksInScene();
 		}
 
-		// Recalculate path periodically to account for moving clouds
-		int ticksSinceLastPathRecalculation = gameState.getTicksSinceLastPathRecalc() + 1;
-		gameState.setTicksSinceLastPathRecalc(ticksSinceLastPathRecalculation);
-
-		if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
+		if (cachedConfig.isShowOptimalPath())
 		{
-			gameState.setTicksSinceLastPathRecalc(0);
-			pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
+			// Recalculate path periodically to account for moving clouds
+			int ticksSinceLastPathRecalculation = gameState.getTicksSinceLastPathRecalc() + 1;
+			gameState.setTicksSinceLastPathRecalc(ticksSinceLastPathRecalculation);
+
+			if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
+			{
+				gameState.setTicksSinceLastPathRecalc(0);
+				pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
+			}
 		}
 	}
 
