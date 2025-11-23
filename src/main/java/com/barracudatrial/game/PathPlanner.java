@@ -70,17 +70,34 @@ public class PathPlanner
 			loadStaticRouteForCurrentDifficulty();
 		}
 
-		if (state.getLostSupplies().isEmpty() && state.isHasRumOnUs())
+		if (state.getLostSupplies().isEmpty())
 		{
-			List<WorldPoint> pathToDropoffOnly = new ArrayList<>();
-			if (state.getRumReturnLocation() != null)
+			List<WorldPoint> rumPath = new ArrayList<>();
+
+			if (state.isHasRumOnUs())
 			{
-				pathToDropoffOnly.add(locationHelper.getPathfindingDropoffLocation());
+				if (state.getRumReturnLocation() != null)
+				{
+					rumPath.add(locationHelper.getPathfindingDropoffLocation());
+				}
+				log.debug("No supplies and have rum, pathing to dropoff");
 			}
-			state.setCurrentSegmentPath(pathToDropoffOnly);
+			else
+			{
+				if (state.getRumPickupLocation() != null)
+				{
+					rumPath.add(locationHelper.getPathfindingPickupLocation());
+				}
+				if (state.getRumReturnLocation() != null)
+				{
+					rumPath.add(locationHelper.getPathfindingDropoffLocation());
+				}
+				log.debug("No supplies and no rum, pathing to pickup then dropoff");
+			}
+
+			state.setCurrentSegmentPath(rumPath);
 			state.setNextSegmentPath(new ArrayList<>());
-			state.setOptimalPath(new ArrayList<>(pathToDropoffOnly));
-			log.debug("No supplies and have rum, pathing to dropoff");
+			state.setOptimalPath(new ArrayList<>(rumPath));
 			return;
 		}
 
