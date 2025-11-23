@@ -276,14 +276,14 @@ public class PathPlanner
 			return target;
 		}
 
-		// Check if target is already in scene
-		net.runelite.api.coords.LocalPoint targetLocal = net.runelite.api.coords.LocalPoint.fromWorld(worldView, target);
+		// Check if target is already in extended scene
+		net.runelite.api.coords.LocalPoint targetLocal = com.barracudatrial.rendering.ObjectRenderer.localPointFromWorldIncludingExtended(worldView, target);
 		if (targetLocal != null)
 		{
 			return target;
 		}
 
-		// Target is out of scene - binary search for the furthest visible tile
+		// Target is out of extended scene - binary search for the furthest visible tile
 		int dx = target.getX() - start.getX();
 		int dy = target.getY() - start.getY();
 		int maxDistance = Math.max(Math.abs(dx), Math.abs(dy));
@@ -305,7 +305,7 @@ public class PathPlanner
 			int y = start.getY() + (dy * mid / maxDistance);
 			WorldPoint candidate = new WorldPoint(x, y, plane);
 
-			net.runelite.api.coords.LocalPoint lp = net.runelite.api.coords.LocalPoint.fromWorld(worldView, candidate);
+			net.runelite.api.coords.LocalPoint lp = com.barracudatrial.rendering.ObjectRenderer.localPointFromWorldIncludingExtended(worldView, candidate);
 			if (lp != null)
 			{
 				bestCandidate = candidate;

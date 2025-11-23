@@ -97,7 +97,7 @@ public class ObjectRenderer
 					WorldView topLevelWorldView = client.getTopLevelWorldView();
 					if (topLevelWorldView != null)
 					{
-						LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, supplyLocation);
+						LocalPoint localPoint = localPointFromWorldIncludingExtended(topLevelWorldView, supplyLocation);
 						if (localPoint != null)
 						{
 							renderLabelAtLocalPoint(graphics, localPoint, debugLabel, highlightColor, 0);
@@ -304,7 +304,7 @@ public class ObjectRenderer
 			return;
 		}
 
-		LocalPoint tileLocalPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
+		LocalPoint tileLocalPoint = localPointFromWorldIncludingExtended(topLevelWorldView, worldPoint);
 		if (tileLocalPoint == null)
 		{
 			return;
@@ -405,7 +405,7 @@ public class ObjectRenderer
 			return null;
 		}
 
-		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
+		LocalPoint localPoint = localPointFromWorldIncludingExtended(topLevelWorldView, worldPoint);
 		if (localPoint == null)
 		{
 			return null;
@@ -477,7 +477,7 @@ public class ObjectRenderer
 		for (int x = minX; x <= maxX; x++)
 		{
 			WorldPoint tile = new WorldPoint(x, minY, 0);
-			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			LocalPoint local = localPointFromWorldIncludingExtended(topLevelWorldView, tile);
 			if (local != null)
 			{
 				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
@@ -500,7 +500,7 @@ public class ObjectRenderer
 		for (int y = minY; y <= maxY; y++)
 		{
 			WorldPoint tile = new WorldPoint(maxX, y, 0);
-			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			LocalPoint local = localPointFromWorldIncludingExtended(topLevelWorldView, tile);
 			if (local != null)
 			{
 				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
@@ -518,7 +518,7 @@ public class ObjectRenderer
 		for (int x = maxX; x >= minX; x--)
 		{
 			WorldPoint tile = new WorldPoint(x, maxY, 0);
-			LocalPoint local = LocalPoint.fromWorld(topLevelWorldView, tile);
+			LocalPoint local = localPointFromWorldIncludingExtended(topLevelWorldView, tile);
 			if (local != null)
 			{
 				Polygon tilePoly = Perspective.getCanvasTilePoly(client, local);
@@ -536,5 +536,44 @@ public class ObjectRenderer
 		{
 			OverlayUtil.renderPolygon(graphics, rectangleBoundary, fillColor);
 		}
+	}
+
+	/**
+	 * Creates a LocalPoint from a WorldPoint, including support for extended tiles.
+	 * LocalPoint.fromWorld() only works for the normal scene, not extended tiles.
+	 * This manually creates LocalPoints for extended tiles by calculating scene coordinates.
+	 */
+	public static LocalPoint localPointFromWorldIncludingExtended(WorldView view, WorldPoint point)
+	{
+		if (view == null || point == null)
+		{
+			return null;
+		}
+
+		if (view.getPlane() != point.getPlane())
+		{
+			return null;
+		}
+
+		// Try normal method first (works for regular scene)
+		LocalPoint normalPoint = LocalPoint.fromWorld(view, point);
+		if (normalPoint != null)
+		{
+			return normalPoint;
+		}
+
+		// For extended tiles, manually create LocalPoint from scene coordinates
+		int baseX = view.getBaseX();
+		int baseY = view.getBaseY();
+		int sceneX = point.getX() - baseX;
+		int sceneY = point.getY() - baseY;
+
+		// Extended tiles go up to around 192x192, check if within reasonable bounds
+		if (sceneX >= -50 && sceneX < 200 && sceneY >= -50 && sceneY < 200)
+		{
+			return LocalPoint.fromScene(sceneX, sceneY, view);
+		}
+
+		return null;
 	}
 }

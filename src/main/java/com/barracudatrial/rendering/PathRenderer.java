@@ -136,7 +136,7 @@ public class PathRenderer
 
 		for (int i = 0; i < path.size(); i++)
 		{
-			LocalPoint pathPointLocal = LocalPoint.fromWorld(worldView, path.get(i));
+			LocalPoint pathPointLocal = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, path.get(i));
 			if (pathPointLocal == null)
 			{
 				continue;
@@ -186,7 +186,7 @@ public class PathRenderer
 		List<Point> canvasPoints = new ArrayList<>();
 		for (WorldPoint wp : waypoints)
 		{
-			LocalPoint lp = LocalPoint.fromWorld(topLevelWorldView, wp);
+			LocalPoint lp = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, wp);
 			if (lp != null)
 			{
 				Point cp = Perspective.localToCanvas(client, lp, wp.getPlane(), 0);
@@ -283,7 +283,7 @@ public class PathRenderer
 			WorldPoint loc = waypoint.getLocation();
 			if (loc != null)
 			{
-				LocalPoint lp = LocalPoint.fromWorld(topLevelWorldView, loc);
+				LocalPoint lp = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, loc);
 				Point cp = lp != null ? Perspective.getCanvasTextLocation(client, graphics, lp, "", 20) : null;
 				if (cp != null)
 				{

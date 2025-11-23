@@ -78,7 +78,7 @@ public class DebugRenderer
 				boolean isTileInExclusionZone = plugin.isPointInExclusionZone(tileWorldPoint);
 				if (isTileInExclusionZone)
 				{
-					LocalPoint tileLocalPoint = LocalPoint.fromWorld(topLevelWorldView, tileWorldPoint);
+					LocalPoint tileLocalPoint = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, tileWorldPoint);
 
 					if (tileLocalPoint != null)
 					{
@@ -93,7 +93,7 @@ public class DebugRenderer
 		}
 
 		WorldPoint exclusionZoneCenterPoint = new WorldPoint((exclusionZoneMinX + exclusionZoneMaxX) / 2, (exclusionZoneMinY + exclusionZoneMaxY) / 2, 0);
-		LocalPoint centerLocalPoint = LocalPoint.fromWorld(topLevelWorldView, exclusionZoneCenterPoint);
+		LocalPoint centerLocalPoint = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, exclusionZoneCenterPoint);
 		if (centerLocalPoint != null)
 		{
 			Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, centerLocalPoint, "EXCLUSION ZONE", 0);
@@ -141,7 +141,7 @@ public class DebugRenderer
 			for (int y = minY; y <= maxY; y++)
 			{
 				WorldPoint tileWorldPoint = new WorldPoint(x, y, 0);
-				LocalPoint tileLocalPoint = LocalPoint.fromWorld(worldView, tileWorldPoint);
+				LocalPoint tileLocalPoint = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, tileWorldPoint);
 
 				if (tileLocalPoint != null)
 				{
@@ -154,7 +154,7 @@ public class DebugRenderer
 			}
 		}
 
-		LocalPoint centerLocalPoint = LocalPoint.fromWorld(worldView, center);
+		LocalPoint centerLocalPoint = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, center);
 		if (centerLocalPoint != null)
 		{
 			Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, centerLocalPoint, label, 0);
@@ -232,7 +232,7 @@ public class DebugRenderer
 			WorldView topLevelWorldView = client.getTopLevelWorldView();
 			if (topLevelWorldView != null)
 			{
-				LocalPoint actualLocal = LocalPoint.fromWorld(topLevelWorldView, frontBoatTileActual);
+				LocalPoint actualLocal = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, frontBoatTileActual);
 				if (actualLocal != null)
 				{
 					Polygon actualTilePolygon = Perspective.getCanvasTilePoly(client, actualLocal);
@@ -417,7 +417,7 @@ public class DebugRenderer
 			return null;
 		}
 
-		LocalPoint localPoint = LocalPoint.fromWorld(topLevelWorldView, worldPoint);
+		LocalPoint localPoint = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, worldPoint);
 		if (localPoint == null)
 		{
 			return null;
