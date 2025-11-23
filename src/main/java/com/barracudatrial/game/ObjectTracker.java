@@ -362,15 +362,16 @@ public class ObjectTracker
 	 */
 	public boolean updateRouteWaypointShipmentTracking()
 	{
-		if (!state.isInTrialArea() || state.getCurrentStaticRoute() == null)
+		var route = state.getCurrentStaticRoute();
+		if (!state.isInTrialArea() || route == null)
 		{
 			return false;
 		}
 
 		Set<WorldPoint> waypointsToCheck = new HashSet<>();
-		for (int i = 0; i < state.getCurrentStaticRoute().size(); i++)
+		for (int i = 0; i < route.size(); i++)
 		{
-			RouteWaypoint waypoint = state.getCurrentStaticRoute().get(i);
+			RouteWaypoint waypoint = route.get(i);
 			if (waypoint.getType() == RouteWaypoint.WaypointType.SHIPMENT)
 			{
 				if (!state.isWaypointCompleted(i))
@@ -504,42 +505,41 @@ public class ObjectTracker
 			return foundSupplyLocations;
 		}
 
-        for (Tile[][] tiles : tileArray) {
-            if (tiles == null) {
-                continue;
-            }
+		for (var plane : tileArray)
+		{
+			if (plane == null) continue;
 
-            for (Tile[] value : tiles) {
-                if (value == null) {
-                    continue;
-                }
+			for (var column : plane)
+			{
+				if (column == null) continue;
 
-                for (Tile tile : value) {
-                    if (tile == null) {
-                        continue;
-                    }
+				for (var tile : column)
+				{
+					if (tile == null) continue;
 
-                    for (GameObject gameObject : tile.getGameObjects()) {
-                        if (gameObject == null) {
-                            continue;
-                        }
+					for (var gameObject : tile.getGameObjects())
+					{
+						if (gameObject == null) continue;
 
-                        int objectId = gameObject.getId();
-                        if (LOST_SUPPLIES_BASE_IDS.contains(objectId) ||
-                                objectId == LOST_SUPPLIES_IMPOSTOR_ID) {
-                            var worldLocation = gameObject.getWorldLocation();
-                            // Skip logging if we already know about this location
-                            if (oldSupplyLocations.contains(worldLocation)) {
-                                foundSupplyLocations.add(worldLocation);
-                                continue;
-                            }
-                            log.debug("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}", gameObject.getId(), formatWorldPoint(worldLocation));
-                            foundSupplyLocations.add(worldLocation);
-                        }
-                    }
-                }
-            }
-        }
+						int objectId = gameObject.getId();
+						if (!LOST_SUPPLIES_BASE_IDS.contains(objectId)
+							&& objectId != LOST_SUPPLIES_IMPOSTOR_ID)
+						{
+							continue;
+						}
+
+						var worldLocation = gameObject.getWorldLocation();
+						if (!oldSupplyLocations.contains(worldLocation))
+						{
+							log.debug("[ROUTE CAPTURE] Found shipment id {} we can pick up on {}",
+								objectId, formatWorldPoint(worldLocation));
+						}
+
+						foundSupplyLocations.add(worldLocation);
+					}
+				}
+			}
+		}
 
 		return foundSupplyLocations;
 	}

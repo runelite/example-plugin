@@ -86,6 +86,10 @@ public class BarracudaTrialPlugin extends Plugin
 			routeCapture.reset();
 			pathPlanner.reset();
 		}
+		if (!gameState.isInTrialArea())
+		{
+			return;
+		}
 
 		objectTracker.updatePlayerBoatLocation();
 
@@ -121,16 +125,13 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 
 		// Recalculate path periodically to account for moving clouds
-		if (gameState.isInTrialArea())
-		{
-			int ticksSinceLastPathRecalculation = gameState.getTicksSinceLastPathRecalc() + 1;
-			gameState.setTicksSinceLastPathRecalc(ticksSinceLastPathRecalculation);
+		int ticksSinceLastPathRecalculation = gameState.getTicksSinceLastPathRecalc() + 1;
+		gameState.setTicksSinceLastPathRecalc(ticksSinceLastPathRecalculation);
 
-			if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
-			{
-				gameState.setTicksSinceLastPathRecalc(0);
-				pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
-			}
+		if (ticksSinceLastPathRecalculation >= State.PATH_RECALC_INTERVAL)
+		{
+			gameState.setTicksSinceLastPathRecalc(0);
+			pathPlanner.recalculateOptimalPathFromCurrentState("periodic (game tick)");
 		}
 	}
 
@@ -159,11 +160,14 @@ public class BarracudaTrialPlugin extends Plugin
 				routeCapture.onRumPickedUp();
 			}
 
-			if (gameState.getCurrentStaticRoute() != null)
+			var route = gameState.getCurrentStaticRoute();
+
+			if (route != null)
 			{
-				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
+				for (int i = 0, n = route.size(); i < n; i++)
 				{
-					RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
+					var waypoint = route.get(i);
+
 					if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_PICKUP
 						&& !gameState.isWaypointCompleted(i))
 					{
@@ -181,11 +185,13 @@ public class BarracudaTrialPlugin extends Plugin
 			log.debug("Rum delivered! Message: {}", chatMessage);
 			gameState.setHasRumOnUs(false);
 
-			if (gameState.getCurrentStaticRoute() != null)
+			var route = gameState.getCurrentStaticRoute();
+
+			if (route != null)
 			{
-				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
+				for (int i = 0; i < route.size(); i++)
 				{
-					RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
+					RouteWaypoint waypoint = route.get(i);
 					if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_DROPOFF
 						&& !gameState.isWaypointCompleted(i))
 					{
@@ -223,6 +229,11 @@ public class BarracudaTrialPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		if (!gameState.isInTrialArea())
+		{
+			return;
+		}
+		
 		if (!event.getGroup().equals("barracudatrial"))
 		{
 			return;
