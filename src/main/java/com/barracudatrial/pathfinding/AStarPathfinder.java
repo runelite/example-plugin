@@ -86,8 +86,9 @@ public class AStarPathfinder
 				double geometricDistance = isDiagonal ? Math.sqrt(2) : 1.0;
 
 				double turningCost = calculateTurningCost(routeOptimization, current, neighbor);
+				double jerkCost = calculateJerkCost(routeOptimization, current, neighbor);
 
-				double tentativeGScore = current.gScore + (tileCost * geometricDistance) + turningCost;
+				double tentativeGScore = current.gScore + (tileCost * geometricDistance) + turningCost + jerkCost;
 
                 Node neighborNode = allNodes.computeIfAbsent(neighbor, Node::new);
 
@@ -156,22 +157,98 @@ public class AStarPathfinder
 		{
 			if (routeOptimization == RouteOptimization.EFFICIENT)
 			{
-				// Efficient: Gentle linear cost (good for grabbing nearby boosts)
-				wastedMovement = ticksToTurn * 0.17;
+				// Efficient: Willing to turn for boosts, but prefer gentle curves
+				wastedMovement = Math.pow(ticksToTurn, 1.3) * 0.6;
 			}
 			else
 			{
-				// Relaxed: Higher cost to discourage all turns (smoother routes)
-				wastedMovement = 0.3 + ticksToTurn * 0.7;
+				// Relaxed: Pick up boosts along the way, avoid sharp corrections
+				wastedMovement = Math.pow(ticksToTurn, 1.5) * 1.2;
 			}
 		}
 		else
 		{
-			// Explosive cost for 90° turns and sharper (same for both modes)
-			double ticksOver90 = ticksToTurn - 6.0; // 90° = 6 ticks
-			wastedMovement = 1.0 + Math.pow(ticksOver90, 2.5) * 8.0;
+			// Sharp turns (90°+) are very expensive - boat momentum makes these nearly impossible
+			double ticksOver90 = ticksToTurn - 6.0;
+			wastedMovement = 8.0 + Math.pow(Math.max(0, ticksOver90), 2.8) * 20.0;
 		}
 		return wastedMovement;
+	}
+
+	/**
+	 * Calculates "jerk cost" - the penalty for changing turning rate.
+	 *
+	 * In physics, jerk is the rate of change of acceleration. For boat navigation, this means
+	 * how quickly the boat changes its turning direction (e.g., turning left then immediately turning right).
+	 *
+	 * Why this matters:
+	 * - Boats have momentum and can't change turning direction instantly
+	 * - We want smooth anticipatory curves, not last-second sharp corrections
+	 * - Example: Instead of going straight then sharply turning to hit a boost, we want to start
+	 *   a gentle curve 3-4 tiles early so we're already lined up when we reach it
+	 *
+	 * This cost penalizes paths that have consecutive direction changes (zigzagging), encouraging
+	 * the pathfinder to "set up" turns early rather than making jerky corrections.
+	 */
+	private double calculateJerkCost(RouteOptimization routeOptimization, Node current, WorldPoint neighbor)
+	{
+		if (current.parent == null || current.parent.parent == null)
+		{
+			return 0.0;
+		}
+
+		// Calculate previous turn vector
+		double prevPrevDx = current.parent.position.getX() - current.parent.parent.position.getX();
+		double prevPrevDy = current.parent.position.getY() - current.parent.parent.position.getY();
+		double prevDx = current.position.getX() - current.parent.position.getX();
+		double prevDy = current.position.getY() - current.parent.position.getY();
+
+		// Calculate current turn vector
+		double newDx = neighbor.getX() - current.position.getX();
+		double newDy = neighbor.getY() - current.position.getY();
+
+		// Normalize vectors
+		double prevPrevLen = Math.sqrt(prevPrevDx * prevPrevDx + prevPrevDy * prevPrevDy);
+		double prevLen = Math.sqrt(prevDx * prevDx + prevDy * prevDy);
+		double newLen = Math.sqrt(newDx * newDx + newDy * newDy);
+
+		if (prevPrevLen == 0 || prevLen == 0 || newLen == 0)
+		{
+			return 0.0;
+		}
+
+		prevPrevDx /= prevPrevLen;
+		prevPrevDy /= prevPrevLen;
+		prevDx /= prevLen;
+		prevDy /= prevLen;
+		newDx /= newLen;
+		newDy /= newLen;
+
+		// Calculate turn angles
+		double prevTurnDot = prevPrevDx * prevDx + prevPrevDy * prevDy;
+		double currentTurnDot = prevDx * newDx + prevDy * newDy;
+
+		prevTurnDot = Math.max(-1.0, Math.min(1.0, prevTurnDot));
+		currentTurnDot = Math.max(-1.0, Math.min(1.0, currentTurnDot));
+
+		double prevTurnAngle = Math.toDegrees(Math.acos(prevTurnDot));
+		double currentTurnAngle = Math.toDegrees(Math.acos(currentTurnDot));
+
+		// If both moves are turns (not straight), penalize the direction change
+		if (prevTurnAngle > 5.0 && currentTurnAngle > 5.0)
+		{
+			if (routeOptimization == RouteOptimization.EFFICIENT)
+			{
+				return currentTurnAngle * 0.15;
+			}
+			else
+			{
+				// Relaxed: strongly discourage jerky movements
+				return currentTurnAngle * 0.4;
+			}
+		}
+
+		return 0.0;
 	}
 
 	/**
