@@ -276,11 +276,12 @@ public class BarracudaTrialPlugin extends Plugin
 				impostorInfo = "none (with object comp)";
 
 				var impostorIds = objectComposition.getImpostorIds();
-				if(impostorIds == null)
+				if (impostorIds == null)
 				{
 					impostorInfo = "none (null ids)";
 				}
-				else {
+				else
+				{
 					ObjectComposition activeImpostor = objectComposition.getImpostor();
 					if (activeImpostor != null) {
 						impostorInfo = String.valueOf(activeImpostor.getId());
@@ -297,7 +298,7 @@ public class BarracudaTrialPlugin extends Plugin
 			objectId, impostorInfo, sceneX, sceneY, sceneBaseX, sceneBaseY, plane, worldPoint,
 			boatWorldLocation != null ? boatWorldLocation : "null");
 
-		if(scene != null)
+		if (scene != null)
 		{
 			var tiles = scene.getTiles();
 			var tile = tiles[plane][sceneX][sceneY];
