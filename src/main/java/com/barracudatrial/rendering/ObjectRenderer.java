@@ -87,7 +87,7 @@ public class ObjectRenderer
 			// If showIDs is on and this location doesn't have a lost supply, show the object ID
 			if (cachedConfig.isShowIDs() && !lostSupplyLocations.contains(supplyLocation))
 			{
-				GameObject gameObject = findGameObjectAtWorldPoint(supplyLocation);
+				GameObject gameObject = findGameObjectAtWorldPoint(client, supplyLocation);
 				if (gameObject != null)
 				{
 					String debugLabel = buildObjectLabelWithImpostorInfo(gameObject, "Visible Supply") +
@@ -197,7 +197,7 @@ public class ObjectRenderer
 
 	private void renderRumLocationHighlight(Graphics2D graphics, WorldPoint rumLocationPoint, Color highlightColor)
 	{
-		GameObject rumObjectAtLocation = findGameObjectAtWorldPoint(rumLocationPoint);
+		GameObject rumObjectAtLocation = findGameObjectAtWorldPoint(client, rumLocationPoint);
 		if (rumObjectAtLocation != null)
 		{
 			renderGameObjectWithHighlight(graphics, rumObjectAtLocation, highlightColor, true, null);
@@ -389,7 +389,7 @@ public class ObjectRenderer
 		return labelBuilder.toString();
 	}
 
-	private GameObject findGameObjectAtWorldPoint(WorldPoint worldPoint)
+	public static GameObject findGameObjectAtWorldPoint(Client client, WorldPoint worldPoint)
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -409,7 +409,15 @@ public class ObjectRenderer
 			return null;
 		}
 
-		Tile tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+		int sceneX = localPoint.getSceneX();
+		int sceneY = localPoint.getSceneY();
+
+		Tile tile = scene.getTile(sceneX, sceneY, worldPoint.getPlane());
+		if (tile == null)
+		{
+			tile = scene.getExtendedTile(sceneX, sceneY, worldPoint.getPlane());
+		}
+
 		if (tile == null)
 		{
 			return null;

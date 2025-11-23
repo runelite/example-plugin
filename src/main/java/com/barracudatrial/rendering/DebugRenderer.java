@@ -321,7 +321,7 @@ public class DebugRenderer
 
 		if (rumPickupLocation != null)
 		{
-			GameObject rumPickupObject = findGameObjectAtWorldPoint(rumPickupLocation);
+			GameObject rumPickupObject = ObjectRenderer.findGameObjectAtWorldPoint(client, rumPickupLocation);
 			String pickupInfoLine = String.format("Pickup (S): (%d, %d, %d)",
 				rumPickupLocation.getX(), rumPickupLocation.getY(), rumPickupLocation.getPlane());
 			if (rumPickupObject != null)
@@ -337,7 +337,7 @@ public class DebugRenderer
 
 		if (rumReturnLocation != null)
 		{
-			GameObject rumReturnObject = findGameObjectAtWorldPoint(rumReturnLocation);
+			GameObject rumReturnObject = ObjectRenderer.findGameObjectAtWorldPoint(client, rumReturnLocation);
 			String returnInfoLine = String.format("Return (N): (%d, %d, %d)",
 				rumReturnLocation.getX(), rumReturnLocation.getY(), rumReturnLocation.getPlane());
 			if (rumReturnObject != null)
@@ -401,40 +401,4 @@ public class DebugRenderer
 		return labelBuilder.toString();
 	}
 
-	private GameObject findGameObjectAtWorldPoint(WorldPoint worldPoint)
-	{
-		WorldView topLevelWorldView = client.getTopLevelWorldView();
-		if (topLevelWorldView == null)
-		{
-			return null;
-		}
-
-		Scene scene = topLevelWorldView.getScene();
-		if (scene == null)
-		{
-			return null;
-		}
-
-		LocalPoint localPoint = ObjectRenderer.localPointFromWorldIncludingExtended(topLevelWorldView, worldPoint);
-		if (localPoint == null)
-		{
-			return null;
-		}
-
-		Tile tile = scene.getTiles()[worldPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
-		if (tile == null)
-		{
-			return null;
-		}
-
-		for (GameObject gameObject : tile.getGameObjects())
-		{
-			if (gameObject != null)
-			{
-				return gameObject;
-			}
-		}
-
-		return null;
-	}
 }
