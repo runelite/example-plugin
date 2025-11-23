@@ -227,7 +227,7 @@ public class PathRenderer
 
 				// Calculate control points for cubic Bezier
 				// Using a tension factor to control curve smoothness
-				double tension = 0.3;
+				double tension = 0.1;
 
 				double cp1x = p1.getX() + (p2.getX() - p0.getX()) * tension;
 				double cp1y = p1.getY() + (p2.getY() - p0.getY()) * tension;
