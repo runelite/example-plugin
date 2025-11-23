@@ -121,7 +121,10 @@ public class PathRenderer
 			return new ArrayList<>();
 		}
 
-		return new ArrayList<>(path.subList(startIndex, path.size()));
+		List<WorldPoint> trimmedPath = new ArrayList<>(path.subList(startIndex, path.size()));
+
+		// Apply Catmull-Rom smoothing for curved paths
+		return smoothPathWithCatmullRom(trimmedPath);
 	}
 
 	private int findClosestPointOnPath(LocalPoint visualPosition, List<WorldPoint> path, WorldView worldView)
@@ -151,6 +154,59 @@ public class PathRenderer
 		return closestIndex;
 	}
 
+	private List<WorldPoint> smoothPathWithCatmullRom(List<WorldPoint> waypoints)
+	{
+		if (waypoints.size() < 2)
+		{
+			return waypoints;
+		}
+
+		List<WorldPoint> smoothedPath = new ArrayList<>();
+		int segmentsPerWaypoint = 8;
+		double tension = 0.5;
+
+		for (int i = 0; i < waypoints.size() - 1; i++)
+		{
+			WorldPoint p0 = i > 0 ? waypoints.get(i - 1) : waypoints.get(i);
+			WorldPoint p1 = waypoints.get(i);
+			WorldPoint p2 = waypoints.get(i + 1);
+			WorldPoint p3 = i < waypoints.size() - 2 ? waypoints.get(i + 2) : waypoints.get(i + 1);
+
+			for (int seg = 0; seg < segmentsPerWaypoint; seg++)
+			{
+				double t = seg / (double) segmentsPerWaypoint;
+				WorldPoint interpolated = interpolateCatmullRom(p0, p1, p2, p3, t, tension);
+				smoothedPath.add(interpolated);
+			}
+		}
+
+		smoothedPath.add(waypoints.get(waypoints.size() - 1));
+
+		return smoothedPath;
+	}
+
+	private WorldPoint interpolateCatmullRom(WorldPoint p0, WorldPoint p1, WorldPoint p2, WorldPoint p3, double t, double tension)
+	{
+		double t2 = t * t;
+		double t3 = t2 * t;
+
+		double x = tension * (
+			(2 * p1.getX()) +
+			(-p0.getX() + p2.getX()) * t +
+			(2 * p0.getX() - 5 * p1.getX() + 4 * p2.getX() - p3.getX()) * t2 +
+			(-p0.getX() + 3 * p1.getX() - 3 * p2.getX() + p3.getX()) * t3
+		);
+
+		double y = tension * (
+			(2 * p1.getY()) +
+			(-p0.getY() + p2.getY()) * t +
+			(2 * p0.getY() - 5 * p1.getY() + 4 * p2.getY() - p3.getY()) * t2 +
+			(-p0.getY() + 3 * p1.getY() - 3 * p2.getY() + p3.getY()) * t3
+		);
+
+		return new WorldPoint((int) Math.round(x), (int) Math.round(y), p1.getPlane());
+	}
+
 	private void drawInterpolatedPathWithTracer(Graphics2D graphics, List<WorldPoint> waypoints, LocalPoint visualStartPosition, int totalSegmentsInPath, int frameCounterForTracerAnimation)
 	{
 		if (waypoints.isEmpty() || visualStartPosition == null)
@@ -165,21 +221,29 @@ public class PathRenderer
 		}
 
 		CachedConfig cachedConfig = plugin.getCachedConfig();
-		int globalSegmentOffset = 0;
 
-		// First segment: visual front to first waypoint
+		// Draw direct line from ship to first smoothed waypoint (no extra interpolation needed - smoothed path has many points already)
 		LocalPoint firstWaypointLocal = LocalPoint.fromWorld(topLevelWorldView, waypoints.get(0));
 		if (firstWaypointLocal != null)
 		{
-			globalSegmentOffset = drawInterpolatedSegmentFromLocal(graphics, visualStartPosition, firstWaypointLocal, cachedConfig.getPathColor(), totalSegmentsInPath, globalSegmentOffset, frameCounterForTracerAnimation);
+			Point startCanvas = Perspective.localToCanvas(client, visualStartPosition, client.getPlane(), 0);
+			Point endCanvas = Perspective.localToCanvas(client, firstWaypointLocal, client.getPlane(), 0);
+
+			if (startCanvas != null && endCanvas != null)
+			{
+				int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
+				graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
+				graphics.setColor(cachedConfig.getPathColor());
+				graphics.drawLine(startCanvas.getX(), startCanvas.getY(), endCanvas.getX(), endCanvas.getY());
+			}
 		}
 
-		// Remaining segments: between waypoints
-		for (int i = 1; i < waypoints.size(); i++)
+		// Draw all smoothed segments between waypoints
+		for (int i = 0; i < waypoints.size() - 1; i++)
 		{
-			WorldPoint previousWaypoint = waypoints.get(i - 1);
-			WorldPoint waypoint = waypoints.get(i);
-			globalSegmentOffset = drawInterpolatedSegment(graphics, previousWaypoint, waypoint, cachedConfig.getPathColor(), totalSegmentsInPath, globalSegmentOffset, frameCounterForTracerAnimation);
+			WorldPoint previousWaypoint = waypoints.get(i);
+			WorldPoint waypoint = waypoints.get(i + 1);
+			drawInterpolatedSegment(graphics, previousWaypoint, waypoint, cachedConfig.getPathColor(), totalSegmentsInPath, 0, frameCounterForTracerAnimation);
 		}
 	}
 
@@ -257,7 +321,10 @@ public class PathRenderer
 		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
 		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
 
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		// Use CAP_ROUND in debug mode to show segment endpoints (useful for debugging)
+		// Use CAP_BUTT otherwise for smooth lines without visible dots
+		int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
 
 		for (int i = 0; i < segmentCountInThisLine; i++)
 		{
@@ -374,7 +441,10 @@ public class PathRenderer
 		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
 		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
 
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		// Use CAP_ROUND in debug mode to show segment endpoints (useful for debugging)
+		// Use CAP_BUTT otherwise for smooth lines without visible dots
+		int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
 
 		for (int i = 0; i < segmentCountInThisLine; i++)
 		{
