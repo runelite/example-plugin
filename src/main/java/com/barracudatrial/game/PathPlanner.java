@@ -263,13 +263,17 @@ public class PathPlanner
 			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
 		}
 
-		int maximumAStarSearchDistance = 250;
-		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
+		int maximumAStarSearchDistance = 70;
+
+		// If target is beyond the search distance, clamp it to the nearest point within range
+		WorldPoint pathfindingTarget = getTargetWithinSearchDistance(start, target, maximumAStarSearchDistance);
+
+		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, pathfindingTarget, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 
 		if (path.isEmpty())
 		{
 			List<WorldPoint> fallbackPath = new ArrayList<>();
-			fallbackPath.add(target);
+			fallbackPath.add(pathfindingTarget);
 			return fallbackPath;
 		}
 
@@ -304,6 +308,51 @@ public class PathPlanner
 		}
 
 		// Target is out of extended scene - binary search for the furthest visible tile
+		return findNearestValidPoint(start, target, candidate ->
+			ObjectRenderer.localPointFromWorldIncludingExtended(worldView, candidate) != null
+		);
+	}
+
+	/**
+	 * Returns the target if it's within the max search distance, otherwise finds the nearest tile
+	 * along the path from start to target using efficient binary search.
+	 * @param start Starting position
+	 * @param target Desired target position
+	 * @param maxSearchDistance Maximum distance in tiles from start
+	 * @return Target if within distance, otherwise nearest tile toward target within maxSearchDistance
+	 */
+	private WorldPoint getTargetWithinSearchDistance(WorldPoint start, WorldPoint target, int maxSearchDistance)
+	{
+		// Calculate distance from start to target
+		int dx = target.getX() - start.getX();
+		int dy = target.getY() - start.getY();
+		int actualDistance = Math.max(Math.abs(dx), Math.abs(dy));
+
+		// If target is within max distance, use it directly
+		if (actualDistance <= maxSearchDistance)
+		{
+			return target;
+		}
+
+		// Target is beyond max distance - binary search for the furthest tile within range
+		return findNearestValidPoint(start, target, candidate -> {
+			int candidateDx = candidate.getX() - start.getX();
+			int candidateDy = candidate.getY() - start.getY();
+			int candidateDistance = Math.max(Math.abs(candidateDx), Math.abs(candidateDy));
+			return candidateDistance <= maxSearchDistance;
+		});
+	}
+
+	/**
+	 * Finds the furthest point from start toward target that satisfies the given validation function.
+	 * Uses binary search for O(log n) efficiency.
+	 * @param start Starting position
+	 * @param target Desired target position
+	 * @param isValid Function that returns true if a candidate point is valid
+	 * @return The furthest valid point toward target, or start if none found
+	 */
+	private static WorldPoint findNearestValidPoint(WorldPoint start, WorldPoint target, java.util.function.Predicate<WorldPoint> isValid)
+	{
 		int dx = target.getX() - start.getX();
 		int dy = target.getY() - start.getY();
 		int maxDistance = Math.max(Math.abs(dx), Math.abs(dy));
@@ -325,8 +374,7 @@ public class PathPlanner
 			int y = start.getY() + (dy * mid / maxDistance);
 			WorldPoint candidate = new WorldPoint(x, y, plane);
 
-			LocalPoint lp = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, candidate);
-			if (lp != null)
+			if (isValid.test(candidate))
 			{
 				bestCandidate = candidate;
 				low = mid + 1;
