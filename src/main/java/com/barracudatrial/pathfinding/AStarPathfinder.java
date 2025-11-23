@@ -80,9 +80,14 @@ public class AStarPathfinder
 					continue;
 				}
 
+				// Boat moves in continuous space at constant speed, so distance matters
+				boolean isDiagonal = Math.abs(neighbor.getX() - current.position.getX()) == 1
+								  && Math.abs(neighbor.getY() - current.position.getY()) == 1;
+				double geometricDistance = isDiagonal ? Math.sqrt(2) : 1.0;
+
 				double turningCost = calculateTurningCost(routeOptimization, current, neighbor);
 
-				double tentativeGScore = current.gScore + tileCost + turningCost;
+				double tentativeGScore = current.gScore + (tileCost * geometricDistance) + turningCost;
 
                 Node neighborNode = allNodes.computeIfAbsent(neighbor, Node::new);
 
