@@ -81,9 +81,9 @@ public class PathPlanner
 			return;
 		}
 
-		List<WorldPoint> nextTargets = findNextUncompletedWaypoints(cachedConfig.getPathLookahead());
+		List<RouteWaypoint> nextWaypoints = findNextUncompletedWaypoints(cachedConfig.getPathLookahead());
 
-		if (nextTargets.isEmpty())
+		if (nextWaypoints.isEmpty())
 		{
 			state.setCurrentSegmentPath(new ArrayList<>());
 			state.setNextSegmentPath(new ArrayList<>());
@@ -92,13 +92,13 @@ public class PathPlanner
 			return;
 		}
 
-		List<WorldPoint> fullPath = pathThroughMultipleTargets(playerBoatLocation, nextTargets);
+		List<WorldPoint> fullPath = pathThroughMultipleWaypoints(playerBoatLocation, nextWaypoints);
 
 		state.setCurrentSegmentPath(fullPath);
 		state.setOptimalPath(new ArrayList<>(fullPath));
 		state.setNextSegmentPath(new ArrayList<>());
 
-		log.debug("Pathing through {} waypoints starting at index {}", nextTargets.size(), state.getNextWaypointIndex());
+		log.debug("Pathing through {} waypoints starting at index {}", nextWaypoints.size(), state.getNextWaypointIndex());
 	}
 
 	/**
@@ -127,11 +127,11 @@ public class PathPlanner
 	 * Supports backtracking if a waypoint was missed.
 	 *
 	 * @param count Maximum number of uncompleted waypoints to return
-	 * @return List of uncompleted waypoint locations in route order
+	 * @return List of uncompleted waypoints in route order
 	 */
-	private List<WorldPoint> findNextUncompletedWaypoints(int count)
+	private List<RouteWaypoint> findNextUncompletedWaypoints(int count)
 	{
-		List<WorldPoint> uncompletedWaypoints = new ArrayList<>();
+		List<RouteWaypoint> uncompletedWaypoints = new ArrayList<>();
 
 		if (state.getCurrentStaticRoute() == null || state.getCurrentStaticRoute().isEmpty())
 		{
@@ -154,7 +154,7 @@ public class PathPlanner
 					state.setNextWaypointIndex(checkIndex);
 					foundFirst = true;
 				}
-				uncompletedWaypoints.add(waypointLocation);
+				uncompletedWaypoints.add(waypoint);
 			}
 		}
 
@@ -162,14 +162,14 @@ public class PathPlanner
 	}
 
 	/**
-	 * Paths through multiple targets in sequence using A*
+	 * Paths through multiple waypoints in sequence using A*
 	 * @param start Starting position
-	 * @param targets List of targets to path through in order
-	 * @return Complete path through all targets
+	 * @param waypoints List of waypoints to path through in order
+	 * @return Complete path through all waypoints
 	 */
-	private List<WorldPoint> pathThroughMultipleTargets(WorldPoint start, List<WorldPoint> targets)
+	private List<WorldPoint> pathThroughMultipleWaypoints(WorldPoint start, List<RouteWaypoint> waypoints)
 	{
-		if (targets.isEmpty())
+		if (waypoints.isEmpty())
 		{
 			return new ArrayList<>();
 		}
@@ -177,9 +177,10 @@ public class PathPlanner
 		List<WorldPoint> fullPath = new ArrayList<>();
 		WorldPoint currentPosition = start;
 
-		for (WorldPoint target : targets)
+		for (RouteWaypoint waypoint : waypoints)
 		{
-			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, target);
+			WorldPoint target = waypoint.getLocation();
+			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, target, waypoint.getType().getToleranceTiles());
 
 			if (fullPath.isEmpty())
 			{
@@ -201,9 +202,10 @@ public class PathPlanner
 	 * Paths from current position to a single target using A*
 	 * @param start Starting position
 	 * @param target Target position
+	 * @param goalTolerance Number of tiles away from target that counts as reaching it (0 = exact)
 	 * @return Path from start to target
 	 */
-	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target)
+	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target, int goalTolerance)
 	{
 		Set<NPC> currentlyDangerousClouds = new HashSet<>();
 		for (NPC lightningCloud : state.getLightningClouds())
@@ -239,7 +241,7 @@ public class PathPlanner
 		}
 
 		int maximumAStarSearchDistance = 100;
-		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy);
+		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, target, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 
 		if (path.isEmpty())
 		{

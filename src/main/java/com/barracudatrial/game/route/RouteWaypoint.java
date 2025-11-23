@@ -52,9 +52,17 @@ public class RouteWaypoint
 
 	public enum WaypointType
 	{
-		SHIPMENT,
-		RUM_PICKUP,
-		RUM_DROPOFF
+		SHIPMENT(1),      // Lost supply pickups can be grabbed from 1 tile away (3x3 area)
+		RUM_PICKUP(4),    // Rum pickup can be grabbed from 4 tiles away
+		RUM_DROPOFF(4);   // Rum dropoff can be dropped from 4 tiles away
+
+		@Getter
+		private final int toleranceTiles;
+
+		WaypointType(int toleranceTiles)
+		{
+			this.toleranceTiles = toleranceTiles;
+		}
 	}
 
 	@Override

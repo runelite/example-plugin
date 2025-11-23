@@ -13,6 +13,22 @@ public class AStarPathfinder
 {
 	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy)
 	{
+		return findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, 0);
+	}
+
+	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy, int goalTolerance)
+	{
+		// Compute grabbable area around goal based on tolerance
+		Set<WorldPoint> goalTiles = new HashSet<>();
+		if (goalTolerance > 0)
+		{
+			goalTiles.addAll(BarracudaTileCostCalculator.computeGrabbableTiles(Set.of(goal), goalTolerance).keySet());
+		}
+		else
+		{
+			goalTiles.add(goal);
+		}
+
 		PriorityQueue<Node> openSet = new PriorityQueue<>(
 			Comparator.comparingDouble((Node n) -> n.fScore)
 				.thenComparingDouble(n -> manhattanDistance(n.position, goal))
@@ -39,7 +55,7 @@ public class AStarPathfinder
 				continue;
 			}
 
-			if (current.position.equals(goal))
+			if (goalTiles.contains(current.position))
 			{
 				return new PathResult(reconstructPath(current), current.gScore);
 			}

@@ -26,7 +26,13 @@ public class PathStabilizer
 	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
 	                                  int boatDirectionDx, int boatDirectionDy)
 	{
-		PathResult newPathResult = pathfinder.findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy);
+		return findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, 0);
+	}
+
+	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
+	                                  int boatDirectionDx, int boatDirectionDy, int goalTolerance)
+	{
+		PathResult newPathResult = pathfinder.findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 
 		if (shouldForceNewPath(newPathResult, goal))
 		{
