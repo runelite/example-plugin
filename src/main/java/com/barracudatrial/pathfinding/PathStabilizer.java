@@ -19,7 +19,7 @@ public class PathStabilizer
 
 	private double getImprovementThreshold(RouteOptimization optimization)
 	{
-		return optimization == RouteOptimization.EFFICIENT ? 0.95 : 0.80;
+		return optimization == RouteOptimization.EFFICIENT ? 0.90 : 0.70;
 	}
 
 	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
@@ -79,7 +79,7 @@ public class PathStabilizer
 			int dy = Math.abs(start.getY() - pathPoint.getY());
 			int chebyshevDistance = Math.max(dx, dy);
 
-            int pathProximityTolerance = 2;
+            int pathProximityTolerance = 2.5;
             if (chebyshevDistance <= pathProximityTolerance)
 			{
 				return true;
