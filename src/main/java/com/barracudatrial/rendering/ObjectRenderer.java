@@ -278,7 +278,7 @@ public class ObjectRenderer
 		}
 	}
 
-	private void renderTileHighlightAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color highlightColor)
+	void renderTileHighlightAtWorldPoint(Graphics2D graphics, WorldPoint worldPoint, Color highlightColor)
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)

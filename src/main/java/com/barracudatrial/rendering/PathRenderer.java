@@ -21,11 +21,13 @@ public class PathRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
+	private final ObjectRenderer objectRenderer;
 
-	public PathRenderer(Client client, BarracudaTrialPlugin plugin)
+	public PathRenderer(Client client, BarracudaTrialPlugin plugin, ObjectRenderer objectRenderer)
 	{
 		this.client = client;
 		this.plugin = plugin;
+		this.objectRenderer = objectRenderer;
 	}
 
 	public void renderOptimalPath(Graphics2D graphics, int frameCounterForTracerAnimation)
@@ -53,9 +55,10 @@ public class PathRenderer
 
 		drawInterpolatedPathWithTracer(graphics, trimmedPath, visualFrontPositionTransformed, totalSegmentsInPath, frameCounterForTracerAnimation);
 
-		// Render waypoint labels in debug mode
+		// Render debug visualizations
 		if (cachedConfig.isDebugMode())
 		{
+			renderPathTiles(graphics, currentSegmentPath);
 			renderWaypointLabels(graphics);
 		}
 	}
@@ -231,8 +234,7 @@ public class PathRenderer
 
 			if (startCanvas != null && endCanvas != null)
 			{
-				int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
-				graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
+				graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 				graphics.setColor(cachedConfig.getPathColor());
 				graphics.drawLine(startCanvas.getX(), startCanvas.getY(), endCanvas.getX(), endCanvas.getY());
 			}
@@ -321,10 +323,7 @@ public class PathRenderer
 		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
 		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
 
-		// Use CAP_ROUND in debug mode to show segment endpoints (useful for debugging)
-		// Use CAP_BUTT otherwise for smooth lines without visible dots
-		int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 
 		for (int i = 0; i < segmentCountInThisLine; i++)
 		{
@@ -441,10 +440,7 @@ public class PathRenderer
 		boolean isTracerEnabled = cachedConfig.isShowPathTracer() && pathColor.equals(cachedConfig.getPathColor());
 		int globalTracerPosition = isTracerEnabled && totalSegmentsInPath > 0 ? (frameCounterForTracerAnimation % totalSegmentsInPath) : -1;
 
-		// Use CAP_ROUND in debug mode to show segment endpoints (useful for debugging)
-		// Use CAP_BUTT otherwise for smooth lines without visible dots
-		int capStyle = cachedConfig.isDebugMode() ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT;
-		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), capStyle, BasicStroke.JOIN_ROUND));
+		graphics.setStroke(new BasicStroke(cachedConfig.getPathWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 
 		for (int i = 0; i < segmentCountInThisLine; i++)
 		{
@@ -467,6 +463,21 @@ public class PathRenderer
 		}
 
 		return globalSegmentOffset + segmentCountInThisLine;
+	}
+
+	private void renderPathTiles(Graphics2D graphics, List<WorldPoint> path)
+	{
+		if (path == null || path.isEmpty())
+		{
+			return;
+		}
+
+		Color tileColor = new Color(255, 255, 0, 80);
+
+		for (WorldPoint point : path)
+		{
+			objectRenderer.renderTileHighlightAtWorldPoint(graphics, point, tileColor);
+		}
 	}
 
 	private void renderWaypointLabels(Graphics2D graphics)
