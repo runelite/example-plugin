@@ -238,7 +238,9 @@ public class PathPlanner
 		// If target is beyond the search distance, clamp it to the nearest point within range
 		WorldPoint pathfindingTarget = getTargetWithinSearchDistance(start, target, maximumAStarSearchDistance);
 
-		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), start, pathfindingTarget, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
+		var currentStaticRoute = state.getCurrentStaticRoute();
+
+		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), currentStaticRoute, start, pathfindingTarget, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 
 		if (path.isEmpty())
 		{

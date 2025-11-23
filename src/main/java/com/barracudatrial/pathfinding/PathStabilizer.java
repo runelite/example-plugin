@@ -1,10 +1,12 @@
 package com.barracudatrial.pathfinding;
 
 import com.barracudatrial.RouteOptimization;
+import com.barracudatrial.game.route.RouteWaypoint;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PathStabilizer
 {
@@ -22,7 +24,7 @@ public class PathStabilizer
 		return optimization == RouteOptimization.EFFICIENT ? 0.90 : 0.70;
 	}
 
-	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
+	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, List<RouteWaypoint> currentStaticRoute, WorldPoint start, WorldPoint goal, int maxSearchDistance,
 	                                  int boatDirectionDx, int boatDirectionDy, int goalTolerance)
 	{
 		PathResult newPathResult = pathfinder.findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
@@ -33,7 +35,7 @@ public class PathStabilizer
 			return newPathResult.getPath();
 		}
 
-		if (shouldKeepActivePath(routeOptimization, start, newPathResult))
+		if (shouldKeepActivePath(routeOptimization, start, newPathResult, currentStaticRoute))
 		{
 			return getTrimmedPath(start, activePathResult);
 		}
@@ -59,9 +61,9 @@ public class PathStabilizer
         return !activeGoal.equals(goal);
     }
 
-	private boolean shouldKeepActivePath(RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult)
+	private boolean shouldKeepActivePath(RouteOptimization routeOptimization, WorldPoint start, PathResult newPathResult, List<RouteWaypoint> currentStaticRoute)
 	{
-		if (!isWithinProximityOfPath(start, activePathResult))
+		if (!isWithinProximityOfPath(start, activePathResult, currentStaticRoute))
 		{
 			return false;
 		}
@@ -69,12 +71,17 @@ public class PathStabilizer
         return !isNewPathSignificantlyBetter(routeOptimization, start, newPathResult);
     }
 
-	private boolean isWithinProximityOfPath(WorldPoint start, PathResult pathResult)
+	private boolean isWithinProximityOfPath(WorldPoint start, PathResult pathResult, List<RouteWaypoint> currentStaticRoute)
 	{
 		var pathNodes = pathResult.getPathNodes();
+
+		var requiredWaypoints = currentStaticRoute.stream()
+			.map(RouteWaypoint::getLocation)
+			.collect(Collectors.toSet());
+
 		for (var pathNode : pathNodes)
 		{
-			if (pathNode.getWaypointType() != null)
+			if (requiredWaypoints.contains(pathNode.getPosition()))
 			{
 				// Don't allow skipping past required waypoints
 				break;
