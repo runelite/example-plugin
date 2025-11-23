@@ -409,14 +409,7 @@ public class ObjectRenderer
 			return null;
 		}
 
-		int sceneX = localPoint.getSceneX();
-		int sceneY = localPoint.getSceneY();
-
-		Tile tile = scene.getTiles()[sceneX][sceneY][worldPoint.getPlane()];
-		if (tile == null)
-		{
-			tile = scene.getExtendedTiles()[sceneX][sceneY][worldPoint.getPlane()];
-		}
+		Tile tile = GetTileFromSceneOrExtended(worldPoint, localPoint, scene);
 
 		if (tile == null)
 		{
@@ -428,6 +421,34 @@ public class ObjectRenderer
 			if (gameObject != null)
 			{
 				return gameObject;
+			}
+		}
+
+		return null;
+	}
+
+	private static Tile GetTileFromSceneOrExtended(WorldPoint worldPoint, LocalPoint localPoint, Scene scene) {
+		int sceneX = localPoint.getSceneX();
+		int sceneY = localPoint.getSceneY();
+		var plane = worldPoint.getPlane();
+		var tiles = scene.getTiles();
+
+		if (tiles != null &&
+				plane >= 0 && plane < tiles.length &&
+				sceneX >= 0 && sceneX < tiles[plane].length &&
+				sceneY >= 0 && sceneY < tiles[plane][sceneX].length)
+		{
+			return tiles[plane][sceneX][sceneY];
+		}
+		else
+		{
+			var ext = scene.getExtendedTiles();
+			if (ext != null &&
+					plane >= 0 && plane < ext.length &&
+					sceneX >= 0 && sceneX < ext[plane].length &&
+					sceneY >= 0 && sceneY < ext[plane][sceneX].length)
+			{
+				return ext[plane][sceneX][sceneY];
 			}
 		}
 
