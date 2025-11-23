@@ -1,6 +1,7 @@
 package com.barracudatrial;
 
 import com.barracudatrial.game.*;
+import com.barracudatrial.game.route.RouteWaypoint;
 import com.google.inject.Provides;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -162,8 +163,8 @@ public class BarracudaTrialPlugin extends Plugin
 			{
 				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
 				{
-					com.barracudatrial.game.route.RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
-					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_PICKUP
+					RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
+					if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_PICKUP
 						&& !gameState.isWaypointCompleted(i))
 					{
 						gameState.markWaypointCompleted(i);
@@ -184,8 +185,8 @@ public class BarracudaTrialPlugin extends Plugin
 			{
 				for (int i = 0; i < gameState.getCurrentStaticRoute().size(); i++)
 				{
-					com.barracudatrial.game.route.RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
-					if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.RUM_DROPOFF
+					RouteWaypoint waypoint = gameState.getCurrentStaticRoute().get(i);
+					if (waypoint.getType() == RouteWaypoint.WaypointType.RUM_DROPOFF
 						&& !gameState.isWaypointCompleted(i))
 					{
 						gameState.markWaypointCompleted(i);

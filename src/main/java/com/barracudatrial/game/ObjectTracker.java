@@ -1,5 +1,6 @@
 package com.barracudatrial.game;
 
+import com.barracudatrial.game.route.RouteWaypoint;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -369,8 +370,8 @@ public class ObjectTracker
 		Set<WorldPoint> waypointsToCheck = new HashSet<>();
 		for (int i = 0; i < state.getCurrentStaticRoute().size(); i++)
 		{
-			com.barracudatrial.game.route.RouteWaypoint waypoint = state.getCurrentStaticRoute().get(i);
-			if (waypoint.getType() == com.barracudatrial.game.route.RouteWaypoint.WaypointType.SHIPMENT)
+			RouteWaypoint waypoint = state.getCurrentStaticRoute().get(i);
+			if (waypoint.getType() == RouteWaypoint.WaypointType.SHIPMENT)
 			{
 				if (!state.isWaypointCompleted(i))
 				{

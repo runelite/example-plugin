@@ -2,7 +2,9 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
+import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
+import lombok.RequiredArgsConstructor;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
@@ -21,20 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class PathRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
 	private final ObjectRenderer objectRenderer;
 
-	public PathRenderer(Client client, BarracudaTrialPlugin plugin, ObjectRenderer objectRenderer)
-	{
-		this.client = client;
-		this.plugin = plugin;
-		this.objectRenderer = objectRenderer;
-	}
-
-	public void renderOptimalPath(Graphics2D graphics, int frameCounterForTracerAnimation)
+	public void renderOptimalPath(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		List<WorldPoint> currentSegmentPath = plugin.getGameState().getCurrentSegmentPath();
@@ -178,7 +174,7 @@ public class PathRenderer
 			return;
 		}
 
-		// Create Path2D for smooth Bezier curves
+		// Create Path2D for smooth Bézier curves
 		Path2D.Double path = new Path2D.Double();
 		path.moveTo(startCanvas.getX(), startCanvas.getY());
 
@@ -205,7 +201,7 @@ public class PathRenderer
 		// Draw line from boat to first waypoint
 		path.lineTo(canvasPoints.get(0).getX(), canvasPoints.get(0).getY());
 
-		// Draw smooth Bezier curves through waypoints
+		// Draw smooth Bézier curves through waypoints
 		if (canvasPoints.size() == 1)
 		{
 			// Just one point, already connected above
@@ -217,7 +213,7 @@ public class PathRenderer
 		}
 		else
 		{
-			// Three or more points - use Bezier curves
+			// Three or more points - use Bézier curves
 			for (int i = 0; i < canvasPoints.size() - 1; i++)
 			{
 				Point p0 = i > 0 ? canvasPoints.get(i - 1) : canvasPoints.get(i);
@@ -272,13 +268,13 @@ public class PathRenderer
 
 	private void renderWaypointLabels(Graphics2D graphics)
 	{
-		List<com.barracudatrial.game.route.RouteWaypoint> staticRoute = plugin.getGameState().getCurrentStaticRoute();
+		List<RouteWaypoint> staticRoute = plugin.getGameState().getCurrentStaticRoute();
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (staticRoute == null || topLevelWorldView == null) return;
 
 		graphics.setColor(Color.WHITE);
 		int index = 0;
-		for (com.barracudatrial.game.route.RouteWaypoint waypoint : staticRoute)
+		for (RouteWaypoint waypoint : staticRoute)
 		{
 			WorldPoint loc = waypoint.getLocation();
 			if (loc != null)

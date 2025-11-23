@@ -1,5 +1,6 @@
 package com.barracudatrial.pathfinding;
 
+import lombok.Getter;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.List;
 
 public class PathResult
 {
+	@Getter
 	private final List<PathNode> pathNodes;
 	private final double totalCost;
 
@@ -38,32 +40,5 @@ public class PathResult
 			return totalCost;
 		}
 		return totalCost - pathNodes.get(index).getCumulativeCost();
-	}
-
-	public List<PathNode> getPathNodes()
-	{
-		return pathNodes;
-	}
-}
-
-class PathNode
-{
-	private final WorldPoint position;
-	private final double cumulativeCost;
-
-	public PathNode(WorldPoint position, double cumulativeCost)
-	{
-		this.position = position;
-		this.cumulativeCost = cumulativeCost;
-	}
-
-	public WorldPoint getPosition()
-	{
-		return position;
-	}
-
-	public double getCumulativeCost()
-	{
-		return cumulativeCost;
 	}
 }

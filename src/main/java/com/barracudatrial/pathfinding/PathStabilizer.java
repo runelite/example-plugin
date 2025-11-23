@@ -10,9 +10,8 @@ public class PathStabilizer
 {
 	private final AStarPathfinder pathfinder;
 	private PathResult activePathResult;
-	private final int pathProximityTolerance = 2;
 
-	public PathStabilizer(AStarPathfinder pathfinder)
+    public PathStabilizer(AStarPathfinder pathfinder)
 	{
 		this.pathfinder = pathfinder;
 		this.activePathResult = null;
@@ -21,12 +20,6 @@ public class PathStabilizer
 	private double getImprovementThreshold(RouteOptimization optimization)
 	{
 		return optimization == RouteOptimization.EFFICIENT ? 0.95 : 0.80;
-	}
-
-	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
-	                                  int boatDirectionDx, int boatDirectionDy)
-	{
-		return findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, 0);
 	}
 
 	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance,
@@ -86,7 +79,8 @@ public class PathStabilizer
 			int dy = Math.abs(start.getY() - pathPoint.getY());
 			int chebyshevDistance = Math.max(dx, dy);
 
-			if (chebyshevDistance <= pathProximityTolerance)
+            int pathProximityTolerance = 2;
+            if (chebyshevDistance <= pathProximityTolerance)
 			{
 				return true;
 			}

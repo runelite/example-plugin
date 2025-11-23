@@ -2,6 +2,7 @@ package com.barracudatrial.game;
 
 import com.barracudatrial.game.route.Difficulty;
 import com.barracudatrial.game.route.RouteWaypoint;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
 
@@ -25,9 +26,11 @@ import java.util.List;
 @Slf4j
 public class RouteCapture
 {
+	@Getter
 	private boolean isCapturing = false;
 	private final List<RouteWaypoint> capturedWaypoints = new ArrayList<>();
-	private final List<WorldPoint> shipmentLocationsForVisualFeedback = new ArrayList<>();
+	@Getter
+	private final List<WorldPoint> examinedShipmentLocations = new ArrayList<>();
 	private final State state;
 
 	public RouteCapture(State state)
@@ -92,7 +95,7 @@ public class RouteCapture
 			}
 			
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.SHIPMENT, collectedLocation));
-			shipmentLocationsForVisualFeedback.add(collectedLocation);
+			examinedShipmentLocations.add(collectedLocation);
 			int waypointNumber = capturedWaypoints.size();
 			log.info("[ROUTE CAPTURE] Shipment #{}: {}", waypointNumber, formatWorldPoint(collectedLocation));
 		}
@@ -139,7 +142,7 @@ public class RouteCapture
 	{
 		isCapturing = true;
 		capturedWaypoints.clear();
-		shipmentLocationsForVisualFeedback.clear();
+		examinedShipmentLocations.clear();
 
 		log.info("[ROUTE CAPTURE] ========================================");
 		log.info("[ROUTE CAPTURE] STARTED - Pick up shipments in your desired order");
@@ -200,7 +203,7 @@ public class RouteCapture
 
 		isCapturing = false;
 		capturedWaypoints.clear();
-		shipmentLocationsForVisualFeedback.clear();
+		examinedShipmentLocations.clear();
 	}
 
 	/**
@@ -212,29 +215,12 @@ public class RouteCapture
 	}
 
 	/**
-	 * Check if route capture is currently active.
-	 */
-	public boolean isCapturing()
-	{
-		return isCapturing;
-	}
-
-	/**
 	 * Reset capture state (useful when leaving trial area).
 	 */
 	public void reset()
 	{
 		isCapturing = false;
 		capturedWaypoints.clear();
-		shipmentLocationsForVisualFeedback.clear();
-	}
-
-	/**
-	 * Get the list of examined shipment locations.
-	 * Used for visual feedback during route capture.
-	 */
-	public List<WorldPoint> getExaminedShipmentLocations()
-	{
-		return shipmentLocationsForVisualFeedback;
+		examinedShipmentLocations.clear();
 	}
 }

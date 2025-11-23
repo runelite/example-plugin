@@ -8,8 +8,6 @@ import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.ObjectID;
 
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ public class State
 	public static final int CLOUD_ANIM_HARMLESS = -1;
 	public static final int CLOUD_ANIM_HARMLESS_ALT = 8879;
 
-	public static final int LOST_SUPPLIES_PICKUP_RANGE = 2;
 	public static final int PATH_RECALC_INTERVAL = 2;
 
 	public static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available

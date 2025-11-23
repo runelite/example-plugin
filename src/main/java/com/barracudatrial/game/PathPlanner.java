@@ -7,8 +7,11 @@ import com.barracudatrial.game.route.TemporTantrumRoutes;
 import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import com.barracudatrial.pathfinding.PathStabilizer;
+import com.barracudatrial.rendering.ObjectRenderer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.NPC;
+import net.runelite.api.WorldView;
+import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.*;
@@ -270,14 +273,14 @@ public class PathPlanner
 	 */
 	private WorldPoint getInSceneTarget(WorldPoint start, WorldPoint target)
 	{
-		net.runelite.api.WorldView worldView = locationHelper.getTopLevelWorldView();
+		WorldView worldView = locationHelper.getTopLevelWorldView();
 		if (worldView == null)
 		{
 			return target;
 		}
 
 		// Check if target is already in extended scene
-		net.runelite.api.coords.LocalPoint targetLocal = com.barracudatrial.rendering.ObjectRenderer.localPointFromWorldIncludingExtended(worldView, target);
+		LocalPoint targetLocal = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, target);
 		if (targetLocal != null)
 		{
 			return target;
@@ -305,7 +308,7 @@ public class PathPlanner
 			int y = start.getY() + (dy * mid / maxDistance);
 			WorldPoint candidate = new WorldPoint(x, y, plane);
 
-			net.runelite.api.coords.LocalPoint lp = com.barracudatrial.rendering.ObjectRenderer.localPointFromWorldIncludingExtended(worldView, candidate);
+			LocalPoint lp = ObjectRenderer.localPointFromWorldIncludingExtended(worldView, candidate);
 			if (lp != null)
 			{
 				bestCandidate = candidate;
@@ -333,6 +336,6 @@ public class PathPlanner
 	{
 		WorldPoint getPathfindingPickupLocation();
 		WorldPoint getPathfindingDropoffLocation();
-		net.runelite.api.WorldView getTopLevelWorldView();
+		WorldView getTopLevelWorldView();
 	}
 }

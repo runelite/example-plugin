@@ -98,41 +98,16 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "tracerColor",
-		name = "Tracer Color",
-		description = "Color of the animated tracer pulse",
-		section = pathSection,
-		position = 5
-	)
-	@Alpha
-	default Color tracerColor()
-	{
-		return new Color(255, 255, 0, 255);
-	}
-
-	@ConfigItem(
 		keyName = "pathWidth",
 		name = "Path Width",
 		description = "Width of the path line",
 		section = pathSection,
-		position = 6
+		position = 5
 	)
 	@Range(min = 1, max = 10)
 	default int pathWidth()
 	{
 		return 2;
-	}
-
-	@ConfigItem(
-		keyName = "showPathTracer",
-		name = "Animated Tracer",
-		description = "Show an animated tracer along the path",
-		section = pathSection,
-		position = 7
-	)
-	default boolean showPathTracer()
-	{
-		return true;
 	}
 
 	@ConfigItem(

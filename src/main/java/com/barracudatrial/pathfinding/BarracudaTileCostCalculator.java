@@ -1,6 +1,7 @@
 package com.barracudatrial.pathfinding;
 
 import com.barracudatrial.RouteOptimization;
+import com.barracudatrial.game.route.RumLocations;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
@@ -12,8 +13,7 @@ import java.util.Set;
 
 public class BarracudaTileCostCalculator
 {
-	private final Set<WorldPoint> knownSpeedBoostLocations;
-	private final Set<WorldPoint> knownRockLocations;
+    private final Set<WorldPoint> knownRockLocations;
 	private final Set<GameObject> visibleRocks;
 	private final int exclusionZoneMinX;
 	private final int exclusionZoneMaxX;
@@ -43,8 +43,7 @@ public class BarracudaTileCostCalculator
 		int exclusionZoneMaxY,
 		RouteOptimization routeOptimization)
 	{
-		this.knownSpeedBoostLocations = knownSpeedBoostLocations;
-		this.knownRockLocations = knownRockLocations;
+        this.knownRockLocations = knownRockLocations;
 		this.visibleRocks = visibleRocks;
 		this.exclusionZoneMinX = exclusionZoneMinX;
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
@@ -130,12 +129,6 @@ public class BarracudaTileCostCalculator
 		return cost;
 	}
 
-	public void resetSpeedBoostState()
-	{
-		speedBoostTilesRemaining = 0;
-		lastTile = null;
-	}
-
 	private WorldPoint findNearbyUnconsumedBoost(WorldPoint tile)
 	{
 		WorldPoint boost = boostGrabbableTiles.get(tile);
@@ -194,15 +187,15 @@ public class BarracudaTileCostCalculator
 
 	private boolean isInBoatExclusionZone(WorldPoint point)
 	{
-		return isInRectangularZone(point, com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_PICKUP,
-				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH,
-				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT)
-			|| isInRectangularZone(point, com.barracudatrial.game.route.RumLocations.TEMPOR_TANTRUM_DROPOFF,
-				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH,
-				com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT);
+		return isInRectangularZone(point, RumLocations.TEMPOR_TANTRUM_PICKUP,
+				RumLocations.BOAT_EXCLUSION_WIDTH,
+				RumLocations.BOAT_EXCLUSION_HEIGHT)
+			|| isInRectangularZone(point, RumLocations.TEMPOR_TANTRUM_DROPOFF,
+				RumLocations.BOAT_EXCLUSION_WIDTH,
+				RumLocations.BOAT_EXCLUSION_HEIGHT);
 	}
 
-	private boolean isInRectangularZone(WorldPoint point, WorldPoint center, int width, int height)
+	private static boolean isInRectangularZone(WorldPoint point, WorldPoint center, int width, int height)
 	{
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;

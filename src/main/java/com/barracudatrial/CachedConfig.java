@@ -16,9 +16,7 @@ public class CachedConfig
 	@Getter private boolean showOptimalPath;
 	@Getter private RouteOptimization routeOptimization;
 	@Getter private Color pathColor;
-	@Getter private Color tracerColor;
 	@Getter private int pathWidth;
-	@Getter private boolean showPathTracer;
 	@Getter private int pathLookahead;
 
 	// Lost supplies settings
@@ -57,9 +55,7 @@ public class CachedConfig
 		showOptimalPath = config.showOptimalPath();
 		routeOptimization = config.routeOptimization();
 		pathColor = config.pathColor();
-		tracerColor = config.tracerColor();
 		pathWidth = config.pathWidth();
-		showPathTracer = config.showPathTracer();
 		pathLookahead = config.pathLookahead();
 
 		highlightLostSupplies = config.highlightLostSupplies();

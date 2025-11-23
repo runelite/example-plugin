@@ -21,7 +21,6 @@ public class BarracudaTrialOverlay extends Overlay
 	private final ObjectRenderer objectRenderer;
 	private final DebugRenderer debugRenderer;
 
-	private int currentFrameNumber = 0;
 	private final Map<Point, Integer> screenPositionLabelCounts = new HashMap<>();
 
 	@Inject
@@ -40,7 +39,6 @@ public class BarracudaTrialOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		currentFrameNumber++;
 		screenPositionLabelCounts.clear();
 
 		if (!plugin.getGameState().isInTrialArea())
@@ -49,14 +47,14 @@ public class BarracudaTrialOverlay extends Overlay
 		}
 
 		// Share label tracking across all renderers to prevent overlap
-		objectRenderer.setLabelCounts(screenPositionLabelCounts);
-		debugRenderer.setLabelCounts(screenPositionLabelCounts);
+		objectRenderer.setLabelCountsByCanvasPosition(screenPositionLabelCounts);
+		debugRenderer.setLabelCountsByCanvasPosition(screenPositionLabelCounts);
 
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 
 		if (cachedConfig.isShowOptimalPath())
 		{
-			pathRenderer.renderOptimalPath(graphics, currentFrameNumber);
+			pathRenderer.renderOptimalPath(graphics);
 		}
 
 		if (cachedConfig.isHighlightLostSupplies())

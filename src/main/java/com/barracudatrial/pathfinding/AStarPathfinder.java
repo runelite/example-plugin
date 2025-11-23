@@ -11,11 +11,6 @@ import java.util.*;
  */
 public class AStarPathfinder
 {
-	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy)
-	{
-		return findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, 0);
-	}
-
 	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy, int goalTolerance)
 	{
 		// Compute grabbable area around goal based on tolerance
@@ -122,7 +117,7 @@ public class AStarPathfinder
 			}
 		}
 
-		return new PathResult(new ArrayList<PathNode>(), Double.POSITIVE_INFINITY);
+		return new PathResult(new ArrayList<>(), Double.POSITIVE_INFINITY);
 	}
 
 	private double calculateTurningCost(RouteOptimization routeOptimization, Node current, WorldPoint neighbor)

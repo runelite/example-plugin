@@ -4,6 +4,8 @@ import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import com.barracudatrial.game.ObjectTracker;
 import com.barracudatrial.game.route.RouteWaypoint;
+import com.barracudatrial.game.route.RumLocations;
+import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -24,6 +26,7 @@ public class ObjectRenderer
 	private final BarracudaTrialPlugin plugin;
 	private final ModelOutlineRenderer modelOutlineRenderer;
 
+	@Setter
 	private Map<Point, Integer> labelCountsByCanvasPosition;
 
 	public ObjectRenderer(Client client, BarracudaTrialPlugin plugin, ModelOutlineRenderer modelOutlineRenderer)
@@ -31,11 +34,6 @@ public class ObjectRenderer
 		this.client = client;
 		this.plugin = plugin;
 		this.modelOutlineRenderer = modelOutlineRenderer;
-	}
-
-	public void setLabelCounts(Map<Point, Integer> labelCountsByCanvasPosition)
-	{
-		this.labelCountsByCanvasPosition = labelCountsByCanvasPosition;
 	}
 
 	public void renderLostSupplies(Graphics2D graphics)
@@ -168,7 +166,7 @@ public class ObjectRenderer
 		Color rumHighlightColor = cachedConfig.getRumLocationColor();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
-		WorldPoint targetRumLocation = null;
+		WorldPoint targetRumLocation;
 
 		if (isCarryingRum)
 		{
@@ -442,7 +440,7 @@ public class ObjectRenderer
 			return false;
 		}
 
-		com.barracudatrial.game.route.RouteWaypoint nextWaypoint = staticRoute.get(nextWaypointIndex);
+		RouteWaypoint nextWaypoint = staticRoute.get(nextWaypointIndex);
 		WorldPoint nextWaypointLocation = nextWaypoint.getLocation();
 
 		return nextWaypointLocation != null && nextWaypointLocation.equals(rumLocation);
@@ -456,8 +454,8 @@ public class ObjectRenderer
 			return;
 		}
 
-		int width = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_WIDTH;
-		int height = com.barracudatrial.game.route.RumLocations.BOAT_EXCLUSION_HEIGHT;
+		int width = RumLocations.BOAT_EXCLUSION_WIDTH;
+		int height = RumLocations.BOAT_EXCLUSION_HEIGHT;
 
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;
