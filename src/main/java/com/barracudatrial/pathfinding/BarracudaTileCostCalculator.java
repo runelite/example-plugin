@@ -71,7 +71,7 @@ public class BarracudaTileCostCalculator
 		WorldPoint nearbyBoost = findNearbyUnconsumedBoost(to);
 		if (nearbyBoost != null)
 		{
-			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -8.0 : -3.0;
+			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -8.0 : -5.0;
 			speedBoostTilesRemaining = 15;
 			consumedBoosts.add(nearbyBoost);
 		}
