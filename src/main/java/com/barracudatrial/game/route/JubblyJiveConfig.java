@@ -191,18 +191,6 @@ public class JubblyJiveConfig implements TrialConfig
 	}
 
 	@Override
-	public Pattern getPrimaryObjectivePickupPattern()
-	{
-		return null; // TODO: Jubbly-specific chat pattern
-	}
-
-	@Override
-	public Pattern getSecondaryObjectiveCompletionPattern()
-	{
-		return null; // TODO: Jubbly-specific chat pattern
-	}
-
-	@Override
 	public List<RouteWaypoint> getRoute(Difficulty difficulty)
 	{
 		return JubblyJiveRoutes.getRoute(difficulty);

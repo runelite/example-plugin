@@ -17,10 +17,6 @@ public interface TrialConfig
 	Set<Integer> getRockIds();
 	Set<Integer> getSpeedBoostIds();
 
-	// Chat message patterns for objective completion
-	Pattern getPrimaryObjectivePickupPattern();
-	Pattern getSecondaryObjectiveCompletionPattern();
-
 	// Routes
 	List<RouteWaypoint> getRoute(Difficulty difficulty);
 }

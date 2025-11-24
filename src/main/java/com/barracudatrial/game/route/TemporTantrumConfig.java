@@ -83,9 +83,6 @@ public class TemporTantrumConfig implements TrialConfig
 	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
 	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
 
-	private static final Pattern RUM_PICKUP_PATTERN = Pattern.compile("You collect the rum");
-	private static final Pattern RUM_DROPOFF_PATTERN = Pattern.compile("You deliver the rum");
-
 	@Override
 	public TrialType getTrialType()
 	{
@@ -144,18 +141,6 @@ public class TemporTantrumConfig implements TrialConfig
 	public int getExclusionMaxYOffset()
 	{
 		return EXCLUSION_MAX_Y_OFFSET;
-	}
-
-	@Override
-	public Pattern getPrimaryObjectivePickupPattern()
-	{
-		return RUM_PICKUP_PATTERN;
-	}
-
-	@Override
-	public Pattern getSecondaryObjectiveCompletionPattern()
-	{
-		return RUM_DROPOFF_PATTERN;
 	}
 
 	@Override
