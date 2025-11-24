@@ -247,7 +247,7 @@ public class PathPlanner
 		int tileDistance = start.distanceTo(target); // Chebyshev distance in tiles
 		
 		// Never too high, but allow seeking longer on long paths
-		int maximumAStarSearchDistance = Math.max(70, Math.min(150, tileDistance + 20));
+		int maximumAStarSearchDistance = Math.max(50, Math.min(180, tileDistance * 2));
 
 		// If target is beyond the search distance, clamp it to the nearest point within range
 		WorldPoint pathfindingTarget = getTargetWithinSearchDistance(start, target, maximumAStarSearchDistance);
