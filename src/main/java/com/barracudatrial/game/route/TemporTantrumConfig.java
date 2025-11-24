@@ -16,9 +16,9 @@ public class TemporTantrumConfig implements TrialConfig
 	public static final int BOAT_EXCLUSION_WIDTH = 8;
 	public static final int BOAT_EXCLUSION_HEIGHT = 3;
 
-	private static final int RUM_PICKUP_BASE_ID = 59240;
+	private static final int RUM_PICKUP_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_PARENT;
 	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
-	private static final int RUM_DROPOFF_BASE_ID = 59237;
+	private static final int RUM_DROPOFF_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_PARENT;
 	private static final int RUM_DROPOFF_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
 
 	private static final Set<Integer> SHIPMENT_IDS = Set.of(
