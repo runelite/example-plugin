@@ -2,6 +2,7 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
+import com.barracudatrial.game.route.JubblyJiveConfig;
 import com.barracudatrial.game.route.TemporTantrumConfig;
 import com.barracudatrial.game.route.TrialType;
 import lombok.Setter;
@@ -43,11 +44,6 @@ public class DebugRenderer
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		renderExclusionZoneVisualization(graphics);
 		renderBoatExclusionZones(graphics);
-
-		if (cachedConfig.isShowIDs())
-		{
-			renderAllRocksInSceneWithLabels(graphics);
-		}
 
 		renderFrontBoatTileDebug(graphics);
 		renderDebugTextOverlay(graphics);
@@ -116,8 +112,9 @@ public class DebugRenderer
 		var trial = plugin.getGameState().getCurrentTrial();
 		if (trial != null)
 		{
-			if (trial.getTrialType() == TrialType.TEMPOR_TANTRUM && trial instanceof TemporTantrumConfig tempor)
+			if (trial.getTrialType() == TrialType.TEMPOR_TANTRUM && trial instanceof TemporTantrumConfig)
 			{
+				var tempor = (TemporTantrumConfig)trial;
 				renderBoatExclusionZone(graphics, topLevelWorldView,
 					tempor.getRumPickupLocation(),
 					"BOAT (PICKUP)", boatExclusionColor);
@@ -126,8 +123,9 @@ public class DebugRenderer
 					tempor.getRumDropoffLocation(),
 					"BOAT (DROPOFF)", boatExclusionColor);
 			}
-			if (trial.getTrialType() == TrialType.JUBBLY_JIVE && trial instanceof JubblyJiveConfig jubbly)
+			if (trial.getTrialType() == TrialType.JUBBLY_JIVE && trial instanceof JubblyJiveConfig)
 			{
+				var jubbly = (JubblyJiveConfig)trial;
 				renderBoatExclusionZone(graphics, topLevelWorldView,
 					jubbly.getToadPickupLocation(),
 					"TOAD PICKUP", boatExclusionColor);
@@ -173,41 +171,6 @@ public class DebugRenderer
 			if (labelCanvasPoint != null)
 			{
 				OverlayUtil.renderTextLocation(graphics, labelCanvasPoint, label, new Color(255, 100, 0, 255));
-			}
-		}
-	}
-
-	private void renderAllRocksInSceneWithLabels(Graphics2D graphics)
-	{
-		Set<String> alreadyRenderedLabels = new HashSet<>();
-
-		for (GameObject rockObject : plugin.getAllRocksInScene())
-		{
-			LocalPoint rockLocalPoint = rockObject.getLocalLocation();
-
-			Color debugRockColor = new Color(255, 165, 0, 180);
-
-			Polygon tilePolygon = Perspective.getCanvasTilePoly(client, rockLocalPoint);
-			if (tilePolygon != null)
-			{
-				OverlayUtil.renderPolygon(graphics, tilePolygon, debugRockColor);
-			}
-
-			modelOutlineRenderer.drawOutline(rockObject, 2, debugRockColor, 4);
-
-			String rockLabel = buildObjectLabelWithImpostorInfo(rockObject);
-
-			boolean isLabelAlreadyRendered = alreadyRenderedLabels.contains(rockLabel);
-			if (!isLabelAlreadyRendered)
-			{
-				Point labelCanvasPoint = Perspective.getCanvasTextLocation(client, graphics, rockLocalPoint, rockLabel, 0);
-				if (labelCanvasPoint != null)
-				{
-					int yOffsetToAvoidLabelOverlap = calculateAndIncrementLabelOffset(labelCanvasPoint);
-					Point adjustedLabelPoint = new Point(labelCanvasPoint.getX(), labelCanvasPoint.getY() + yOffsetToAvoidLabelOverlap);
-					OverlayUtil.renderTextLocation(graphics, adjustedLabelPoint, rockLabel, debugRockColor);
-					alreadyRenderedLabels.add(rockLabel);
-				}
 			}
 		}
 	}
@@ -306,7 +269,6 @@ public class DebugRenderer
 		debugLines.add(String.format("Lightning Clouds: %d", plugin.getGameState().getLightningClouds().size()));
 		debugLines.add(String.format("Rocks (visible): %d", plugin.getGameState().getKnownRockLocations().size()));
 		debugLines.add(String.format("Speed Boosts (visible): %d", plugin.getGameState().getSpeedBoosts().size()));
-		debugLines.add(String.format("All Rocks (debug scan): %d", plugin.getAllRocksInScene().size()));
 		debugLines.add("");
 		debugLines.add("--- Persistent Storage ---");
 		debugLines.add(String.format("Known Rock Locations: %d", plugin.getGameState().getKnownRockLocations().size()));

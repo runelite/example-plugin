@@ -15,10 +15,7 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ObjectRenderer
 {
@@ -42,13 +39,21 @@ public class ObjectRenderer
 		var gameState = plugin.getGameState();
 		var lostSupplies = gameState.getLostSupplies();
 		var route = gameState.getCurrentStaticRoute();
+		var currentLap = gameState.getCurrentLap();
+
+		Set<WorldPoint> allRouteLocations = Collections.emptySet();
 		Set<WorldPoint> laterLapLocations = Collections.emptySet();
 		if (route != null && !route.isEmpty())
 		{
+			allRouteLocations = new HashSet<>(route.size());
 			laterLapLocations = new HashSet<>(route.size());
 			for (var waypoint : route)
 			{
-				laterLapLocations.add(waypoint.getLocation());
+				allRouteLocations.add(waypoint.getLocation());
+				if (currentLap != waypoint.getLap())
+				{
+					laterLapLocations.add(waypoint.getLocation());
+				}
 			}
 		}
 
@@ -60,49 +65,19 @@ public class ObjectRenderer
 				debugLabel = buildObjectLabelWithImpostorInfo(lostSupplyObject, "Lost Supplies");
 			}
 
-			var renderColor = laterLapLocations.contains(lostSupplyObject.getLocation())
+			var worldLocation = lostSupplyObject.getWorldLocation();
+
+			var renderColor = laterLapLocations.contains(worldLocation)
 				? cachedConfig.getLostSuppliesColorLaterLaps()
 				: cachedConfig.getLostSuppliesColorCurrentLap();
 
-			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, false, debugLabel);
-		}
-	}
-
-	public void renderRouteCaptureSupplyLocations(Graphics2D graphics)
-	{
-		CachedConfig cachedConfig = plugin.getCachedConfig();
-		Color highlightColor = cachedConfig.getLostSuppliesColor();
-
-		// Build a set of lost supply locations for quick lookup
-		Set<WorldPoint> lostSupplyLocations = new HashSet<>();
-		for (GameObject lostSupply : plugin.getGameState().getLostSupplies())
-		{
-			lostSupplyLocations.add(lostSupply.getWorldLocation());
-		}
-
-		for (WorldPoint supplyLocation : plugin.getGameState().getRouteCaptureSupplyLocations())
-		{
-			renderTileHighlightAtWorldPoint(graphics, supplyLocation, highlightColor);
-
-			// If showIDs is on and this location doesn't have a lost supply, show the object ID
-			if (cachedConfig.isShowIDs() && !lostSupplyLocations.contains(supplyLocation))
+			if (cachedConfig.isDebugMode() && (allRouteLocations.isEmpty() || !allRouteLocations.contains(worldLocation)))
 			{
-				GameObject gameObject = findGameObjectAtWorldPoint(client, supplyLocation);
-				if (gameObject != null)
-				{
-					String debugLabel = buildObjectLabelWithImpostorInfo(gameObject, "Visible Supply") +
-						String.format(" @ (%d, %d)", supplyLocation.getX(), supplyLocation.getY());
-					WorldView topLevelWorldView = client.getTopLevelWorldView();
-					if (topLevelWorldView != null)
-					{
-						LocalPoint localPoint = localPointFromWorldIncludingExtended(topLevelWorldView, supplyLocation);
-						if (localPoint != null)
-						{
-							renderLabelAtLocalPoint(graphics, localPoint, debugLabel, highlightColor, 0);
-						}
-					}
-				}
+				renderColor = Color.RED;
+				debugLabel = (debugLabel == null ? "" : debugLabel + " ") + "(not in route)";
 			}
+
+			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, false, debugLabel);
 		}
 	}
 
@@ -338,41 +313,39 @@ public class ObjectRenderer
 
 	private String buildObjectLabelWithImpostorInfo(GameObject gameObject, String typeName)
 	{
-		ObjectComposition objectComposition = client.getObjectDefinition(gameObject.getId());
+		ObjectComposition comp = client.getObjectDefinition(gameObject.getId());
 
-		String displayName;
-		if (typeName != null)
-		{
-			displayName = typeName;
-		}
-		else if (objectComposition != null && objectComposition.getName() != null)
-		{
-			displayName = objectComposition.getName();
-		}
-		else
-		{
-			displayName = "Unknown";
-		}
+		String name =
+				typeName != null ? typeName :
+						comp != null && comp.getName() != null ? comp.getName() :
+								"Unknown";
 
-		StringBuilder labelBuilder = new StringBuilder();
-		labelBuilder.append(displayName).append(" (ID: ").append(gameObject.getId());
+		WorldPoint wp = gameObject.getWorldLocation();
+		int sceneX = gameObject.getSceneMinLocation().getX();
+		int sceneY = gameObject.getSceneMinLocation().getY();
 
-		if (objectComposition != null)
+		StringBuilder sb = new StringBuilder();
+		sb.append(name)
+				.append(" (ID: ").append(gameObject.getId());
+
+		if (comp != null)
 		{
-			int[] impostorIds = objectComposition.getImpostorIds();
-			boolean hasImpostorIds = (impostorIds != null && impostorIds.length > 0);
-			if (hasImpostorIds)
+			int[] ids = comp.getImpostorIds();
+			if (ids != null && ids.length > 0)
 			{
-				ObjectComposition impostorComposition = objectComposition.getImpostor();
-				if (impostorComposition != null)
+				ObjectComposition imp = comp.getImpostor();
+				if (imp != null)
 				{
-					labelBuilder.append(", Imp: ").append(impostorComposition.getId());
+					sb.append(", Imp: ").append(imp.getId());
 				}
 			}
 		}
 
-		labelBuilder.append(")");
-		return labelBuilder.toString();
+		sb.append(", W: ").append(wp.getX()).append("/").append(wp.getY()).append("/").append(wp.getPlane());
+		sb.append(", S: ").append(sceneX).append("/").append(sceneY);
+		sb.append(")");
+
+		return sb.toString();
 	}
 
 	public static GameObject findGameObjectAtWorldPoint(Client client, WorldPoint worldPoint)

@@ -136,7 +136,7 @@ public class ObjectTracker
 		var knownBoosts = state.getSpeedBoosts();
 		var knownBoostTiles = state.getKnownSpeedBoostLocations();
 
-		var knownFetidPools = state.getKnownFetidPools();
+		var knownFetidPools = state.getFetidPools();
 		var knownFetidPoolTiles = state.getKnownFetidPoolLocations();
 
 		var knownToadPillars = state.getKnownToadPillars();
@@ -196,7 +196,7 @@ public class ObjectTracker
 
 						if (toadPillarClickboxParentIds.contains(id))
 						{
-							knownToadPillars.put(center, obj.getWorldLocation());
+							knownToadPillars.put(obj.getWorldLocation(), obj);
 							continue;
 						}
 					}

@@ -249,16 +249,13 @@ public class PathRenderer
 		}
 
 		Set<WorldPoint> boostLocations = plugin.getGameState().getKnownSpeedBoostLocations();
-		Map<WorldPoint, WorldPoint> boostGrabbableTiles = (boostLocations != null && !boostLocations.isEmpty())
-			? BarracudaTileCostCalculator.computeBoostGrabbableTiles(boostLocations)
-			: Map.of();
 
 		Color normalTileColor = new Color(255, 255, 0, 80);
 		Color boostTileColor = new Color(135, 206, 250, 100);
 
 		for (WorldPoint pathTile : path)
 		{
-			boolean isBoostTile = boostGrabbableTiles.containsKey(pathTile);
+			boolean isBoostTile = boostLocations.contains(pathTile);
 			Color tileColor = isBoostTile ? boostTileColor : normalTileColor;
 			String label = isBoostTile ? "Boost!" : null;
 

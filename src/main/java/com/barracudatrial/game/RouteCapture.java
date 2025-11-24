@@ -2,6 +2,7 @@ package com.barracudatrial.game;
 
 import com.barracudatrial.game.route.Difficulty;
 import com.barracudatrial.game.route.RouteWaypoint;
+import com.barracudatrial.game.route.TemporTantrumConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
@@ -134,9 +135,9 @@ public class RouteCapture
 		}
 
 		var trial = state.getCurrentTrial();
-		if (trial != null && trial instanceof TemporTantrumConfig tempor)
+		if (trial instanceof TemporTantrumConfig)
 		{
-			var location = tempor.getRumPickupLocation();
+			var location = state.getRumPickupLocation();
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_PICKUP, location));
 			log.info("[ROUTE CAPTURE] Rum pickup recorded (waypoint #{}): {}",
 				capturedWaypoints.size(), formatWorldPoint(location));
@@ -155,9 +156,10 @@ public class RouteCapture
 		}
 
 		var trial = state.getCurrentTrial();
-		if (trial != null)
+		if (trial instanceof TemporTantrumConfig)
 		{
-			var location = trial.getRumDropoffLocation();
+			var tempor = (TemporTantrumConfig) trial;
+			var location = tempor.getRumDropoffLocation();
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF, location));
 			log.info("[ROUTE CAPTURE] Rum dropoff recorded (waypoint #{}): {}",
 				capturedWaypoints.size(), formatWorldPoint(location));

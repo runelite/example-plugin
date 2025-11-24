@@ -141,11 +141,6 @@ public class BarracudaTrialPlugin extends Plugin
 			routeCapture.onShipmentsCollected(collected);
 		}
 
-		if (cachedConfig.isShowIDs())
-		{
-			objectTracker.updateAllRocksInScene();
-		}
-
 		if (cachedConfig.isShowOptimalPath())
 		{
 			// Recalculate path periodically to account for moving clouds

@@ -3,24 +3,22 @@ package com.barracudatrial.game.route;
 import lombok.Getter;
 import net.runelite.api.coords.WorldPoint;
 
+import static com.barracudatrial.game.route.RouteWaypoint.WaypointType.TOAD_PILLAR;
+
+@Getter
 public class JubblyJiveToadPillarWaypoint extends RouteWaypoint
 {
-	@Getter
 	JubblyJiveToadPillar pillar;
 
 	public JubblyJiveToadPillarWaypoint(JubblyJiveToadPillar pillar)
 	{
-		this.lap = 1;
-		this.type = TOAD_PILLAR;
-		this.location = pillar.getLocation();
+        super(TOAD_PILLAR, pillar.getLocation());
 		this.pillar = pillar;
 	}
 
 	public JubblyJiveToadPillarWaypoint(int lap, JubblyJiveToadPillar pillar)
 	{
-		this.lap = lap;
-		this.type = TOAD_PILLAR;
-		this.location = pillar.getLocation();
+		super(lap, TOAD_PILLAR, pillar.getLocation());
 		this.pillar = pillar;
 	}
 }

@@ -63,11 +63,6 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderLostSupplies(graphics);
 		}
 
-		if (cachedConfig.isDebugMode())
-		{
-			objectRenderer.renderRouteCaptureSupplyLocations(graphics);
-		}
-
 		var trial = plugin.getGameState().getCurrentTrial();
 		if (cachedConfig.isHighlightClouds() && trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
 		{
