@@ -141,6 +141,27 @@ public class BarracudaTileCostCalculator
 		return null;
 	}
 
+	public boolean isInDangerZone(WorldPoint tile)
+	{
+		return cloudDangerZones.contains(tile)
+			|| knownRockLocations.contains(tile)
+			|| visibleRockLocations.contains(tile)
+			|| veryCloseToRocks.contains(tile);
+	}
+
+	/**
+	 * Get a snapshot of all current danger zones for path stability tracking
+	 */
+	public Set<WorldPoint> getDangerZoneSnapshot()
+	{
+		Set<WorldPoint> snapshot = new HashSet<>();
+		snapshot.addAll(cloudDangerZones);
+		snapshot.addAll(knownRockLocations);
+		snapshot.addAll(visibleRockLocations);
+		snapshot.addAll(veryCloseToRocks);
+		return snapshot;
+	}
+
 	/**
 	 * Computes all tiles where a boost can be grabbed, mapping each tile to its boost center.
 	 * Boosts can be grabbed from a 3x3 area (Chebyshev distance <= 1) around their center.
