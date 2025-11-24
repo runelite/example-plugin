@@ -123,16 +123,29 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "lostSuppliesColor",
-		name = "Lost Supplies Color",
-		description = "Color for lost supplies highlights",
+		keyName = "lostSuppliesColorCurrentLap",
+		name = "Lost Supplies Color - Current Lap",
+		description = "Color for lost supplies highlights on current lap",
 		section = lostSuppliesSection,
 		position = 1
 	)
 	@Alpha
-	default Color lostSuppliesColor()
+	default Color lostSuppliesColorCurrentLap()
 	{
 		return new Color(255, 215, 0, 180);
+	}
+
+	@ConfigItem(
+		keyName = "lostSuppliesColorLaterLaps",
+		name = "Lost Supplies Color - Later Laps",
+		description = "Color for lost supplies highlights on later laps",
+		section = lostSuppliesSection,
+		position = 1
+	)
+	@Alpha
+	default Color lostSuppliesColorLaterLaps()
+	{
+		return new Color(255, 120, 0, 120);
 	}
 
 	@ConfigItem(

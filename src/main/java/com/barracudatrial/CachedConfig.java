@@ -21,7 +21,8 @@ public class CachedConfig
 
 	// Lost supplies settings
 	@Getter private boolean highlightLostSupplies;
-	@Getter private Color lostSuppliesColor;
+	@Getter private Color lostSuppliesColorCurrentLap;
+	@Getter private Color lostSuppliesColorLaterLaps;
 	@Getter private boolean highlightRumLocations;
 	@Getter private Color rumLocationColor;
 
@@ -59,7 +60,8 @@ public class CachedConfig
 		pathLookahead = config.pathLookahead();
 
 		highlightLostSupplies = config.highlightLostSupplies();
-		lostSuppliesColor = config.lostSuppliesColor();
+		lostSuppliesColorCurrentLap = config.lostSuppliesColorCurrentLap();
+		lostSuppliesColorLaterLaps = config.lostSuppliesColorLaterLaps();
 		highlightRumLocations = config.highlightRumLocations();
 		rumLocationColor = config.rumLocationColor();
 

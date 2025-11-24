@@ -39,7 +39,20 @@ public class ObjectRenderer
 	public void renderLostSupplies(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
-		for (GameObject lostSupplyObject : plugin.getGameState().getLostSupplies())
+		var gameState = plugin.getGameState();
+		var lostSupplies = gameState.getLostSupplies();
+		var route = gameState.getCurrentStaticRoute();
+		Set<WorldPoint> laterLapLocations = Collections.emptySet();
+		if (route != null && !route.isEmpty())
+		{
+			laterLapLocations = new HashSet<>(route.size());
+			for (var waypoint : route)
+			{
+				laterLapLocations.add(waypoint.getLocation());
+			}
+		}
+
+		for (var lostSupplyObject : lostSupplies)
 		{
 			String debugLabel = null;
 			if (cachedConfig.isShowIDs())
@@ -47,22 +60,9 @@ public class ObjectRenderer
 				debugLabel = buildObjectLabelWithImpostorInfo(lostSupplyObject, "Lost Supplies");
 			}
 
-			// Check if this shipment has been examined during route capture
-			Color renderColor = cachedConfig.getLostSuppliesColor();
-			if (plugin.getRouteCapture() != null && plugin.getRouteCapture().isCapturing())
-			{
-				WorldPoint shipmentLocation = lostSupplyObject.getWorldLocation();
-				if (plugin.getRouteCapture().getExaminedShipmentLocations().contains(shipmentLocation))
-				{
-					// Invert RGB to show it's been examined
-					renderColor = new Color(
-						255 - renderColor.getRed(),
-						255 - renderColor.getGreen(),
-						255 - renderColor.getBlue(),
-						renderColor.getAlpha()
-					);
-				}
-			}
+			var renderColor = laterLapLocations.contains(lostSupplyObject.getLocation())
+				? cachedConfig.getLostSuppliesColorLaterLaps()
+				: cachedConfig.getLostSuppliesColorCurrentLap();
 
 			renderGameObjectWithHighlight(graphics, lostSupplyObject, renderColor, false, debugLabel);
 		}
