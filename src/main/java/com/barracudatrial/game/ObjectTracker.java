@@ -86,13 +86,8 @@ public class ObjectTracker
 	{
 		if (!state.isInTrialArea())
 		{
-			state.getRocks().clear();
-			state.getSpeedBoosts().clear();
 			return;
 		}
-
-		state.getRocks().clear();
-		state.getSpeedBoosts().clear();
 
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -132,42 +127,65 @@ public class ObjectTracker
 			return;
 		}
 
-		var rockIds = trial.getRockIds();
-		var speedBoostIds = trial.getSpeedBoostIds();
+		var rockIds        = trial.getRockIds();
+		var speedBoostIds  = trial.getSpeedBoostIds();
 
-        for (Tile[][] tiles : tileArray) {
-            if (tiles == null) {
-                continue;
-            }
+		var knownRocks     = state.getRocks();
+		var knownRockTiles = state.getKnownRockLocations();
 
-            for (Tile[] value : tiles) {
-                if (value == null) {
-                    continue;
-                }
+		var knownBoosts     = state.getSpeedBoosts();
+		var knownBoostTiles = state.getKnownSpeedBoostLocations();
 
-                for (Tile tile : value) {
-                    if (tile == null) {
-                        continue;
-                    }
+		for (var plane : tileArray)
+		{
+			if (plane == null) continue;
 
-                    for (GameObject gameObject : tile.getGameObjects()) {
-                        if (gameObject == null) {
-                            continue;
-                        }
+			for (var column : plane)
+			{
+				if (column == null) continue;
 
-                        int objectId = gameObject.getId();
+				for (var tile : column)
+				{
+					if (tile == null) continue;
 
-                        if (rockIds.contains(objectId)) {
-                            state.getRocks().add(gameObject);
-                            state.getKnownRockLocations().addAll(ObjectTracker.getObjectTiles(gameObject));
-                        } else if (speedBoostIds.contains(objectId)) {
-                            state.getSpeedBoosts().add(gameObject);
-                            state.getKnownSpeedBoostLocations().addAll(ObjectTracker.getObjectTiles(gameObject));
-                        }
-                    }
-                }
-            }
-        }
+					// Skip scanning tiles we already know about
+					WorldPoint tileWp = tile.getWorldLocation();
+					if (knownRockTiles.contains(tileWp) || knownBoostTiles.contains(tileWp))
+					{
+						continue;
+					}
+
+					for (var obj : tile.getGameObjects())
+					{
+						if (obj == null) continue;
+
+						int id = obj.getId();
+
+						if (rockIds.contains(id))
+						{
+							if (!knownRocks.contains(obj))
+							{
+								knownRocks.add(obj);
+								knownRockTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							}
+
+							continue;
+						}
+
+						if (speedBoostIds.contains(id))
+						{
+							if (!knownBoosts.contains(obj))
+							{
+								knownBoosts.add(obj);
+								knownBoostTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							}
+
+							continue;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
