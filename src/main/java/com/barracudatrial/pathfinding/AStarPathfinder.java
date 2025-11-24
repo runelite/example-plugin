@@ -13,20 +13,8 @@ public class AStarPathfinder
 {
 	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy, int goalTolerance)
 	{
-		// With a tolerance provided, we can be in a range of tiles around the goal and it counts as being in the goal
-		Set<WorldPoint> goalTiles = new HashSet<>();
-		if (goalTolerance > 0)
-		{
-			goalTiles.addAll(computeGrabbableTiles(Set.of(goal), goalTolerance).keySet());
-		}
-		else
-		{
-			goalTiles.add(goal);
-		}
-
 		PriorityQueue<Node> openSet = new PriorityQueue<>(
 			Comparator.comparingDouble((Node n) -> n.fScore)
-				.thenComparingDouble(n -> minDistanceToAnyGoal(n.position, goalTiles))
 		);
 		Map<WorldPoint, Node> allNodes = new HashMap<>();
 
@@ -50,7 +38,13 @@ public class AStarPathfinder
 				continue;
 			}
 
-			if (goalTiles.contains(current.position))
+			// Check if we're within tolerance of the goal using Chebyshev distance (max of dx, dy)
+			// This ensures we stop as soon as we're close enough, without biasing toward the exact center
+			int dx = Math.abs(current.position.getX() - goal.getX());
+			int dy = Math.abs(current.position.getY() - goal.getY());
+			int distanceToGoal = Math.max(dx, dy);
+
+			if (distanceToGoal <= goalTolerance)
 			{
 				return new PathResult(reconstructPath(current), current.gScore);
 			}
@@ -227,28 +221,6 @@ public class AStarPathfinder
 	private double heuristic(WorldPoint from, WorldPoint to)
 	{
 		return 0; // Dijkstra mode - guarantees optimal paths with negative costs
-	}
-
-	/**
-	 * Manhattan distance for tie-breaking
-	 * Not used as heuristic (due to negative costs), but used to break ties
-	 * towards the goal when f-scores are equal
-	 */
-	private double manhattanDistance(WorldPoint from, WorldPoint to)
-	{
-		return Math.abs(from.getX() - to.getX()) + Math.abs(from.getY() - to.getY());
-	}
-
-	/**
-	 * Finds minimum manhattan distance from a position to any goal tile
-	 * Used for tie-breaking to prefer paths toward the nearest reachable goal
-	 */
-	private double minDistanceToAnyGoal(WorldPoint from, Set<WorldPoint> goals)
-	{
-		return goals.stream()
-			.mapToDouble(goal -> manhattanDistance(from, goal))
-			.min()
-			.orElse(Double.POSITIVE_INFINITY);
 	}
 
 	/**
