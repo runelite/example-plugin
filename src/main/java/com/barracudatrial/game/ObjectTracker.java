@@ -25,54 +25,7 @@ public class ObjectTracker
 	private final Client client;
 	private final State state;
 
-	private static final int LIGHTNING_CLOUD_IDLE = NpcID.SAILING_SEA_STORMY_CLOUD;
-	private static final int LIGHTNING_CLOUD_ATTACKING = NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE;
-
-	public static final Set<Integer> LOST_SUPPLIES_BASE_IDS = Set.of(
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_1,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_2,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_3,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_4,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_5,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_6,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_7,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_8,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_9,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_10,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_11,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_12,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_13,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_14,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_15,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_16,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_17,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_18,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_19,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_20,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_21,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_22,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_23,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_24,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_25,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_26,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_27,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_28,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_29,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_30,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_31,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_32,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_33,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_34,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_35,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_36
-	);
-	public static final int LOST_SUPPLIES_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
-
-	// Most rock IDs don't have constants available
-	private static final Set<Integer> ROCK_IDS = Set.of(
-		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444
-	);
-
+	// Speed boosts are shared across all trials
 	private static final Set<Integer> SPEED_BOOST_IDS = Set.of(
 		ObjectID.SAILING_RAPIDS, ObjectID.SAILING_RAPIDS_STRONG,
 		ObjectID.SAILING_RAPIDS_POWERFUL, ObjectID.SAILING_RAPIDS_DEADLY
@@ -85,12 +38,19 @@ public class ObjectTracker
 	}
 
 	/**
-	 * Updates lightning cloud tracking by scanning all NPCs
+	 * Updates hazard NPC tracking (e.g., lightning clouds for Tempor Tantrum)
 	 * Spawn/despawn events are unreliable, so we actively scan instead
 	 */
 	public void updateLightningCloudTracking()
 	{
 		if (!state.isInTrialArea())
+		{
+			state.getLightningClouds().clear();
+			return;
+		}
+
+		var trial = state.getCurrentTrial();
+		if (trial == null || trial.getHazardNpcIds().isEmpty())
 		{
 			state.getLightningClouds().clear();
 			return;
@@ -104,6 +64,7 @@ public class ObjectTracker
 			return;
 		}
 
+		var hazardNpcIds = trial.getHazardNpcIds();
 		for (NPC npc : topLevelWorldView.npcs())
 		{
 			if (npc == null)
@@ -112,7 +73,7 @@ public class ObjectTracker
 			}
 
 			int npcId = npc.getId();
-			if (npcId == LIGHTNING_CLOUD_IDLE || npcId == LIGHTNING_CLOUD_ATTACKING)
+			if (hazardNpcIds.contains(npcId))
 			{
 				state.getLightningClouds().add(npc);
 			}
@@ -172,6 +133,14 @@ public class ObjectTracker
 
 	private void scanTileArrayForRocksAndSpeedBoosts(Tile[][][] tileArray)
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return;
+		}
+
+		var rockIds = trial.getRockIds();
+
         for (Tile[][] tiles : tileArray) {
             if (tiles == null) {
                 continue;
@@ -194,7 +163,7 @@ public class ObjectTracker
 
                         int objectId = gameObject.getId();
 
-                        if (ROCK_IDS.contains(objectId)) {
+                        if (rockIds.contains(objectId)) {
                             state.getRocks().add(gameObject);
                             state.getKnownRockLocations().add(gameObject.getWorldLocation());
                         } else if (SPEED_BOOST_IDS.contains(objectId)) {
@@ -219,7 +188,18 @@ public class ObjectTracker
 			return;
 		}
 
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			state.getAllRocksInScene().clear();
+			return;
+		}
+
 		state.getAllRocksInScene().clear();
+
+		var rockIds = trial.getRockIds();
+		var shipmentIds = trial.getShipmentBaseIds();
+		int shipmentImpostorId = trial.getShipmentImpostorId();
 
 		Scene scene = client.getScene();
 		Tile[][][] tileArray = scene.getTiles();
@@ -252,13 +232,13 @@ public class ObjectTracker
 
 						int objectId = gameObject.getId();
 
-						if (ROCK_IDS.contains(objectId))
+						if (rockIds.contains(objectId))
 						{
 							state.getAllRocksInScene().add(gameObject);
 							continue;
 						}
 
-						if (LOST_SUPPLIES_BASE_IDS.contains(objectId) || objectId == LOST_SUPPLIES_IMPOSTOR_ID)
+						if (shipmentIds.contains(objectId) || objectId == shipmentImpostorId)
 						{
 							continue;
 						}
@@ -505,6 +485,15 @@ public class ObjectTracker
 			return foundSupplyLocations;
 		}
 
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return foundSupplyLocations;
+		}
+
+		var shipmentIds = trial.getShipmentBaseIds();
+		int shipmentImpostorId = trial.getShipmentImpostorId();
+
 		for (var plane : tileArray)
 		{
 			if (plane == null) continue;
@@ -522,8 +511,8 @@ public class ObjectTracker
 						if (gameObject == null) continue;
 
 						int objectId = gameObject.getId();
-						if (!LOST_SUPPLIES_BASE_IDS.contains(objectId)
-							&& objectId != LOST_SUPPLIES_IMPOSTOR_ID)
+						if (!shipmentIds.contains(objectId)
+							&& objectId != shipmentImpostorId)
 						{
 							continue;
 						}
@@ -550,6 +539,15 @@ public class ObjectTracker
 	 */
 	private boolean hasBaseShipmentButNoImpostor(Scene scene, WorldPoint worldLocation)
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return false;
+		}
+
+		var shipmentIds = trial.getShipmentBaseIds();
+		int shipmentImpostorId = trial.getShipmentImpostorId();
+
 		int plane = worldLocation.getPlane();
 		int sceneX = worldLocation.getX() - scene.getBaseX();
 		int sceneY = worldLocation.getY() - scene.getBaseY();
@@ -583,12 +581,12 @@ public class ObjectTracker
 
 			int objectId = gameObject.getId();
 
-			if (LOST_SUPPLIES_BASE_IDS.contains(objectId))
+			if (shipmentIds.contains(objectId))
 			{
 				hasBaseShipment = true;
 			}
 
-			if (objectId == LOST_SUPPLIES_IMPOSTOR_ID)
+			if (objectId == shipmentImpostorId)
 			{
 				hasImpostor = true;
 			}
@@ -637,6 +635,14 @@ public class ObjectTracker
 
 	public void processLostSupplyTile(Tile tile, Set<GameObject> newlyFoundLostSupplies)
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return;
+		}
+
+		var shipmentIds = trial.getShipmentBaseIds();
+
 		GameObject[] gameObjects = tile.getGameObjects();
 		if (gameObjects == null)
 		{
@@ -650,7 +656,7 @@ public class ObjectTracker
 				continue;
 			}
 
-			if (!LOST_SUPPLIES_BASE_IDS.contains(gameObject.getId()))
+			if (!shipmentIds.contains(gameObject.getId()))
 			{
 				continue;
 			}
@@ -677,6 +683,14 @@ public class ObjectTracker
 	 */
 	public boolean isLostSupplyCurrentlyCollectible(GameObject gameObject)
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return false;
+		}
+
+		int shipmentImpostorId = trial.getShipmentImpostorId();
+
 		try
 		{
 			ObjectComposition objectComposition = client.getObjectDefinition(gameObject.getId());
@@ -688,7 +702,7 @@ public class ObjectTracker
 			int[] impostorIds = objectComposition.getImpostorIds();
 			if (impostorIds == null)
 			{
-				return gameObject.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
+				return gameObject.getId() == shipmentImpostorId;
 			}
 
 			ObjectComposition activeImpostor = objectComposition.getImpostor();
@@ -697,7 +711,7 @@ public class ObjectTracker
 				return false;
 			}
 
-			return activeImpostor.getId() == LOST_SUPPLIES_IMPOSTOR_ID;
+			return activeImpostor.getId() == shipmentImpostorId;
 		}
 		catch (Exception e)
 		{

@@ -3,7 +3,6 @@ package com.barracudatrial.game;
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.game.route.Difficulty;
 import com.barracudatrial.game.route.RouteWaypoint;
-import com.barracudatrial.game.route.TemporTantrumRoutes;
 import com.barracudatrial.pathfinding.AStarPathfinder;
 import com.barracudatrial.pathfinding.BarracudaTileCostCalculator;
 import com.barracudatrial.pathfinding.PathStabilizer;
@@ -93,19 +92,28 @@ public class PathPlanner
 
 	private void loadStaticRouteForCurrentDifficulty()
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			log.warn("Trial config not initialized, cannot load route");
+			state.setCurrentStaticRoute(new ArrayList<>());
+			return;
+		}
+
 		Difficulty difficulty = state.getCurrentDifficulty();
-		List<RouteWaypoint> staticRoute = TemporTantrumRoutes.getRoute(difficulty);
+		List<RouteWaypoint> staticRoute = trial.getRoute(difficulty);
 
 		if (staticRoute == null || staticRoute.isEmpty())
 		{
-			log.warn("No static route found for difficulty: {}", difficulty);
+			log.warn("No static route found for trial {} difficulty: {}", trial.getTrialType(), difficulty);
 			state.setCurrentStaticRoute(new ArrayList<>());
 			return;
 		}
 
 		state.setCurrentStaticRoute(staticRoute);
 		state.setNextWaypointIndex(0);
-		log.debug("Loaded static route for difficulty {} with {} waypoints", difficulty, staticRoute.size());
+		log.debug("Loaded static route for {} difficulty {} with {} waypoints",
+			trial.getTrialType(), difficulty, staticRoute.size());
 	}
 
 	/**
@@ -216,6 +224,8 @@ public class PathPlanner
 			state.getExclusionZoneMaxX(),
 			state.getExclusionZoneMinY(),
 			state.getExclusionZoneMaxY(),
+			state.getRumPickupLocation(),
+			state.getRumReturnLocation(),
 			cachedConfig.getRouteOptimization()
 		);
 

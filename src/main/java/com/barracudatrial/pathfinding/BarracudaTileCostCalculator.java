@@ -1,7 +1,6 @@
 package com.barracudatrial.pathfinding;
 
 import com.barracudatrial.RouteOptimization;
-import com.barracudatrial.game.route.RumLocations;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
@@ -13,6 +12,10 @@ import java.util.Set;
 
 public class BarracudaTileCostCalculator
 {
+	// Boat exclusion zone dimensions (small rectangle around objective boats)
+	private static final int BOAT_EXCLUSION_WIDTH = 8;
+	private static final int BOAT_EXCLUSION_HEIGHT = 3;
+
     private final Set<WorldPoint> knownRockLocations;
 	private final Set<GameObject> visibleRocks;
 	private final int exclusionZoneMinX;
@@ -20,6 +23,8 @@ public class BarracudaTileCostCalculator
 	private final int exclusionZoneMinY;
 	private final int exclusionZoneMaxY;
 	private final RouteOptimization routeOptimization;
+	private final WorldPoint primaryObjectiveLocation;
+	private final WorldPoint secondaryObjectiveLocation;
 
 	private int speedBoostTilesRemaining = 0;
 	private WorldPoint lastTile = null;
@@ -41,6 +46,8 @@ public class BarracudaTileCostCalculator
 		int exclusionZoneMaxX,
 		int exclusionZoneMinY,
 		int exclusionZoneMaxY,
+		WorldPoint primaryObjectiveLocation,
+		WorldPoint secondaryObjectiveLocation,
 		RouteOptimization routeOptimization)
 	{
         this.knownRockLocations = knownRockLocations;
@@ -49,6 +56,8 @@ public class BarracudaTileCostCalculator
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
 		this.exclusionZoneMinY = exclusionZoneMinY;
 		this.exclusionZoneMaxY = exclusionZoneMaxY;
+		this.primaryObjectiveLocation = primaryObjectiveLocation;
+		this.secondaryObjectiveLocation = secondaryObjectiveLocation;
 		this.routeOptimization = routeOptimization;
 
 		this.visibleRockLocations = precomputeVisibleRockLocations(visibleRocks);
@@ -189,12 +198,18 @@ public class BarracudaTileCostCalculator
 
 	private boolean isInBoatExclusionZone(WorldPoint point)
 	{
-		return isInRectangularZone(point, RumLocations.TEMPOR_TANTRUM_PICKUP,
-				RumLocations.BOAT_EXCLUSION_WIDTH,
-				RumLocations.BOAT_EXCLUSION_HEIGHT)
-			|| isInRectangularZone(point, RumLocations.TEMPOR_TANTRUM_DROPOFF,
-				RumLocations.BOAT_EXCLUSION_WIDTH,
-				RumLocations.BOAT_EXCLUSION_HEIGHT);
+		if (primaryObjectiveLocation == null && secondaryObjectiveLocation == null)
+		{
+			return false;
+		}
+
+		boolean inPrimaryZone = primaryObjectiveLocation != null
+			&& isInRectangularZone(point, primaryObjectiveLocation, BOAT_EXCLUSION_WIDTH, BOAT_EXCLUSION_HEIGHT);
+
+		boolean inSecondaryZone = secondaryObjectiveLocation != null
+			&& isInRectangularZone(point, secondaryObjectiveLocation, BOAT_EXCLUSION_WIDTH, BOAT_EXCLUSION_HEIGHT);
+
+		return inPrimaryZone || inSecondaryZone;
 	}
 
 	private static boolean isInRectangularZone(WorldPoint point, WorldPoint center, int width, int height)

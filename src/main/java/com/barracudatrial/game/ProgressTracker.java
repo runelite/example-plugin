@@ -1,5 +1,9 @@
 package com.barracudatrial.game;
 
+import com.barracudatrial.game.route.JubblyJiveConfig;
+import com.barracudatrial.game.route.TemporTantrumConfig;
+import com.barracudatrial.game.route.TrialConfig;
+import com.barracudatrial.game.route.TrialType;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.gameval.InterfaceID;
@@ -60,12 +64,20 @@ public class ProgressTracker
 			return;
 		}
 
-		// Detect and store trial name
+		// Detect and store trial name, initialize trial config
 		String trialName = detectTrialType();
 		if (trialName != null && !trialName.equals(state.getCurrentTrialName()))
 		{
 			log.debug("Detected trial: {}", trialName);
 			state.setCurrentTrialName(trialName);
+
+			TrialType trialType = TrialType.fromDisplayName(trialName);
+			if (trialType != null)
+			{
+				TrialConfig trialConfig = createTrialConfig(trialType);
+				state.setCurrentTrial(trialConfig);
+				log.info("Initialized trial config for: {}", trialType);
+			}
 		}
 
 		Widget rumProgressWidget = client.getWidget(InterfaceID.SailingBtHud.BT_TRACKER_PROGRESS);
@@ -196,5 +208,26 @@ public class ProgressTracker
 		}
 
 		return null;
+	}
+
+	/**
+	 * Creates the appropriate trial configuration based on the trial type
+	 */
+	private TrialConfig createTrialConfig(TrialType trialType)
+	{
+		switch (trialType)
+		{
+			case TEMPOR_TANTRUM:
+				return new TemporTantrumConfig();
+			case JUBBLY_JIVE:
+				return new JubblyJiveConfig();
+			case GWENITH_GLIDE:
+				// TODO: Implement GwenithGlideConfig when needed
+				log.warn("Gwenith Glide config not yet implemented, using Tempor Tantrum as fallback");
+				return new TemporTantrumConfig();
+			default:
+				log.warn("Unknown trial type: {}, using Tempor Tantrum as fallback", trialType);
+				return new TemporTantrumConfig();
+		}
 	}
 }

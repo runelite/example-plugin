@@ -3,26 +3,15 @@ package com.barracudatrial.game;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.gameval.ObjectID;
 
 /**
- * Manages rum locations and exclusion zone calculations for Barracuda Trial
+ * Manages objective locations (rum for Tempor, etc.) and exclusion zone calculations
  */
 @Slf4j
 public class LocationManager
 {
 	private final Client client;
 	private final State state;
-
-	private static final int RUM_RETURN_BASE_OBJECT_ID = 59237; // No constant available
-	private static final int RUM_RETURN_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
-	private static final int RUM_PICKUP_BASE_OBJECT_ID = 59240; // No constant available
-	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
-
-	private static final int EXCLUSION_MIN_X_OFFSET = -26;
-	private static final int EXCLUSION_MAX_X_OFFSET = 22;
-	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
-	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
 
 	public LocationManager(Client client, State state)
 	{
@@ -85,6 +74,15 @@ public class LocationManager
 
 	private void scanSceneForRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
 	{
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return;
+		}
+
+		var primaryObjectiveIds = trial.getPrimaryObjectiveIds();
+		var secondaryObjectiveIds = trial.getSecondaryObjectiveIds();
+
 		Tile[][][] tileArray = scene.getTiles();
 		if (tileArray == null)
 		{
@@ -142,19 +140,11 @@ public class LocationManager
 						}
 
 						int objectId = gameObject.getId();
-						boolean isRumReturnObject = false;
-						boolean isRumPickupObject = false;
+						boolean isPrimaryObjective = primaryObjectiveIds.contains(objectId);
+						boolean isSecondaryObjective = secondaryObjectiveIds.contains(objectId);
 
-						if (objectId == RUM_RETURN_BASE_OBJECT_ID)
-						{
-							isRumReturnObject = true;
-						}
-						else if (objectId == RUM_PICKUP_BASE_OBJECT_ID)
-						{
-							isRumPickupObject = true;
-						}
-
-						if (!isRumReturnObject && !isRumPickupObject)
+						// Check impostor IDs if not found in base IDs
+						if (!isPrimaryObjective && !isSecondaryObjective)
 						{
 							try
 							{
@@ -165,13 +155,13 @@ public class LocationManager
 									if (activeImpostor != null)
 									{
 										int impostorId = activeImpostor.getId();
-										if (impostorId == RUM_RETURN_IMPOSTOR_ID)
+										if (primaryObjectiveIds.contains(impostorId))
 										{
-											isRumReturnObject = true;
+											isPrimaryObjective = true;
 										}
-										else if (impostorId == RUM_PICKUP_IMPOSTOR_ID)
+										else if (secondaryObjectiveIds.contains(impostorId))
 										{
-											isRumPickupObject = true;
+											isSecondaryObjective = true;
 										}
 									}
 								}
@@ -181,24 +171,26 @@ public class LocationManager
 							}
 						}
 
-						if (isRumReturnObject)
+						if (isSecondaryObjective)
 						{
+							// Secondary objective (rum dropoff for Tempor, etc.)
 							// Use the boat's real world location, not the gameObject's location
 							if (state.getRumReturnLocation() == null || !state.getRumReturnLocation().equals(boatWorldLocation))
 							{
 								state.setRumReturnLocation(boatWorldLocation);
-								log.info("Found rum return location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
+								log.info("Found secondary objective location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
 									boatWorldLocation, objectId, planeIndex, xIndex, yIndex);
 								calculateExclusionZoneBounds(boatWorldLocation);
 							}
 						}
-						else if (isRumPickupObject)
+						else if (isPrimaryObjective)
 						{
+							// Primary objective (rum pickup for Tempor, etc.)
 							// Use the boat's real world location, not the gameObject's location
 							if (state.getRumPickupLocation() == null || !state.getRumPickupLocation().equals(boatWorldLocation))
 							{
 								state.setRumPickupLocation(boatWorldLocation);
-								log.info("Found rum pickup location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
+								log.info("Found primary objective location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
 									boatWorldLocation, objectId, planeIndex, xIndex, yIndex);
 							}
 						}
@@ -209,15 +201,21 @@ public class LocationManager
 	}
 
 	/**
-	 * Calculates exclusion zone boundaries from rum return location
+	 * Calculates exclusion zone boundaries from secondary objective location
 	 * The exclusion zone is the center island area we circle around
 	 */
-	private void calculateExclusionZoneBounds(WorldPoint rumReturnWorldLocation)
+	private void calculateExclusionZoneBounds(WorldPoint secondaryObjectiveLocation)
 	{
-		int exclusionZoneMinX = rumReturnWorldLocation.getX() + EXCLUSION_MIN_X_OFFSET;
-		int exclusionZoneMaxX = rumReturnWorldLocation.getX() + EXCLUSION_MAX_X_OFFSET;
-		int exclusionZoneMinY = rumReturnWorldLocation.getY() + EXCLUSION_MIN_Y_OFFSET;
-		int exclusionZoneMaxY = rumReturnWorldLocation.getY() + EXCLUSION_MAX_Y_OFFSET;
+		var trial = state.getCurrentTrial();
+		if (trial == null)
+		{
+			return;
+		}
+
+		int exclusionZoneMinX = secondaryObjectiveLocation.getX() + trial.getExclusionMinXOffset();
+		int exclusionZoneMaxX = secondaryObjectiveLocation.getX() + trial.getExclusionMaxXOffset();
+		int exclusionZoneMinY = secondaryObjectiveLocation.getY() + trial.getExclusionMinYOffset();
+		int exclusionZoneMaxY = secondaryObjectiveLocation.getY() + trial.getExclusionMaxYOffset();
 
 		state.setExclusionZoneMinX(exclusionZoneMinX);
 		state.setExclusionZoneMaxX(exclusionZoneMaxX);

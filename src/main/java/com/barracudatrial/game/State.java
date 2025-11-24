@@ -2,6 +2,7 @@ package com.barracudatrial.game;
 
 import com.barracudatrial.game.route.Difficulty;
 import com.barracudatrial.game.route.RouteWaypoint;
+import com.barracudatrial.game.route.TrialConfig;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.GameObject;
@@ -21,6 +22,9 @@ import java.util.Set;
 @Getter
 public class State
 {
+	@Setter
+	private TrialConfig currentTrial = null;
+
 	public static final int CLOUD_ANIM_HARMLESS = -1;
 	public static final int CLOUD_ANIM_HARMLESS_ALT = 8879;
 
@@ -151,6 +155,7 @@ public class State
 	 */
 	public void resetAllTemporaryState()
 	{
+		currentTrial = null;
 		inTrialArea = false;
 		lostSupplies.clear();
 		routeCaptureSupplyLocations.clear();
