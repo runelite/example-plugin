@@ -23,12 +23,6 @@ public interface TrialConfig
 	Set<Integer> getRockIds();
 	Set<Integer> getSpeedBoostIds();
 
-	// Exclusion zone offsets (relative to primary objective location)
-	int getExclusionMinXOffset();
-	int getExclusionMaxXOffset();
-	int getExclusionMinYOffset();
-	int getExclusionMaxYOffset();
-
 	// Chat message patterns for objective completion
 	Pattern getPrimaryObjectivePickupPattern();
 	Pattern getSecondaryObjectiveCompletionPattern();

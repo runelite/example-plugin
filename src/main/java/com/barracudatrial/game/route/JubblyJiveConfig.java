@@ -96,12 +96,6 @@ public class JubblyJiveConfig implements TrialConfig
 	// PLACEHOLDER: Tempor locations, will need actual Jubbly locations
 	private static final WorldPoint PLACEHOLDER_OBJECTIVE_LOCATION = new WorldPoint(3037, 2767, 0);
 
-	// PLACEHOLDER: Tempor exclusion zone, will need Jubbly-specific values
-	private static final int EXCLUSION_MIN_X_OFFSET = -26;
-	private static final int EXCLUSION_MAX_X_OFFSET = 22;
-	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
-	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
-
 	@Override
 	public TrialType getTrialType()
 	{
@@ -154,30 +148,6 @@ public class JubblyJiveConfig implements TrialConfig
 	public Set<Integer> getSpeedBoostIds()
 	{
 		return SPEED_BOOST_IDS;
-	}
-
-	@Override
-	public int getExclusionMinXOffset()
-	{
-		return EXCLUSION_MIN_X_OFFSET; // PLACEHOLDER
-	}
-
-	@Override
-	public int getExclusionMaxXOffset()
-	{
-		return EXCLUSION_MAX_X_OFFSET; // PLACEHOLDER
-	}
-
-	@Override
-	public int getExclusionMinYOffset()
-	{
-		return EXCLUSION_MIN_Y_OFFSET; // PLACEHOLDER
-	}
-
-	@Override
-	public int getExclusionMaxYOffset()
-	{
-		return EXCLUSION_MAX_Y_OFFSET; // PLACEHOLDER
 	}
 
 	@Override

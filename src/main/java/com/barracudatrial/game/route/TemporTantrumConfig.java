@@ -140,25 +140,21 @@ public class TemporTantrumConfig implements TrialConfig
 		return SPEED_BOOST_IDS;
 	}
 
-	@Override
 	public int getExclusionMinXOffset()
 	{
 		return EXCLUSION_MIN_X_OFFSET;
 	}
 
-	@Override
 	public int getExclusionMaxXOffset()
 	{
 		return EXCLUSION_MAX_X_OFFSET;
 	}
 
-	@Override
 	public int getExclusionMinYOffset()
 	{
 		return EXCLUSION_MIN_Y_OFFSET;
 	}
 
-	@Override
 	public int getExclusionMaxYOffset()
 	{
 		return EXCLUSION_MAX_Y_OFFSET;

@@ -23,17 +23,17 @@ public class LocationManager
 	 * Updates rum locations by searching WorldEntity scenes
 	 * Should be called every game tick while in trial area
 	 */
-	public void updateRumLocations()
+	public void updateTemporRumLocations()
 	{
 		if (!state.isInTrialArea())
 		{
 			return;
 		}
 
-		searchForRumLocationsInWorldEntities();
+		searchForTemporRumLocationsInWorldEntities();
 	}
 
-	private void searchForRumLocationsInWorldEntities()
+	private void searchForTemporRumLocationsInWorldEntities()
 	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
@@ -68,11 +68,11 @@ public class LocationManager
 			}
 
 			// Pass the WorldEntity so we can get its real world location
-			scanSceneForRumReturnAndPickupLocations(entityScene, worldEntity);
+			scanSceneForTemporRumReturnAndPickupLocations(entityScene, worldEntity);
 		}
 	}
 
-	private void scanSceneForRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
+	private void scanSceneForTemporRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
 	{
 		var trial = state.getCurrentTrial();
 		if (trial == null)
@@ -180,7 +180,7 @@ public class LocationManager
 								state.setRumReturnLocation(boatWorldLocation);
 								log.info("Found secondary objective location: {} (ObjectID: {}, Plane: {}, SceneTile: [{},{}])",
 									boatWorldLocation, objectId, planeIndex, xIndex, yIndex);
-								calculateExclusionZoneBounds(boatWorldLocation);
+								calculateTemporExclusionZoneBounds(boatWorldLocation);
 							}
 						}
 						else if (isPrimaryObjective)
@@ -204,7 +204,7 @@ public class LocationManager
 	 * Calculates exclusion zone boundaries from secondary objective location
 	 * The exclusion zone is the center island area we circle around
 	 */
-	private void calculateExclusionZoneBounds(WorldPoint secondaryObjectiveLocation)
+	private void calculateTemporExclusionZoneBounds(WorldPoint secondaryObjectiveLocation)
 	{
 		var trial = state.getCurrentTrial();
 		if (trial == null)

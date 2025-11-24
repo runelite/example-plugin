@@ -100,9 +100,10 @@ public class BarracudaTrialPlugin extends Plugin
 			objectTracker.updateLightningCloudTracking();
 		}
 
-		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRumLocations())
+		if (trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM
+			&& (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRumLocations()))
 		{
-			locationManager.updateRumLocations();
+			locationManager.updateTemporRumLocations();
 		}
 
 		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRocks() || cachedConfig.isHighlightSpeedBoosts())
