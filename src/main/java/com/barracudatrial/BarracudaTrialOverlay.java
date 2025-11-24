@@ -74,11 +74,6 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderLightningClouds(graphics);
 		}
 
-		if (cachedConfig.isHighlightRocks())
-		{
-			objectRenderer.renderRocks(graphics);
-		}
-
 		if (cachedConfig.isHighlightSpeedBoosts())
 		{
 			objectRenderer.renderSpeedBoosts(graphics);

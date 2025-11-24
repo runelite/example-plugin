@@ -132,20 +132,6 @@ public class ObjectRenderer
 		}
 	}
 
-	public void renderRocks(Graphics2D graphics)
-	{
-		CachedConfig cachedConfig = plugin.getCachedConfig();
-		for (GameObject rockObject : plugin.getGameState().getRocks())
-		{
-			String debugLabel = null;
-			if (cachedConfig.isShowIDs())
-			{
-				debugLabel = buildObjectLabelWithImpostorInfo(rockObject, "Rock");
-			}
-			renderGameObjectWithHighlight(graphics, rockObject, cachedConfig.getRockColor(), true, debugLabel);
-		}
-	}
-
 	public void renderSpeedBoosts(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();

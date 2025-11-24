@@ -212,36 +212,11 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "highlightRocks",
-		name = "Highlight Rocks",
-		description = "Rocks stop your momentum when hit",
-		section = hazardSection,
-		position = 0
-	)
-	default boolean highlightRocks()
-	{
-		return false;
-	}
-
-	@ConfigItem(
-		keyName = "rockColor",
-		name = "Rock Color",
-		description = "Color for rock highlights",
-		section = hazardSection,
-		position = 1
-	)
-	@Alpha
-	default Color rockColor()
-	{
-		return new Color(128, 128, 128, 150);
-	}
-
-	@ConfigItem(
 		keyName = "highlightSpeedBoosts",
 		name = "Highlight Speed Boosts",
 		description = "Highlight speed boost areas",
 		section = hazardSection,
-		position = 2
+		position = 0
 	)
 	default boolean highlightSpeedBoosts()
 	{
@@ -253,7 +228,7 @@ public interface BarracudaTrialConfig extends Config
 		name = "Speed Boost Color",
 		description = "Color for speed boost highlights",
 		section = hazardSection,
-		position = 3
+		position = 1
 	)
 	@Alpha
 	default Color speedBoostColor()

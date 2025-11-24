@@ -32,8 +32,6 @@ public class CachedConfig
 	@Getter private int cloudDangerRadius;
 
 	// Hazard settings
-	@Getter private boolean highlightRocks;
-	@Getter private Color rockColor;
 	@Getter private boolean highlightSpeedBoosts;
 	@Getter private Color speedBoostColor;
 
@@ -69,8 +67,6 @@ public class CachedConfig
 		cloudColor = config.cloudColor();
 		cloudDangerRadius = config.cloudDangerRadius();
 
-		highlightRocks = config.highlightRocks();
-		rockColor = config.rockColor();
 		highlightSpeedBoosts = config.highlightSpeedBoosts();
 		speedBoostColor = config.speedBoostColor();
 

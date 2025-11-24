@@ -304,7 +304,7 @@ public class DebugRenderer
 		debugLines.add("");
 		debugLines.add("--- Visible Objects ---");
 		debugLines.add(String.format("Lightning Clouds: %d", plugin.getGameState().getLightningClouds().size()));
-		debugLines.add(String.format("Rocks (visible): %d", plugin.getGameState().getRocks().size()));
+		debugLines.add(String.format("Rocks (visible): %d", plugin.getGameState().getKnownRockLocations().size()));
 		debugLines.add(String.format("Speed Boosts (visible): %d", plugin.getGameState().getSpeedBoosts().size()));
 		debugLines.add(String.format("All Rocks (debug scan): %d", plugin.getAllRocksInScene().size()));
 		debugLines.add("");

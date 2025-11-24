@@ -218,7 +218,7 @@ public class PathPlanner
 		BarracudaTileCostCalculator tileCostCalculator = new BarracudaTileCostCalculator(
 			state.getKnownSpeedBoostLocations(),
 			state.getKnownRockLocations(),
-			state.getRocks(),
+			state.getKnownFetidPoolLocations(),
 			currentlyDangerousClouds,
 			state.getExclusionZoneMinX(),
 			state.getExclusionZoneMaxX(),

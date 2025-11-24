@@ -108,9 +108,10 @@ public class BarracudaTrialPlugin extends Plugin
 
 		if (cachedConfig.isShowOptimalPath()
 			|| cachedConfig.isHighlightRocks()
-			|| cachedConfig.isHighlightSpeedBoosts())
+			|| cachedConfig.isHighlightSpeedBoosts()
+		 	|| routeCapture.isCapturing())
 		{
-			objectTracker.updateHazardsAndSpeedBoosts();
+			objectTracker.updateHazardsSpeedBoostsAndToadPillars();
 		}
 
 		progressTracker.updateTrialProgressFromWidgets();

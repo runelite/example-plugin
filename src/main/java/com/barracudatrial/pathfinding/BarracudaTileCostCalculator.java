@@ -35,10 +35,12 @@ public class BarracudaTileCostCalculator
 	private final Set<WorldPoint> closeToRocks;
 	private final Set<WorldPoint> cloudDangerZones;
 	private final Map<WorldPoint, WorldPoint> boostGrabbableTiles;
+	private final Set<WorldPoint> fetidPoolLocations;
 
 	public BarracudaTileCostCalculator(
 		Set<WorldPoint> knownSpeedBoostLocations,
 		Set<WorldPoint> knownRockLocations,
+		Set<WorldPoint> knownFetidPoolLocations,
 		Set<NPC> lightningClouds,
 		int exclusionZoneMinX,
 		int exclusionZoneMaxX,
@@ -60,6 +62,7 @@ public class BarracudaTileCostCalculator
 		this.closeToRocks = precomputeRockProximity(rockLocations, 1);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
 		this.boostGrabbableTiles = knownSpeedBoostLocations;
+		this.fetidPoolLocations = knownFetidPoolLocations;
 	}
 
 	public double getTileCost(WorldPoint from, WorldPoint to)

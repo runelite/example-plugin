@@ -45,13 +45,9 @@ public class State
 
 	private final Set<NPC> lightningClouds = new HashSet<>();
 
-	private final Set<GameObject> rocks = new HashSet<>();
-
 	private final Set<GameObject> speedBoosts = new HashSet<>();
 
 	private final Set<GameObject> fetidPools = new HashSet<>();
-
-	private final Set<GameObject> allRocksInScene = new HashSet<>();
 
 	@Setter
 	private WorldPoint rumPickupLocation = null;
@@ -110,6 +106,8 @@ public class State
 
 	private final Set<WorldPoint> knownFetidPoolLocations = new HashSet<>();
 
+	private final Map<WorldPoint, GameObject> knownToadPillars = new HashSet<>();
+
 	private final Set<WorldPoint> knownLostSuppliesSpawnLocations = new HashSet<>();
 
 	@Setter
@@ -164,9 +162,7 @@ public class State
 		lostSupplies.clear();
 		routeCaptureSupplyLocations.clear();
 		lightningClouds.clear();
-		rocks.clear();
 		speedBoosts.clear();
-		allRocksInScene.clear();
 		rumPickupLocation = null;
 		rumReturnLocation = null;
 		rumsCollected = 0;

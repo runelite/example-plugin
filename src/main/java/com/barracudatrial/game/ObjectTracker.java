@@ -78,7 +78,7 @@ public class ObjectTracker
 		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
 	}
 
-	public void updateHazardsAndSpeedBoosts()
+	public void updateHazardsSpeedBoostsAndToadPillars()
 	{
 		if (!state.isInTrialArea())
 		{
@@ -97,38 +97,41 @@ public class ObjectTracker
 			return;
 		}
 
-		scanTileArrayForHazardsAndSpeedBoosts(scene);
-	}
-
-	private void scanTileArrayForHazardsAndSpeedBoosts(Scene scene)
-	{
 		Tile[][][] regularTiles = scene.getTiles();
 		if (regularTiles != null)
 		{
-			scanTileArrayForHazardsAndSpeedBoosts(regularTiles);
+			scanTileArrayForHazardsSpeedBoostsAndToadPillars(regularTiles);
 		}
 
 		// Skipping for performance - probably don't need to read extended for this
 		// Tile[][][] extendedTiles = scene.getExtendedTiles();
 		// if (extendedTiles != null)
 		// {
-		// 	scanTileArrayForHazardsAndSpeedBoosts(extendedTiles);
+		// 	scanTileArrayForHazardsSpeedBoostsAndToadPillars(extendedTiles);
 		// }
 	}
 
-	private void scanTileArrayForHazardsAndSpeedBoosts(Tile[][][] tileArray)
+	private void scanTileArrayForHazardsSpeedBoostsAndToadPillars(Tile[][][] tileArray)
 	{
 		var trial = state.getCurrentTrial();
 		if (trial == null)
 		{
 			return;
 		}
+		var trialType = getTrialType();
 
 		var rockIds = trial.getRockIds();
 		var speedBoostIds = trial.getSpeedBoostIds();
 		var fetidPoolIds = JubbyJiveConfig.FETID_POOL_IDS;
+		var toadPillarClickboxParentIds = 
+			getTrialType() == TrialType.JUBBLY_JIVE
+				? List.of()
+				: JubbyJiveConfig.TOAD_PILLARS
+					.stream()
+					.map(JubblyJiveToadPillar::parentId)
+					.toList();
 
-		var knownRocks = state.getRocks();
+
 		var knownRockTiles = state.getKnownRockLocations();
 
 		var knownBoosts = state.getSpeedBoosts();
@@ -136,6 +139,12 @@ public class ObjectTracker
 
 		var knownFetidPools = state.getKnownFetidPools();
 		var knownFetidPoolTiles = state.getKnownFetidPoolLocations();
+
+		var knownToadPillars = state.getKnownToadPillars();
+		var knownToadPillarLocations =
+			getTrialType() == TrialType.JUBBLY_JIVE
+				? Set.<WorldPoint>of()
+				: knownToadPillars.keySet();
 
 		for (var plane : tileArray)
 		{
@@ -149,7 +158,8 @@ public class ObjectTracker
 				{
 					if (tile == null) continue;
 
-					// Skip scanning tiles we already know about
+					// Skip scanning tiles we already know about.
+					// Except Toad Pillars as we want to update them
 					WorldPoint tileWp = tile.getWorldLocation();
 					if (knownRockTiles.contains(tileWp) || knownBoostTiles.contains(tileWp) || knownFetidPoolTiles.contains(tileWp))
 					{
@@ -164,34 +174,30 @@ public class ObjectTracker
 
 						if (rockIds.contains(id))
 						{
-							if (!knownRocks.contains(obj))
-							{
-								knownRocks.add(obj);
-								knownRockTiles.addAll(ObjectTracker.getObjectTiles(obj));
-							}
+							knownRockTiles.addAll(ObjectTracker.getObjectTiles(obj));
 
 							continue;
 						}
 
 						if (speedBoostIds.contains(id))
 						{
-							if (!knownBoosts.contains(obj))
-							{
-								knownBoosts.add(obj);
-								knownBoostTiles.addAll(ObjectTracker.getObjectTiles(obj));
-							}
+							knownBoosts.add(obj);
+							knownBoostTiles.addAll(ObjectTracker.getObjectTiles(obj));
 
 							continue;
 						}
 
 						if (fetidPoolIds.contains(id))
 						{
-							if (!knownFetidPools.contains(obj))
-							{
-								knownFetidPools.add(obj);
-								knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(obj));
-							}
+							knownFetidPools.add(obj);
+							knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(obj));
 
+							continue;
+						}
+
+						if (toadPillarClickboxParentIds.contains(id))
+						{
+							knownToadPillars.put(center, obj.getWorldLocation());
 							continue;
 						}
 					}
