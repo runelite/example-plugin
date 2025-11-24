@@ -316,9 +316,11 @@ public class ObjectRenderer
 		ObjectComposition comp = client.getObjectDefinition(gameObject.getId());
 
 		String name =
-				typeName != null ? typeName :
-						comp != null && comp.getName() != null ? comp.getName() :
-								"Unknown";
+				typeName != null
+				? typeName
+				: comp != null && comp.getName() != null
+					? comp.getName()
+					: "Unknown";
 
 		WorldPoint wp = gameObject.getWorldLocation();
 		int sceneX = gameObject.getSceneMinLocation().getX();

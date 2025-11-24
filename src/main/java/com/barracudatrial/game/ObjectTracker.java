@@ -1,8 +1,6 @@
 package com.barracudatrial.game;
 
-import com.barracudatrial.game.route.RouteWaypoint;
-import com.barracudatrial.game.route.TemporTantrumConfig;
-import com.barracudatrial.game.route.TrialType;
+import com.barracudatrial.game.route.*;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -13,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.barracudatrial.game.RouteCapture.formatWorldPoint;
-import com.barracudatrial.game.route.JubblyJiveConfig;
-import com.barracudatrial.game.route.JubblyJiveToadPillar;
 
 
 /**
@@ -140,10 +136,6 @@ public class ObjectTracker
 		var knownFetidPoolTiles = state.getKnownFetidPoolLocations();
 
 		var knownToadPillars = state.getKnownToadPillars();
-		var knownToadPillarLocations =
-			trialType == TrialType.JUBBLY_JIVE
-				? Set.<WorldPoint>of()
-				: knownToadPillars.keySet();
 
 		for (var plane : tileArray)
 		{
@@ -196,13 +188,79 @@ public class ObjectTracker
 
 						if (toadPillarClickboxParentIds.contains(id))
 						{
-							knownToadPillars.put(obj.getWorldLocation(), obj);
+							onToadPillarTick(knownToadPillars, obj);
 							continue;
 						}
 					}
 				}
 			}
 		}
+	}
+
+	public void onToadPillarTick(Map<WorldPoint, GameObject> knownToadPillars, GameObject newToadPillarObj)
+	{
+		var previousObj = knownToadPillars.put(newToadPillarObj.getWorldLocation(), newToadPillarObj);
+
+		// First time seeing this toad pillar
+		if (previousObj == null)
+		{
+			return;
+		}
+
+		var route = state.getCurrentStaticRoute();
+		if (route == null || route.isEmpty())
+		{
+			return;
+		}
+
+		var previousComp = client.getObjectDefinition(previousObj.getId());
+		var previousImposterIds = previousComp != null ? previousComp.getImpostorIds() : null;
+		var prevList = previousImposterIds == null
+			? List.of()
+			: Arrays.stream(previousImposterIds).boxed().collect(Collectors.toList());
+
+		var newComp = client.getObjectDefinition(newToadPillarObj.getId());
+		var newImposterIds = newComp != null ? newComp.getImpostorIds() : null;
+		var newList = newImposterIds == null
+			? List.of()
+			: Arrays.stream(newImposterIds).boxed().collect(Collectors.toList());
+
+		if (!prevList.equals(newList))
+		{
+			return;
+		}
+
+		var objectId = newToadPillarObj.getId();
+
+		log.info("Detected Imposter change. Trying to find id {} in list of waypoints. Found {} old imposterIDs and {} new imposterIds", objectId, prevList, newList);
+
+		for (int index = 0; index < route.size(); index++)
+		{
+			var waypoint = route.get(index);
+
+			if (!(waypoint instanceof JubblyJiveToadPillarWaypoint))
+			{
+				continue;
+			}
+
+			var pillarWaypoint = (JubblyJiveToadPillarWaypoint) waypoint;
+
+			if (pillarWaypoint.getPillar().getClickboxParentObjectId() != newToadPillarObj.getId())
+			{
+				continue;
+			}
+
+			if (state.isWaypointCompleted(index))
+			{
+				log.info("Found match but it was already completed, seeing if there's more...");
+				continue;
+			}
+
+			log.info("Found match! Completing it in our waypoint list.");
+			state.markWaypointCompleted(index);
+		}
+
+		log.warn("Couldn't find a match to update! That seems wrong - how did we update the imposter without it being in the list?");
 	}
 
 	/**
