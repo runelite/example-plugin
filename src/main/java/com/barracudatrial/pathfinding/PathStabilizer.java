@@ -124,25 +124,32 @@ public class PathStabilizer
 	private boolean isWithinProximityOfPath(WorldPoint start, PathResult pathResult, List<RouteWaypoint> currentStaticRoute)
 	{
 		var pathNodes = pathResult.getPathNodes();
-
-		var requiredWaypoints = currentStaticRoute.stream()
-			.map(RouteWaypoint::getLocation)
-			.collect(Collectors.toSet());
-
-		for (var pathNode : pathNodes)
+		if (pathNodes.isEmpty())
 		{
-			var nodePosition = pathNode.getPosition();
+			return false;
+		}
+
+		int closestIndex = -1;
+		int minDistance = Integer.MAX_VALUE;
+
+		for (int i = 0; i < pathNodes.size(); i++)
+		{
+			var nodePosition = pathNodes.get(i).getPosition();
 			int dx = Math.abs(start.getX() - nodePosition.getX());
 			int dy = Math.abs(start.getY() - nodePosition.getY());
 			int chebyshevDistance = Math.max(dx, dy);
 
-            int pathProximityTolerance = 3;
-            if (chebyshevDistance <= pathProximityTolerance)
+			if (chebyshevDistance < minDistance)
 			{
-				return true;
+				minDistance = chebyshevDistance;
+				closestIndex = i;
 			}
 		}
-		return false;
+
+		// If closest to the start of the path, allow larger tolerance (merging from waypoint pickup)
+		int tolerance = (closestIndex == 0) ? 5 : 3;
+
+		return minDistance <= tolerance;
 	}
 
 	private boolean isNewPathSignificantlyBetter(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, PathResult activePathResult, PathResult newPathResult)
