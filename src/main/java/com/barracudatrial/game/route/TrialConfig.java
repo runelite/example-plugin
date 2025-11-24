@@ -14,10 +14,6 @@ public interface TrialConfig
 	Set<Integer> getShipmentBaseIds();
 	int getShipmentImpostorId();
 
-	// Trial-specific objective locations (rum pickup/dropoff for Tempor, toad pillars for Jubbly, etc)
-	Set<Integer> getPrimaryObjectiveIds();
-	Set<Integer> getSecondaryObjectiveIds();
-
 	Set<Integer> getRockIds();
 	Set<Integer> getSpeedBoostIds();
 

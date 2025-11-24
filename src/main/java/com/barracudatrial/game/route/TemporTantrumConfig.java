@@ -104,18 +104,6 @@ public class TemporTantrumConfig implements TrialConfig
 		return SHIPMENT_IMPOSTOR_ID;
 	}
 
-	@Override
-	public Set<Integer> getPrimaryObjectiveIds()
-	{
-		return Set.of(RUM_PICKUP_BASE_ID, RUM_PICKUP_IMPOSTOR_ID);
-	}
-
-	@Override
-	public Set<Integer> getSecondaryObjectiveIds()
-	{
-		return Set.of(RUM_DROPOFF_BASE_ID, RUM_DROPOFF_IMPOSTOR_ID);
-	}
-
 	public WorldPoint getRumPickupLocation()
 	{
 		return RUM_PICKUP_LOCATION;

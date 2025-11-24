@@ -173,18 +173,6 @@ public class JubblyJiveConfig implements TrialConfig
 		return SHIPMENT_IMPOSTOR_ID;
 	}
 
-	@Override
-	public Set<Integer> getPrimaryObjectiveIds()
-	{
-		return Set.of(); // TODO: Toad pillar object IDs
-	}
-
-	@Override
-	public Set<Integer> getSecondaryObjectiveIds()
-	{
-		return Set.of(); // TODO: Jubbly bird or related object IDs
-	}
-
 	public WorldPoint getToadPickupLocation()
 	{
 		return TOAD_PICKUP_LOCATION;
