@@ -81,9 +81,26 @@ public class ObjectRenderer
 		}
 	}
 
+	public void renderSpeedBoosts(Graphics2D graphics)
+	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
+		var color = cachedConfig.getSpeedBoostColor();
+
+		for (GameObject speedBoostObject : plugin.getGameState().getSpeedBoosts())
+		{
+			String debugLabel = null;
+			if (cachedConfig.isShowIDs())
+			{
+				debugLabel = buildObjectLabelWithImpostorInfo(speedBoostObject, "Speed Boost");
+			}
+			renderGameObjectWithHighlight(graphics, speedBoostObject, color, true, debugLabel);
+		}
+	}
+
 	public void renderLightningClouds(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
+		Color color = cachedConfig.getCloudColor();
 		for (NPC cloudNpc : plugin.getGameState().getLightningClouds())
 		{
 			int currentAnimation = cloudNpc.getAnimation();
@@ -94,30 +111,29 @@ public class ObjectRenderer
 				continue;
 			}
 
-			Color dangerousCloudColor = cachedConfig.getCloudColor();
-
-			renderCloudDangerAreaOnGround(graphics, cloudNpc, dangerousCloudColor);
+			renderCloudDangerAreaOnGround(graphics, cloudNpc, color);
 
 			String debugLabel = null;
 			if (cachedConfig.isShowIDs())
 			{
 				debugLabel = String.format("Cloud (ID: %d, Anim: %d)", cloudNpc.getId(), cloudNpc.getAnimation());
 			}
-			renderNpcWithHighlight(graphics, cloudNpc, dangerousCloudColor, debugLabel);
+			renderNpcWithHighlight(graphics, cloudNpc, color, debugLabel);
 		}
 	}
 
-	public void renderSpeedBoosts(Graphics2D graphics)
+	public void renderFetidPools(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
-		for (GameObject speedBoostObject : plugin.getGameState().getSpeedBoosts())
+		var color = cachedConfig.getFetidPoolColor();
+		for (GameObject fetidPool : plugin.getGameState().getFetidPools())
 		{
 			String debugLabel = null;
 			if (cachedConfig.isShowIDs())
 			{
-				debugLabel = buildObjectLabelWithImpostorInfo(speedBoostObject, "Speed Boost");
+				debugLabel = buildObjectLabelWithImpostorInfo(fetidPool, "Fetid Pool");
 			}
-			renderGameObjectWithHighlight(graphics, speedBoostObject, cachedConfig.getSpeedBoostColor(), true, debugLabel);
+			renderGameObjectWithHighlight(graphics, fetidPool, color, true, debugLabel);
 		}
 	}
 

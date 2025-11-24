@@ -27,18 +27,11 @@ public interface BarracudaTrialConfig extends Config
 	String lostSuppliesSection = "lostSuppliesSection";
 
 	@ConfigSection(
-		name = "Lightning Clouds (Storms)",
-		description = "Settings for lightning cloud highlighting",
+		name = "Object Hightlighting",
+		description = "Settings for object highlighting",
 		position = 2
 	)
-	String cloudSection = "cloudSection";
-
-	@ConfigSection(
-		name = "Other Hazards",
-		description = "Settings for rocks and other hazards",
-		position = 3
-	)
-	String hazardSection = "hazardSection";
+	String objectHighlightingSection = "objectHighlightingSection";
 
 	@ConfigSection(
 		name = "Debug",
@@ -174,48 +167,10 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "highlightClouds",
-		name = "Highlight Lightning Clouds",
-		description = "Highlight dangerous lightning clouds",
-		section = cloudSection,
-		position = 0
-	)
-	default boolean highlightClouds()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "cloudColor",
-		name = "Cloud Color",
-		description = "Color for lightning cloud highlights",
-		section = cloudSection,
-		position = 1
-	)
-	@Alpha
-	default Color cloudColor()
-	{
-		return new Color(255, 0, 0, 120);
-	}
-
-	@ConfigItem(
-		keyName = "cloudDangerRadius",
-		name = "Cloud Danger Radius",
-		description = "Radius in tiles for the cloud danger area",
-		section = cloudSection,
-		position = 2
-	)
-	@Range(max = 5)
-	default int cloudDangerRadius()
-	{
-		return 2;
-	}
-
-	@ConfigItem(
 		keyName = "highlightSpeedBoosts",
 		name = "Highlight Speed Boosts",
 		description = "Highlight speed boost areas",
-		section = hazardSection,
+		section = objectHighlightingSection,
 		position = 0
 	)
 	default boolean highlightSpeedBoosts()
@@ -227,13 +182,76 @@ public interface BarracudaTrialConfig extends Config
 		keyName = "speedBoostColor",
 		name = "Speed Boost Color",
 		description = "Color for speed boost highlights",
-		section = hazardSection,
+		section = objectHighlightingSection,
 		position = 1
 	)
 	@Alpha
 	default Color speedBoostColor()
 	{
 		return new Color(0, 255, 0, 150); // Bright green for speed!
+	}
+
+	@ConfigItem(
+		keyName = "highlightClouds",
+		name = "Highlight Lightning Clouds",
+		description = "Highlight dangerous lightning clouds",
+		section = objectHighlightingSection,
+		position = 2
+	)
+	default boolean highlightClouds()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "cloudColor",
+		name = "Cloud Color",
+		description = "Color for lightning cloud highlights",
+		section = objectHighlightingSection,
+		position = 3
+	)
+	@Alpha
+	default Color cloudColor()
+	{
+		return new Color(255, 0, 0, 120);
+	}
+
+	@ConfigItem(
+		keyName = "cloudDangerRadius",
+		name = "Cloud Danger Radius",
+		description = "Radius in tiles for the cloud danger area",
+		section = objectHighlightingSection,
+		position = 4
+	)
+	@Range(max = 5)
+	default int cloudDangerRadius()
+	{
+		return 2;
+	}
+
+	@ConfigItem(
+		keyName = "highlightFetidPools",
+		name = "Highlight Fetid Pools",
+		description = "Highlight fetid pools",
+		section = objectHighlightingSection,
+		position = 5
+	)
+	default boolean highlightFetidPools()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "fetidPoolColor",
+		name = "Fetid Pool Color",
+		description = "Color for fetid pool highlights",
+		section = objectHighlightingSection,
+		position = 6
+	)
+	@Alpha
+	default Color fetidPoolColor()
+	{
+		return new Color(255, 0, 0, 80);
 	}
 
 	// Debug Settings

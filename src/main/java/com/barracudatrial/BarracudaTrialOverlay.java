@@ -69,6 +69,11 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderLightningClouds(graphics);
 		}
 
+		if (cachedConfig.isHighlightFetidPools() && trial != null && trial.getTrialType() == TrialType.JUBBLY_JIVE)
+		{
+			objectRenderer.renderFetidPools(graphics);
+		}
+
 		if (cachedConfig.isHighlightSpeedBoosts())
 		{
 			objectRenderer.renderSpeedBoosts(graphics);

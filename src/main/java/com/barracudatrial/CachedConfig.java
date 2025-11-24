@@ -26,14 +26,14 @@ public class CachedConfig
 	@Getter private boolean highlightRumLocations;
 	@Getter private Color rumLocationColor;
 
-	// Cloud settings
+	// Object highlighting settings
+	@Getter private boolean highlightSpeedBoosts;
+	@Getter private Color speedBoostColor;
 	@Getter private boolean highlightClouds;
 	@Getter private Color cloudColor;
 	@Getter private int cloudDangerRadius;
-
-	// Hazard settings
-	@Getter private boolean highlightSpeedBoosts;
-	@Getter private Color speedBoostColor;
+	@Getter private boolean highlightFetidPools;
+	@Getter private Color fetidPoolColor;
 
 	// Debug settings
 	@Getter private boolean debugMode;
@@ -63,12 +63,13 @@ public class CachedConfig
 		highlightRumLocations = config.highlightRumLocations();
 		rumLocationColor = config.rumLocationColor();
 
+		highlightSpeedBoosts = config.highlightSpeedBoosts();
+		speedBoostColor = config.speedBoostColor();
 		highlightClouds = config.highlightClouds();
 		cloudColor = config.cloudColor();
 		cloudDangerRadius = config.cloudDangerRadius();
-
-		highlightSpeedBoosts = config.highlightSpeedBoosts();
-		speedBoostColor = config.speedBoostColor();
+		highlightFetidPools = config.highlightFetidPools();
+		fetidPoolColor = config.fetidPoolColor();
 
 		debugMode = config.debugMode();
 		showIDs = config.showIDs();
