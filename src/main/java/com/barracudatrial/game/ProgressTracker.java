@@ -107,7 +107,7 @@ public class ProgressTracker
 		if (lostSuppliesProgressWidget != null && !lostSuppliesProgressWidget.isHidden())
 		{
 			String lostSuppliesProgressText = lostSuppliesProgressWidget.getText();
-			parselostSuppliesProgressText(lostSuppliesProgressText);
+			parseLostSuppliesProgressText(lostSuppliesProgressText);
 		}
 
 		if (state.getLastKnownDifficulty() > 0 && state.getRumsNeeded() > 0
@@ -138,7 +138,7 @@ public class ProgressTracker
 		}
 	}
 
-	private void parselostSuppliesProgressText(String lostSuppliesProgressText)
+	private void parseLostSuppliesProgressText(String lostSuppliesProgressText)
 	{
 		try
 		{
@@ -154,7 +154,7 @@ public class ProgressTracker
 			log.debug("Failed to parse lost supplies progress: {}", lostSuppliesProgressText);
 		}
 	}
-	
+
 	/**
 	 * Creates the appropriate trial configuration based on the trial type
 	 */
