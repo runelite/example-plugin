@@ -2,7 +2,8 @@ package com.barracudatrial.rendering;
 
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
-import com.barracudatrial.game.route.RumLocations;
+import com.barracudatrial.game.route.TemporTantrumConfig;
+import com.barracudatrial.game.route.TrialType;
 import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -112,19 +113,23 @@ public class DebugRenderer
 
 		Color boatExclusionColor = new Color(255, 100, 0, 60); // Orange
 
-		renderBoatExclusionZone(graphics, topLevelWorldView,
-			RumLocations.TEMPOR_TANTRUM_PICKUP,
-			"BOAT (PICKUP)", boatExclusionColor);
+		var trial = plugin.getGameState().getCurrentTrial();
+		if (trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
+		{
+			renderBoatExclusionZone(graphics, topLevelWorldView,
+				trial.getPrimaryObjectiveLocation(),
+				"BOAT (PICKUP)", boatExclusionColor);
 
-		renderBoatExclusionZone(graphics, topLevelWorldView,
-			RumLocations.TEMPOR_TANTRUM_DROPOFF,
-			"BOAT (DROPOFF)", boatExclusionColor);
+			renderBoatExclusionZone(graphics, topLevelWorldView,
+				trial.getSecondaryObjectiveLocation(),
+				"BOAT (DROPOFF)", boatExclusionColor);
+		}
 	}
 
 	private void renderBoatExclusionZone(Graphics2D graphics, WorldView worldView, WorldPoint center, String label, Color color)
 	{
-		int width = RumLocations.BOAT_EXCLUSION_WIDTH;
-		int height = RumLocations.BOAT_EXCLUSION_HEIGHT;
+		int width = TemporTantrumConfig.BOAT_EXCLUSION_WIDTH;
+		int height = TemporTantrumConfig.BOAT_EXCLUSION_HEIGHT;
 
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;

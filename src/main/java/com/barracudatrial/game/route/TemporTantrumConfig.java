@@ -13,6 +13,9 @@ public class TemporTantrumConfig implements TrialConfig
 	private static final WorldPoint RUM_PICKUP_LOCATION = new WorldPoint(3037, 2767, 0);
 	private static final WorldPoint RUM_DROPOFF_LOCATION = new WorldPoint(3035, 2926, 0);
 
+	public static final int BOAT_EXCLUSION_WIDTH = 8;
+	public static final int BOAT_EXCLUSION_HEIGHT = 3;
+
 	private static final int RUM_PICKUP_BASE_ID = 59240;
 	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
 	private static final int RUM_DROPOFF_BASE_ID = 59237;
