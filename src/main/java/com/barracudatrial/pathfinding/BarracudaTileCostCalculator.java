@@ -39,7 +39,6 @@ public class BarracudaTileCostCalculator
 	public BarracudaTileCostCalculator(
 		Set<WorldPoint> knownSpeedBoostLocations,
 		Set<WorldPoint> knownRockLocations,
-		Set<GameObject> visibleRocks,
 		Set<NPC> lightningClouds,
 		int exclusionZoneMinX,
 		int exclusionZoneMaxX,
@@ -57,10 +56,10 @@ public class BarracudaTileCostCalculator
 		this.secondaryObjectiveLocation = secondaryObjectiveLocation;
 		this.routeOptimization = routeOptimization;
 
-		this.rockLocations = precomputeVisibleRockLocations(visibleRocks);
+		this.rockLocations = knownRockLocations;
 		this.closeToRocks = precomputeRockProximity(rockLocations, 1);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
-		this.boostGrabbableTiles = computeBoostGrabbableTiles(knownSpeedBoostLocations);
+		this.boostGrabbableTiles = knownSpeedBoostLocations;
 	}
 
 	public double getTileCost(WorldPoint from, WorldPoint to)
@@ -141,44 +140,6 @@ public class BarracudaTileCostCalculator
 		return null;
 	}
 
-	/**
-	 * Computes all tiles where a boost can be grabbed, mapping each tile to its boost center.
-	 * Boosts can be grabbed from a 3x3 area (Chebyshev distance <= 1) around their center.
-	 */
-	public static Map<WorldPoint, WorldPoint> computeBoostGrabbableTiles(Set<WorldPoint> boostLocations)
-	{
-		return computeGrabbableTiles(boostLocations, 1);
-	}
-
-	/**
-	 * Computes all tiles within a given tolerance distance from target locations.
-	 * Uses Chebyshev distance (max of dx, dy) for square areas.
-	 *
-	 * @param locations Center points
-	 * @param tolerance Distance in tiles (1 = 3x3 area, 2 = 5x5 area, etc.)
-	 * @return Map from grabbable tile to its center point
-	 */
-	public static Map<WorldPoint, WorldPoint> computeGrabbableTiles(Set<WorldPoint> locations, int tolerance)
-	{
-		Map<WorldPoint, WorldPoint> grabbableTiles = new HashMap<>();
-
-		for (WorldPoint center : locations)
-		{
-			int plane = center.getPlane();
-
-			for (int dx = -tolerance; dx <= tolerance; dx++)
-			{
-				for (int dy = -tolerance; dy <= tolerance; dy++)
-				{
-					WorldPoint tile = new WorldPoint(center.getX() + dx, center.getY() + dy, plane);
-					grabbableTiles.put(tile, center);
-				}
-			}
-		}
-
-		return grabbableTiles;
-	}
-
 	private boolean isInExclusionZone(WorldPoint point)
 	{
 		return point.getX() >= exclusionZoneMinX
@@ -231,16 +192,6 @@ public class BarracudaTileCostCalculator
 		int dy = Math.max(0, Math.max(exclusionZoneMinY - y, y - exclusionZoneMaxY));
 
 		return Math.sqrt(dx * dx + dy * dy);
-	}
-
-	private Set<WorldPoint> precomputeVisibleRockLocations(Set<GameObject> visibleRocks)
-	{
-		Set<WorldPoint> locations = new HashSet<>();
-		for (GameObject rock : visibleRocks)
-		{
-			locations.addAll(ObjectTracker.getObjectTiles(rock));
-		}
-		return locations;
 	}
 
 	private Set<WorldPoint> precomputeRockProximity(Set<WorldPoint> allRockLocations, int maxDistance)

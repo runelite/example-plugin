@@ -159,10 +159,10 @@ public class ObjectTracker
 
                         if (rockIds.contains(objectId)) {
                             state.getRocks().add(gameObject);
-                            state.getKnownRockLocations().add(gameObject.getWorldLocation());
+                            state.getKnownRockLocations().addAll(ObjectTracker.getObjectTiles(gameObject));
                         } else if (speedBoostIds.contains(objectId)) {
                             state.getSpeedBoosts().add(gameObject);
-                            state.getKnownSpeedBoostLocations().add(gameObject.getWorldLocation());
+                            state.getKnownSpeedBoostLocations().addAll(ObjectTracker.getObjectTiles(gameObject));
                         }
                     }
                 }
@@ -925,7 +925,7 @@ public class ObjectTracker
 			log.debug("Error calculating front boat tile: {}", e.getMessage());
 		}
 	}
-	
+
 	public static List<WorldPoint> getObjectTiles(Client client, GameObject obj)
 	{
 		ObjectComposition def = client.getObjectDefinition(obj.getId());
