@@ -85,9 +85,12 @@ public class JubblyJiveConfig implements TrialConfig
 	);
 	private static final int SHIPMENT_IMPOSTOR_ID = ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_SUPPLIES;
 
-	// Same as Tempor Tantrum - if they are the same in Gwenith Glide we can remove the abstraction
 	private static final Set<Integer> ROCK_IDS = Set.of(
 		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444
+	);
+
+	private static final Set<Integer> SPEED_BOOST_IDS = Set.of(
+		ObjectID.SAILING_RAPIDS_STRONG
 	);
 
 	// PLACEHOLDER: Tempor locations, will need actual Jubbly locations
@@ -145,6 +148,12 @@ public class JubblyJiveConfig implements TrialConfig
 	public Set<Integer> getRockIds()
 	{
 		return ROCK_IDS; // PLACEHOLDER
+	}
+
+	@Override
+	public Set<Integer> getSpeedBoostIds()
+	{
+		return SPEED_BOOST_IDS;
 	}
 
 	@Override

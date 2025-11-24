@@ -133,6 +133,7 @@ public class ObjectTracker
 		}
 
 		var rockIds = trial.getRockIds();
+		var speedBoostIds = trial.getSpeedBoostIds();
 
         for (Tile[][] tiles : tileArray) {
             if (tiles == null) {
@@ -159,7 +160,7 @@ public class ObjectTracker
                         if (rockIds.contains(objectId)) {
                             state.getRocks().add(gameObject);
                             state.getKnownRockLocations().add(gameObject.getWorldLocation());
-                        } else if (SPEED_BOOST_IDS.contains(objectId)) {
+                        } else if (speedBoostIds.contains(objectId)) {
                             state.getSpeedBoosts().add(gameObject);
                             state.getKnownSpeedBoostLocations().add(gameObject.getWorldLocation());
                         }
@@ -193,6 +194,7 @@ public class ObjectTracker
 		var rockIds = trial.getRockIds();
 		var shipmentIds = trial.getShipmentBaseIds();
 		int shipmentImpostorId = trial.getShipmentImpostorId();
+		var speedBoostIds = trial.getSpeedBoostIds();
 
 		Scene scene = client.getScene();
 		Tile[][][] tileArray = scene.getTiles();
@@ -235,7 +237,7 @@ public class ObjectTracker
 						{
 							continue;
 						}
-						if (SPEED_BOOST_IDS.contains(objectId))
+						if (speedBoostIds.contains(objectId))
 						{
 							continue;
 						}

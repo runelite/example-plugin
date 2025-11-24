@@ -21,6 +21,7 @@ public interface TrialConfig
 	WorldPoint getSecondaryObjectiveLocation();
 
 	Set<Integer> getRockIds();
+	Set<Integer> getSpeedBoostIds();
 
 	// Exclusion zone offsets (relative to primary objective location)
 	int getExclusionMinXOffset();
