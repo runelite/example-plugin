@@ -229,7 +229,7 @@ public class DebugRenderer
 	private void renderDebugTextOverlay(Graphics2D graphics)
 	{
 		int textStartX = 10;
-		int textStartY = 80;
+		int textStartY = 150;
 		int lineHeightInPixels = 15;
 
 		graphics.setFont(new Font("Arial", Font.BOLD, 12));
@@ -262,6 +262,8 @@ public class DebugRenderer
 		debugLines.add(String.format("LostSupplies: %d / %d", plugin.getGameState().getLostSuppliesCollected(), plugin.getGameState().getLostSuppliesTotal()));
 		debugLines.add(String.format("Rum: %d / %d", plugin.getGameState().getRumsCollected(), plugin.getGameState().getRumsNeeded()));
 		debugLines.add(String.format("Current Path: %d points", plugin.getGameState().getCurrentSegmentPath().size()));
+		debugLines.add(String.format("Waypoints in Route: %d", plugin.getGameState().getCurrentStaticRoute().size()));
+		debugLines.add(String.format("Completed Waypoints: %d", plugin.getGameState().getCompletedWaypointIndices().size()));
 		debugLines.add(String.format("Next Path: %d points", plugin.getGameState().getNextSegmentPath().size()));
 		debugLines.add(String.format("Last Path Recalc: %s", plugin.getGameState().getLastPathRecalcCaller()));
 		debugLines.add("");
