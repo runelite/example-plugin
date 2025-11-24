@@ -63,7 +63,7 @@ public class PathStabilizer
 	}
 
 	public List<WorldPoint> findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, List<RouteWaypoint> currentStaticRoute, WorldPoint start, WorldPoint goal, int maxSearchDistance,
-	                                  int boatDirectionDx, int boatDirectionDy, int goalTolerance)
+	                                  int boatDirectionDx, int boatDirectionDy, int goalTolerance, boolean isPlayerCurrentlyOnPath)
 	{
 		PathResult newPathResult = pathfinder.findPath(costCalculator, routeOptimization, start, goal, maxSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
 		Set<WorldPoint> currentDangerZones = costCalculator.getDangerZoneSnapshot();
@@ -77,7 +77,7 @@ public class PathStabilizer
 			return newPathResult.getPath();
 		}
 
-		if (shouldKeepActivePath(costCalculator, routeOptimization, start, activeStabilizedPath, newPathResult, currentStaticRoute, currentDangerZones))
+		if (shouldKeepActivePath(costCalculator, routeOptimization, start, activeStabilizedPath, newPathResult, currentStaticRoute, currentDangerZones, isPlayerCurrentlyOnPath))
 		{
 			return getTrimmedPath(start, activePathResult);
 		}
@@ -101,7 +101,7 @@ public class PathStabilizer
 		return false;
     }
 
-	private boolean shouldKeepActivePath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, StabilizedPath activeStabilizedPath, PathResult newPathResult, List<RouteWaypoint> currentStaticRoute, Set<WorldPoint> currentDangerZones)
+	private boolean shouldKeepActivePath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, StabilizedPath activeStabilizedPath, PathResult newPathResult, List<RouteWaypoint> currentStaticRoute, Set<WorldPoint> currentDangerZones, boolean isPlayerCurrentlyOnPath)
 	{
 		PathResult activePathResult = activeStabilizedPath.getPathResult();
 
@@ -113,7 +113,7 @@ public class PathStabilizer
 			return false;
 		}
 
-		if (!isWithinProximityOfPath(start, activePathResult, currentStaticRoute))
+		if (isPlayerCurrentlyOnPath && !isWithinProximityOfPath(start, activePathResult, currentStaticRoute))
 		{
 			return false;
 		}
@@ -131,12 +131,6 @@ public class PathStabilizer
 
 		for (var pathNode : pathNodes)
 		{
-			if (requiredWaypoints.contains(pathNode.getPosition()))
-			{
-				// Don't allow skipping past required waypoints
-				break;
-			}
-
 			var nodePosition = pathNode.getPosition();
 			int dx = Math.abs(start.getX() - nodePosition.getX());
 			int dy = Math.abs(start.getY() - nodePosition.getY());
