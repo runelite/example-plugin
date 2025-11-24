@@ -152,7 +152,7 @@ public class ObjectTracker
 					// Skip scanning tiles we already know about.
 					// Except Toad Pillars as we want to update them
 					WorldPoint tileWp = tile.getWorldLocation();
-					if (knownRockTiles.contains(tileWp) || knownBoostTiles.contains(tileWp) || knownFetidPoolTiles.contains(tileWp))
+					if (knownRockTiles.contains(tileWp) || knownBoostTiles.containsKey(tileWp) || knownFetidPoolTiles.contains(tileWp))
 					{
 						continue;
 					}
@@ -173,8 +173,9 @@ public class ObjectTracker
 						if (speedBoostIds.contains(id))
 						{
 							knownBoosts.add(obj);
-							knownBoostTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
 
+							var allObjectTiles = ObjectTracker.getObjectTiles(client, obj);
+							knownBoostTiles.put(tileWp, allObjectTiles);
 							continue;
 						}
 

@@ -241,7 +241,10 @@ public class PathPlanner
 			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
 		}
 
-		int maximumAStarSearchDistance = 70;
+		int tileDistance = start.distanceTo(target); // Chebyshev distance in tiles
+		
+		// Never too high, but allow seeking longer on long paths
+		int maximumAStarSearchDistance = Math.max(150, Math.min(70, tileDistance + 20));
 
 		// If target is beyond the search distance, clamp it to the nearest point within range
 		WorldPoint pathfindingTarget = getTargetWithinSearchDistance(start, target, maximumAStarSearchDistance);

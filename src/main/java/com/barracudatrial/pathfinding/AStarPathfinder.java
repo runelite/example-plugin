@@ -86,7 +86,7 @@ public class AStarPathfinder
 				double tileCost = costCalculator.getTileCost(current.position, neighbor);
 
 				// If tile is impassable (very high cost), skip it
-				if (tileCost > 1000)
+				if (tileCost > 10000)
 				{
 					continue;
 				}
@@ -155,7 +155,8 @@ public class AStarPathfinder
 		return getWastedMovement(routeOptimization, dotProduct);
 	}
 
-	private double getWastedMovement(RouteOptimization routeOptimization, double dotProduct) {
+	private double getWastedMovement(RouteOptimization routeOptimization, double dotProduct)
+	{
 		double turnAngleRadians = Math.acos(dotProduct);
 		double turnAngleDegrees = Math.toDegrees(turnAngleRadians);
 

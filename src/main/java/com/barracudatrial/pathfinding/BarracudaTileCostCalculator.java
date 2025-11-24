@@ -5,6 +5,8 @@ import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BarracudaTileCostCalculator
@@ -29,11 +31,11 @@ public class BarracudaTileCostCalculator
 	private final Set<WorldPoint> rockLocations;
 	private final Set<WorldPoint> closeToRocks;
 	private final Set<WorldPoint> cloudDangerZones;
-	private final Set<WorldPoint> boostGrabbableTiles;
+	private final Map<WorldPoint, List<WorldPoint>> boostGrabbableTiles;
 	private final Set<WorldPoint> fetidPoolLocations;
 
 	public BarracudaTileCostCalculator(
-		Set<WorldPoint> knownSpeedBoostLocations,
+		Map<WorldPoint, List<WorldPoint>> knownSpeedBoostLocations,
 		Set<WorldPoint> knownRockLocations,
 		Set<WorldPoint> knownFetidPoolLocations,
 		Set<NPC> lightningClouds,
@@ -135,7 +137,8 @@ public class BarracudaTileCostCalculator
 
 	private WorldPoint getUnconsumedBoost(WorldPoint tile)
 	{
-		if (boostGrabbableTiles.contains(tile) && !consumedBoosts.contains(tile))
+		List<WorldPoint> boosts = boostGrabbableTiles.get(tile);
+		if (boosts != null && boosts.contains(tile) && !consumedBoosts.contains(tile))
 		{
 			return tile;
 		}

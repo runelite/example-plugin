@@ -99,7 +99,7 @@ public class State
 
 	private final Set<WorldPoint> knownRockLocations = new HashSet<>();
 
-	private final Set<WorldPoint> knownSpeedBoostLocations = new HashSet<>();
+	private final Map<WorldPoint, List<WorldPoint>> knownSpeedBoostLocations = new HashMap<>();
 
 	private final Set<WorldPoint> knownFetidPoolLocations = new HashSet<>();
 

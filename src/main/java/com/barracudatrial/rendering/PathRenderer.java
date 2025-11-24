@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class PathRenderer
@@ -248,14 +249,19 @@ public class PathRenderer
 			return;
 		}
 
-		Set<WorldPoint> boostLocations = plugin.getGameState().getKnownSpeedBoostLocations();
+		var boostLocations = plugin.getGameState().getKnownSpeedBoostLocations();
+
+		Set<WorldPoint> allBoostTiles = boostLocations.values()
+				.stream()
+				.flatMap(List::stream)
+				.collect(Collectors.toSet());
 
 		Color normalTileColor = new Color(255, 255, 0, 80);
 		Color boostTileColor = new Color(135, 206, 250, 100);
 
 		for (WorldPoint pathTile : path)
 		{
-			boolean isBoostTile = boostLocations.contains(pathTile);
+			boolean isBoostTile = allBoostTiles.contains(pathTile);
 			Color tileColor = isBoostTile ? boostTileColor : normalTileColor;
 			String label = isBoostTile ? "Boost!" : null;
 
