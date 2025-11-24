@@ -145,6 +145,27 @@ public class BarracudaTileCostCalculator
 		return null;
 	}
 
+	public boolean isInDangerZone(WorldPoint tile)
+	{
+		return cloudDangerZones.contains(tile)
+			|| knownRockLocations.contains(tile)
+			|| visibleRockLocations.contains(tile)
+			|| veryCloseToRocks.contains(tile);
+	}
+
+	/**
+	 * Get a snapshot of all current danger zones for path stability tracking
+	 */
+	public Set<WorldPoint> getDangerZoneSnapshot()
+	{
+		Set<WorldPoint> snapshot = new HashSet<>();
+		snapshot.addAll(cloudDangerZones);
+		snapshot.addAll(knownRockLocations);
+		snapshot.addAll(visibleRockLocations);
+		snapshot.addAll(veryCloseToRocks);
+		return snapshot;
+	}
+
 	private boolean isInExclusionZone(WorldPoint point)
 	{
 		return point.getX() >= exclusionZoneMinX
