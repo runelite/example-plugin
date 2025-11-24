@@ -163,6 +163,7 @@ public class PathPlanner
 
 		List<WorldPoint> fullPath = new ArrayList<>();
 		WorldPoint currentPosition = start;
+		boolean isPlayerCurrentlyOnPath = true;
 
 		for (RouteWaypoint waypoint : waypoints)
 		{
@@ -171,7 +172,7 @@ public class PathPlanner
 			// If target is out of the extended scene, find the nearest in-scene tile along the path
 			WorldPoint pathfindingTarget = getInSceneTarget(currentPosition, target);
 
-			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, pathfindingTarget, waypoint.getType().getToleranceTiles());
+			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, pathfindingTarget, waypoint.getType().getToleranceTiles(), isPlayerCurrentlyOnPath);
 
 			if (fullPath.isEmpty())
 			{
@@ -184,6 +185,7 @@ public class PathPlanner
 			}
 
 			currentPosition = pathfindingTarget;
+			isPlayerCurrentlyOnPath = false;
 		}
 
 		return fullPath;
@@ -194,9 +196,10 @@ public class PathPlanner
 	 * @param start Starting position
 	 * @param target Target position
 	 * @param goalTolerance Number of tiles away from target that counts as reaching it (0 = exact)
+	 * @param isPlayerCurrentlyOnPath Whether or not this is the path that the player is currently navigating
 	 * @return Path from start to target
 	 */
-	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target, int goalTolerance)
+	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target, int goalTolerance, boolean isPlayerCurrentlyOnPath)
 	{
 		Set<NPC> currentlyDangerousClouds = new HashSet<>();
 		for (NPC lightningCloud : state.getLightningClouds())
