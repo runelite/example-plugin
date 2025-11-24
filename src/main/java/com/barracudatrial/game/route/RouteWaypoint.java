@@ -6,7 +6,7 @@ import net.runelite.api.coords.WorldPoint;
 public class RouteWaypoint
 {
 	@Getter
-	private final WaypointType type;
+	protected final WaypointType type;
 	@Getter
 	private final int lap;
 	@Getter

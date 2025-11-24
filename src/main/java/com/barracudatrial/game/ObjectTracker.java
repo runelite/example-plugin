@@ -2,19 +2,20 @@ package com.barracudatrial.game;
 
 import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.game.route.TemporTantrumConfig;
+import com.barracudatrial.game.route.TrialType;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.ObjectID;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.barracudatrial.game.RouteCapture.formatWorldPoint;
+import com.barracudatrial.game.route.JubblyJiveConfig;
+import com.barracudatrial.game.route.JubblyJiveToadPillar;
+
 
 /**
  * Handles tracking of game objects in the Barracuda Trial minigame
@@ -118,19 +119,17 @@ public class ObjectTracker
 		{
 			return;
 		}
-		var trialType = getTrialType();
+		var trialType = trial.getTrialType();
 
 		var rockIds = trial.getRockIds();
 		var speedBoostIds = trial.getSpeedBoostIds();
-		var fetidPoolIds = JubbyJiveConfig.FETID_POOL_IDS;
-		var toadPillarClickboxParentIds = 
-			getTrialType() == TrialType.JUBBLY_JIVE
-				? List.of()
-				: JubbyJiveConfig.TOAD_PILLARS
-					.stream()
-					.map(JubblyJiveToadPillar::parentId)
-					.toList();
-
+		var fetidPoolIds = JubblyJiveConfig.FETID_POOL_IDS;
+		var toadPillarClickboxParentIds =
+				trialType == TrialType.JUBBLY_JIVE
+						? List.<Integer>of()
+						: Arrays.stream(JubblyJiveConfig.TOAD_PILLARS)
+						.map(JubblyJiveToadPillar::getClickboxParentObjectId)
+						.collect(Collectors.toList());
 
 		var knownRockTiles = state.getKnownRockLocations();
 
@@ -142,7 +141,7 @@ public class ObjectTracker
 
 		var knownToadPillars = state.getKnownToadPillars();
 		var knownToadPillarLocations =
-			getTrialType() == TrialType.JUBBLY_JIVE
+			trialType == TrialType.JUBBLY_JIVE
 				? Set.<WorldPoint>of()
 				: knownToadPillars.keySet();
 
@@ -174,7 +173,7 @@ public class ObjectTracker
 
 						if (rockIds.contains(id))
 						{
-							knownRockTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							knownRockTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
 
 							continue;
 						}
@@ -182,7 +181,7 @@ public class ObjectTracker
 						if (speedBoostIds.contains(id))
 						{
 							knownBoosts.add(obj);
-							knownBoostTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							knownBoostTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
 
 							continue;
 						}
@@ -190,7 +189,7 @@ public class ObjectTracker
 						if (fetidPoolIds.contains(id))
 						{
 							knownFetidPools.add(obj);
-							knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
 
 							continue;
 						}
@@ -199,103 +198,6 @@ public class ObjectTracker
 						{
 							knownToadPillars.put(center, obj.getWorldLocation());
 							continue;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Updates all rocks in scene for debug/ID display purposes
-	 * Includes both known rocks and potential unknown obstacle objects
-	 */
-	public void updateAllRocksInScene()
-	{
-		if (!state.isInTrialArea())
-		{
-			state.getAllRocksInScene().clear();
-			return;
-		}
-
-		var trial = state.getCurrentTrial();
-		if (trial == null)
-		{
-			state.getAllRocksInScene().clear();
-			return;
-		}
-
-		state.getAllRocksInScene().clear();
-
-		var rockIds = trial.getRockIds();
-		var shipmentIds = trial.getShipmentBaseIds();
-		int shipmentImpostorId = trial.getShipmentImpostorId();
-		var speedBoostIds = trial.getSpeedBoostIds();
-
-		Scene scene = client.getScene();
-		Tile[][][] tileArray = scene.getTiles();
-		int currentPlane = client.getPlane();
-
-		if (tileArray != null && tileArray[currentPlane] != null)
-		{
-			for (int xIndex = 0; xIndex < tileArray[currentPlane].length; xIndex++)
-			{
-				for (int yIndex = 0; yIndex < tileArray[currentPlane][xIndex].length; yIndex++)
-				{
-					Tile tile = tileArray[currentPlane][xIndex][yIndex];
-					if (tile == null)
-					{
-						continue;
-					}
-
-					GameObject[] gameObjects = tile.getGameObjects();
-					if (gameObjects == null)
-					{
-						continue;
-					}
-
-					for (GameObject gameObject : gameObjects)
-					{
-						if (gameObject == null)
-						{
-							continue;
-						}
-
-						int objectId = gameObject.getId();
-
-						if (rockIds.contains(objectId))
-						{
-							state.getAllRocksInScene().add(gameObject);
-							continue;
-						}
-
-						if (shipmentIds.contains(objectId) || objectId == shipmentImpostorId)
-						{
-							continue;
-						}
-						if (speedBoostIds.contains(objectId))
-						{
-							continue;
-						}
-						if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID ||
-							objectId == State.RUM_PICKUP_BASE_OBJECT_ID || objectId == State.RUM_PICKUP_IMPOSTOR_ID)
-						{
-							continue;
-						}
-
-						ObjectComposition objectComposition = client.getObjectDefinition(objectId);
-						if (objectComposition != null)
-						{
-							String objectName = objectComposition.getName();
-							if (objectName != null)
-							{
-								String objectNameLowerCase = objectName.toLowerCase();
-								if (objectNameLowerCase.contains("rock") || objectNameLowerCase.contains("boulder") ||
-									objectNameLowerCase.contains("obstacle") || objectNameLowerCase.contains("debris"))
-								{
-									state.getAllRocksInScene().add(gameObject);
-								}
-							}
 						}
 					}
 				}

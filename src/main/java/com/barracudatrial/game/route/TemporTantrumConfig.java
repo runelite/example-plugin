@@ -16,10 +16,10 @@ public class TemporTantrumConfig implements TrialConfig
 	public static final int BOAT_EXCLUSION_WIDTH = 8;
 	public static final int BOAT_EXCLUSION_HEIGHT = 3;
 
-	private static final int RUM_PICKUP_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_PARENT;
-	private static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
-	private static final int RUM_DROPOFF_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_PARENT;
-	private static final int RUM_DROPOFF_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
+	public static final int RUM_PICKUP_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_PARENT;
+	public static final int RUM_PICKUP_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_CHILD;
+	public static final int RUM_DROPOFF_BASE_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_PARENT;
+	public static final int RUM_DROPOFF_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_CHILD;
 
 	private static final Set<Integer> SHIPMENT_IDS = Set.of(
 		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_1,
@@ -78,10 +78,10 @@ public class TemporTantrumConfig implements TrialConfig
 	);
 
 	// Exclusion zone offsets relative to rum dropoff location
-	private static final int EXCLUSION_MIN_X_OFFSET = -26;
-	private static final int EXCLUSION_MAX_X_OFFSET = 22;
-	private static final int EXCLUSION_MIN_Y_OFFSET = -106;
-	private static final int EXCLUSION_MAX_Y_OFFSET = -53;
+	public static final int EXCLUSION_MIN_X_OFFSET = -26;
+	public static final int EXCLUSION_MAX_X_OFFSET = 22;
+	public static final int EXCLUSION_MIN_Y_OFFSET = -106;
+	public static final int EXCLUSION_MAX_Y_OFFSET = -53;
 
 	@Override
 	public TrialType getTrialType()
@@ -121,26 +121,6 @@ public class TemporTantrumConfig implements TrialConfig
 	public Set<Integer> getSpeedBoostIds()
 	{
 		return SPEED_BOOST_IDS;
-	}
-
-	public int getExclusionMinXOffset()
-	{
-		return EXCLUSION_MIN_X_OFFSET;
-	}
-
-	public int getExclusionMaxXOffset()
-	{
-		return EXCLUSION_MAX_X_OFFSET;
-	}
-
-	public int getExclusionMinYOffset()
-	{
-		return EXCLUSION_MIN_Y_OFFSET;
-	}
-
-	public int getExclusionMaxYOffset()
-	{
-		return EXCLUSION_MAX_Y_OFFSET;
 	}
 
 	@Override

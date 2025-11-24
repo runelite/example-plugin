@@ -1,13 +1,10 @@
 package com.barracudatrial.pathfinding;
 
 import com.barracudatrial.RouteOptimization;
-import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class BarracudaTileCostCalculator
@@ -16,8 +13,6 @@ public class BarracudaTileCostCalculator
 	private static final int BOAT_EXCLUSION_WIDTH = 8;
 	private static final int BOAT_EXCLUSION_HEIGHT = 3;
 
-    private final Set<WorldPoint> knownRockLocations;
-	private final Set<GameObject> visibleRocks;
 	private final int exclusionZoneMinX;
 	private final int exclusionZoneMaxX;
 	private final int exclusionZoneMinY;
@@ -34,7 +29,7 @@ public class BarracudaTileCostCalculator
 	private final Set<WorldPoint> rockLocations;
 	private final Set<WorldPoint> closeToRocks;
 	private final Set<WorldPoint> cloudDangerZones;
-	private final Map<WorldPoint, WorldPoint> boostGrabbableTiles;
+	private final Set<WorldPoint> boostGrabbableTiles;
 	private final Set<WorldPoint> fetidPoolLocations;
 
 	public BarracudaTileCostCalculator(
@@ -75,12 +70,12 @@ public class BarracudaTileCostCalculator
 
 		double cost = 1.0;
 
-		WorldPoint nearbyBoost = findNearbyUnconsumedBoost(to);
-		if (nearbyBoost != null)
+		WorldPoint unconsumedBoost = getUnconsumedBoost(to);
+		if (unconsumedBoost != null)
 		{
 			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -8.0 : -5.0;
 			speedBoostTilesRemaining = 15;
-			consumedBoosts.add(nearbyBoost);
+			consumedBoosts.add(unconsumedBoost);
 		}
 		else if (speedBoostTilesRemaining > 0)
 		{
@@ -130,15 +125,19 @@ public class BarracudaTileCostCalculator
 			speedBoostTilesRemaining = 0;
 		}
 
+		if (fetidPoolLocations.contains(to))
+		{
+			cost += 50;
+		}
+
 		return cost;
 	}
 
-	private WorldPoint findNearbyUnconsumedBoost(WorldPoint tile)
+	private WorldPoint getUnconsumedBoost(WorldPoint tile)
 	{
-		WorldPoint boost = boostGrabbableTiles.get(tile);
-		if (boost != null && !consumedBoosts.contains(boost))
+		if (boostGrabbableTiles.contains(tile) && !consumedBoosts.contains(tile))
 		{
-			return boost;
+			return tile;
 		}
 		return null;
 	}

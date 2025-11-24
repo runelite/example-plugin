@@ -107,7 +107,6 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 
 		if (cachedConfig.isShowOptimalPath()
-			|| cachedConfig.isHighlightRocks()
 			|| cachedConfig.isHighlightSpeedBoosts()
 		 	|| routeCapture.isCapturing())
 		{
@@ -395,11 +394,6 @@ public class BarracudaTrialPlugin extends Plugin
 	public boolean isPointInExclusionZone(WorldPoint point)
 	{
 		return locationManager.isPointInsideExclusionZone(point);
-	}
-
-	public List<GameObject> getAllRocksInScene()
-	{
-		return new java.util.ArrayList<>(gameState.getAllRocksInScene());
 	}
 
 	/**

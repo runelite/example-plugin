@@ -1,5 +1,6 @@
 package com.barracudatrial.game;
 
+import com.barracudatrial.game.route.TemporTantrumConfig;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
@@ -75,8 +76,7 @@ public class LocationManager
 	private void scanSceneForTemporRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
 	{
 		var trial = state.getCurrentTrial();
-		if (trial == null || !(trial instanceof TemporTantrumConfig tempor))
-		{
+		if (!(trial instanceof TemporTantrumConfig)) {
 			return;
 		}
 
@@ -140,11 +140,11 @@ public class LocationManager
 						boolean isRumReturnObject = false;
 						boolean isRumPickupObject = false;
 
-						if (objectId == RUM_RETURN_BASE_OBJECT_ID)
+						if (objectId == TemporTantrumConfig.RUM_DROPOFF_BASE_ID)
 						{
 							isRumReturnObject = true;
 						}
-						else if (objectId == RUM_PICKUP_BASE_OBJECT_ID)
+						else if (objectId == TemporTantrumConfig.RUM_PICKUP_BASE_ID)
 						{
 							isRumPickupObject = true;
 						}
@@ -161,11 +161,11 @@ public class LocationManager
 									if (activeImpostor != null)
 									{
 										int impostorId = activeImpostor.getId();
-										if (impostorId == tempor.RUM_RETURN_IMPOSTOR_ID)
+										if (impostorId == TemporTantrumConfig.RUM_DROPOFF_IMPOSTOR_ID)
 										{
 											isRumReturnObject = true;
 										}
-										else if (impostorId == tempor.RUM_PICKUP_IMPOSTOR_ID)
+										else if (impostorId == TemporTantrumConfig.RUM_PICKUP_IMPOSTOR_ID)
 										{
 											isRumPickupObject = true;
 										}
@@ -213,15 +213,14 @@ public class LocationManager
 	private void calculateTemporExclusionZoneBounds(WorldPoint secondaryObjectiveLocation)
 	{
 		var trial = state.getCurrentTrial();
-		if (trial == null)
-		{
+		if (!(trial instanceof TemporTantrumConfig)) {
 			return;
 		}
 
-		int exclusionZoneMinX = secondaryObjectiveLocation.getX() + trial.getExclusionMinXOffset();
-		int exclusionZoneMaxX = secondaryObjectiveLocation.getX() + trial.getExclusionMaxXOffset();
-		int exclusionZoneMinY = secondaryObjectiveLocation.getY() + trial.getExclusionMinYOffset();
-		int exclusionZoneMaxY = secondaryObjectiveLocation.getY() + trial.getExclusionMaxYOffset();
+		int exclusionZoneMinX = secondaryObjectiveLocation.getX() + TemporTantrumConfig.EXCLUSION_MIN_X_OFFSET;
+		int exclusionZoneMaxX = secondaryObjectiveLocation.getX() + TemporTantrumConfig.EXCLUSION_MAX_X_OFFSET;
+		int exclusionZoneMinY = secondaryObjectiveLocation.getY() + TemporTantrumConfig.EXCLUSION_MIN_Y_OFFSET;
+		int exclusionZoneMaxY = secondaryObjectiveLocation.getY() + TemporTantrumConfig.EXCLUSION_MAX_Y_OFFSET;
 
 		state.setExclusionZoneMinX(exclusionZoneMinX);
 		state.setExclusionZoneMaxX(exclusionZoneMaxX);

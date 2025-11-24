@@ -11,10 +11,7 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.ObjectID;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Holds all game state for Barracuda Trial
@@ -106,7 +103,7 @@ public class State
 
 	private final Set<WorldPoint> knownFetidPoolLocations = new HashSet<>();
 
-	private final Map<WorldPoint, GameObject> knownToadPillars = new HashSet<>();
+	private final Map<WorldPoint, GameObject> knownToadPillars = new HashMap<>();
 
 	private final Set<WorldPoint> knownLostSuppliesSpawnLocations = new HashSet<>();
 

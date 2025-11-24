@@ -1,17 +1,23 @@
 package com.barracudatrial.game.route;
 
+import net.runelite.api.coords.WorldPoint;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static com.barracudatrial.game.route.JubblyJiveConfig.TOAD_PICKUP_LOCATION;
+import static com.barracudatrial.game.route.JubblyJiveConfig.TOAD_PILLARS;
+import static com.barracudatrial.game.route.RouteWaypoint.WaypointType;
+
 // S 931.10 SailingBtHud.BT_PARTIAL_TEXT text = holding toad count
 public class JubblyJiveRoutes
 {
-	public static List<RouteWaypoint> getRoute(Difficulty difficulty)
-	{
-		if (difficulty == null)
-		{
-			return new ArrayList<>();
-		}
+	private static final Map<Difficulty, List<RouteWaypoint>> ROUTES = new HashMap<>();
 
+	static
+	{
 		// SWORDFISH difficulty - 1 lap, 20 shipments + 4 toads
 		// Captured 2025-11-23
 		ROUTES.put(Difficulty.SWORDFISH, List.of(
@@ -43,9 +49,9 @@ public class JubblyJiveRoutes
 		));
 
 		
-		// SWORDFISH difficulty - 2 lap, 38 shipments + 12 toads
+		// SHARK difficulty - 2 lap, 38 shipments + 12 toads
 		// Captured 2025-11-23
-		ROUTES.put(Difficulty.SWORDFISH, List.of(
+		ROUTES.put(Difficulty.SHARK, List.of(
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2413, 3016, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2396, 3010, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2378, 3008, 0)),
@@ -86,7 +92,7 @@ public class JubblyJiveRoutes
 			new RouteWaypoint(2, WaypointType.SHIPMENT, new WorldPoint(2371, 3022, 0)),
 			new RouteWaypoint(2, WaypointType.SHIPMENT, new WorldPoint(2341, 3031, 0)),
 			new RouteWaypoint(2, WaypointType.SHIPMENT, new WorldPoint(2353, 3005, 0)),
-			new RouteWaypoint(2, WaypointType.TOAD_PILLAR, new WorldPoint(2349, 3000, 0), // ID : 59142
+			new RouteWaypoint(2, WaypointType.TOAD_PILLAR, new WorldPoint(2349, 3000, 0)), // ID : 59142
 			new RouteWaypoint(2, WaypointType.SHIPMENT, new WorldPoint(2379, 2993, 0)),
 			new RouteWaypoint(2, WaypointType.SHIPMENT, new WorldPoint(2382, 2970, 0)),
 			new JubblyJiveToadPillarWaypoint(2, TOAD_PILLARS[4]), // ID : 59148 IMPOSTER: 59150. with toad imposter = 59149
@@ -100,9 +106,17 @@ public class JubblyJiveRoutes
 			new JubblyJiveToadPillarWaypoint(2, TOAD_PILLARS[7]) // ID : 59166 IMPOSTER: 59168. with toad imposter = 59167
 		));
 
-		// TODO: Define actual routes for each difficulty level
-		// Marlin: 3 Jubbly birds, 56 boxes
+		// TODO: Marlin: 3 Jubbly birds, 56 boxes
+	}
 
-		return new ArrayList<>();
+	/**
+	 * Get the static route for a given difficulty.
+	 * @param difficulty The difficulty level
+	 * @return List of RouteWaypoints representing the optimal waypoint sequence,
+	 *         or empty list if no route is defined for this difficulty
+	 */
+	public static List<RouteWaypoint> getRoute(Difficulty difficulty)
+	{
+		return ROUTES.getOrDefault(difficulty, new ArrayList<>());
 	}
 }
