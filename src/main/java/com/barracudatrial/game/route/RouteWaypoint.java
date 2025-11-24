@@ -9,25 +9,21 @@ public class RouteWaypoint
 	private final WaypointType type;
 	@Getter
 	private final int lap;
-	private final WorldPoint storedLocation;
+	@Getter
+	private final WorldPoint location;
 
 	public RouteWaypoint(WaypointType type, WorldPoint location)
 	{
 		this.lap = 1;
 		this.type = type;
-		this.storedLocation = location;
+		this.location = location;
 	}
 
 	public RouteWaypoint(int lap, WaypointType type, WorldPoint location)
 	{
 		this.lap = lap;
 		this.type = type;
-		this.storedLocation = location;
-	}
-
-	public WorldPoint getLocation()
-	{
-		return storedLocation;
+		this.location = location;
 	}
 
 	@Getter
