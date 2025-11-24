@@ -49,6 +49,8 @@ public class State
 
 	private final Set<GameObject> speedBoosts = new HashSet<>();
 
+	private final Set<GameObject> fetidPools = new HashSet<>();
+
 	private final Set<GameObject> allRocksInScene = new HashSet<>();
 
 	@Setter
@@ -105,6 +107,8 @@ public class State
 	private final Set<WorldPoint> knownRockLocations = new HashSet<>();
 
 	private final Set<WorldPoint> knownSpeedBoostLocations = new HashSet<>();
+
+	private final Set<WorldPoint> knownFetidPoolLocations = new HashSet<>();
 
 	private final Set<WorldPoint> knownLostSuppliesSpawnLocations = new HashSet<>();
 

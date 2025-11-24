@@ -106,9 +106,11 @@ public class BarracudaTrialPlugin extends Plugin
 			locationManager.updateTemporRumLocations();
 		}
 
-		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightRocks() || cachedConfig.isHighlightSpeedBoosts())
+		if (cachedConfig.isShowOptimalPath()
+			|| cachedConfig.isHighlightRocks()
+			|| cachedConfig.isHighlightSpeedBoosts())
 		{
-			objectTracker.updateRocksAndSpeedBoosts();
+			objectTracker.updateHazardsAndSpeedBoosts();
 		}
 
 		progressTracker.updateTrialProgressFromWidgets();

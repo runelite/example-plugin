@@ -78,11 +78,7 @@ public class ObjectTracker
 		return animationId == State.CLOUD_ANIM_HARMLESS || animationId == State.CLOUD_ANIM_HARMLESS_ALT;
 	}
 
-	/**
-	 * Updates rocks and speed boosts by scanning the scene
-	 * Also maintains persistent storage of known locations
-	 */
-	public void updateRocksAndSpeedBoosts()
+	public void updateHazardsAndSpeedBoosts()
 	{
 		if (!state.isInTrialArea())
 		{
@@ -101,25 +97,26 @@ public class ObjectTracker
 			return;
 		}
 
-		scanSceneForRocksAndSpeedBoosts(scene);
+		scanTileArrayForHazardsAndSpeedBoosts(scene);
 	}
 
-	private void scanSceneForRocksAndSpeedBoosts(Scene scene)
+	private void scanTileArrayForHazardsAndSpeedBoosts(Scene scene)
 	{
 		Tile[][][] regularTiles = scene.getTiles();
 		if (regularTiles != null)
 		{
-			scanTileArrayForRocksAndSpeedBoosts(regularTiles);
+			scanTileArrayForHazardsAndSpeedBoosts(regularTiles);
 		}
 
-		Tile[][][] extendedTiles = scene.getExtendedTiles();
-		if (extendedTiles != null)
-		{
-			scanTileArrayForRocksAndSpeedBoosts(extendedTiles);
-		}
+		// Skipping for performance - probably don't need to read extended for this
+		// Tile[][][] extendedTiles = scene.getExtendedTiles();
+		// if (extendedTiles != null)
+		// {
+		// 	scanTileArrayForHazardsAndSpeedBoosts(extendedTiles);
+		// }
 	}
 
-	private void scanTileArrayForRocksAndSpeedBoosts(Tile[][][] tileArray)
+	private void scanTileArrayForHazardsAndSpeedBoosts(Tile[][][] tileArray)
 	{
 		var trial = state.getCurrentTrial();
 		if (trial == null)
@@ -127,14 +124,18 @@ public class ObjectTracker
 			return;
 		}
 
-		var rockIds        = trial.getRockIds();
-		var speedBoostIds  = trial.getSpeedBoostIds();
+		var rockIds = trial.getRockIds();
+		var speedBoostIds = trial.getSpeedBoostIds();
+		var fetidPoolIds = JubbyJiveConfig.FETID_POOL_IDS;
 
-		var knownRocks     = state.getRocks();
+		var knownRocks = state.getRocks();
 		var knownRockTiles = state.getKnownRockLocations();
 
-		var knownBoosts     = state.getSpeedBoosts();
+		var knownBoosts = state.getSpeedBoosts();
 		var knownBoostTiles = state.getKnownSpeedBoostLocations();
+
+		var knownFetidPools = state.getKnownFetidPools();
+		var knownFetidPoolTiles = state.getKnownFetidPoolLocations();
 
 		for (var plane : tileArray)
 		{
@@ -150,7 +151,7 @@ public class ObjectTracker
 
 					// Skip scanning tiles we already know about
 					WorldPoint tileWp = tile.getWorldLocation();
-					if (knownRockTiles.contains(tileWp) || knownBoostTiles.contains(tileWp))
+					if (knownRockTiles.contains(tileWp) || knownBoostTiles.contains(tileWp) || knownFetidPoolTiles.contains(tileWp))
 					{
 						continue;
 					}
@@ -178,6 +179,17 @@ public class ObjectTracker
 							{
 								knownBoosts.add(obj);
 								knownBoostTiles.addAll(ObjectTracker.getObjectTiles(obj));
+							}
+
+							continue;
+						}
+
+						if (fetidPoolIds.contains(id))
+						{
+							if (!knownFetidPools.contains(obj))
+							{
+								knownFetidPools.add(obj);
+								knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(obj));
 							}
 
 							continue;

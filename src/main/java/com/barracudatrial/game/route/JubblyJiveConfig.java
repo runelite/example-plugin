@@ -156,6 +156,14 @@ public class JubblyJiveConfig implements TrialConfig
 		ObjectID.SAILING_RAPIDS_STRONG
 	);
 
+	public static final Set<Integer> FETID_POOL_IDS = Set.of(
+		ObjectID.SAILING_FETID_POOL,
+		ObjectID.SAILING_FETID_POOL_2X2,
+		ObjectID.SAILING_FETID_POOL_3X3A,
+		ObjectID.SAILING_FETID_POOL_3X3B,
+		ObjectID.SAILING_FETID_POOL_3X3C
+	);
+
 	@Override
 	public TrialType getTrialType()
 	{
