@@ -249,6 +249,36 @@ public class BarracudaTrialPlugin extends Plugin
 				routeCapture.onRumDelivered(isCompletingFinalLap);
 			}
 		}
+		else if (chatMessage.contains("balloon toads. Time to lure"))
+		{
+			log.debug("Toads collected! Message: {}", chatMessage);
+
+			if (routeCapture.isCapturing())
+			{
+				// TODO: Handle capturing
+				// routeCapture.onRumPickedUp();
+			}
+
+			var route = gameState.getCurrentStaticRoute();
+
+			if (route != null)
+			{
+				for (int i = 0, n = route.size(); i < n; i++)
+				{
+					var waypoint = route.get(i);
+
+					if (waypoint.getType() == RouteWaypoint.WaypointType.TOAD_PICKUP
+						&& !gameState.isWaypointCompleted(i))
+					{
+						gameState.markWaypointCompleted(i);
+						log.info("Marked TOAD_PICKUP waypoint as completed at index {}: {}", i, waypoint.getLocation());
+						break;
+					}
+				}
+			}
+
+			pathPlanner.recalculateOptimalPathFromCurrentState("chat: toads collected");
+		}
 	}
 
 	@Subscribe
