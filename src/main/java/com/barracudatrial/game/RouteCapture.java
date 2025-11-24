@@ -60,6 +60,28 @@ public class RouteCapture
 	}
 
 	/**
+	 * Handle examine action on Toad Pillar for Jubbly Jive.
+	 * First examine starts capture, subsequent examines record pillar waypoints in order.
+	 */
+	public void onExamineToadPillar(WorldPoint location, int objectId)
+	{
+		log.info("[ROUTE CAPTURE] Toad Pillar examined:");
+		log.info("[ROUTE CAPTURE]   ObjectID: {}", objectId);
+		log.info("[ROUTE CAPTURE]   Location: {}", formatWorldPoint(location));
+
+		if (!isCapturing)
+		{
+			startCapture(location);
+		}
+		else
+		{
+			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.TOAD_PILLAR, location));
+			int waypointNumber = capturedWaypoints.size();
+			log.info("[ROUTE CAPTURE] Toad Pillar #{}: {}", waypointNumber, formatWorldPoint(location));
+		}
+	}
+
+	/**
 	 * Records shipments that were collected during route capture.
 	 * Called with the list of collected shipments detected by ObjectTracker.
 	 */
@@ -111,8 +133,14 @@ public class RouteCapture
 			return;
 		}
 
-		capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_PICKUP));
-		log.info("[ROUTE CAPTURE] Rum pickup recorded (waypoint #{})", capturedWaypoints.size());
+		var trial = state.getCurrentTrial();
+		if (trial != null)
+		{
+			var location = trial.getPrimaryObjectiveLocation();
+			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_PICKUP, location));
+			log.info("[ROUTE CAPTURE] Rum pickup recorded (waypoint #{}): {}",
+				capturedWaypoints.size(), formatWorldPoint(location));
+		}
 	}
 
 	/**
@@ -126,8 +154,14 @@ public class RouteCapture
 			return;
 		}
 
-		capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF));
-		log.info("[ROUTE CAPTURE] Rum dropoff recorded (waypoint #{})", capturedWaypoints.size());
+		var trial = state.getCurrentTrial();
+		if (trial != null)
+		{
+			var location = trial.getSecondaryObjectiveLocation();
+			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF, location));
+			log.info("[ROUTE CAPTURE] Rum dropoff recorded (waypoint #{}): {}",
+				capturedWaypoints.size(), formatWorldPoint(location));
+		}
 
 		if (isCompletingFinalLap)
 		{

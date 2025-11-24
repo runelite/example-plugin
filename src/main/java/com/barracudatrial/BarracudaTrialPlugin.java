@@ -1,6 +1,7 @@
 package com.barracudatrial;
 
 import com.barracudatrial.game.*;
+import com.barracudatrial.game.route.JubblyJiveConfig;
 import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.game.route.TrialType;
 import com.google.inject.Provides;
@@ -349,6 +350,10 @@ public class BarracudaTrialPlugin extends Plugin
 			if (objectId == State.RUM_RETURN_BASE_OBJECT_ID || objectId == State.RUM_RETURN_IMPOSTOR_ID) {
 				WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
 				routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
+			}
+			else if (JubblyJiveConfig.TOAD_PILLAR_IDS.contains(objectId))
+			{
+				routeCapture.onExamineToadPillar(worldPoint, objectId);
 			}
 		}
 	}
