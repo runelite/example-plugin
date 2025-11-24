@@ -148,9 +148,8 @@ public class BarracudaTileCostCalculator
 	public boolean isInDangerZone(WorldPoint tile)
 	{
 		return cloudDangerZones.contains(tile)
-			|| knownRockLocations.contains(tile)
-			|| visibleRockLocations.contains(tile)
-			|| veryCloseToRocks.contains(tile);
+			|| rockLocations.contains(tile)
+			|| fetidPoolLocations.contains(tile);
 	}
 
 	/**
@@ -160,9 +159,8 @@ public class BarracudaTileCostCalculator
 	{
 		Set<WorldPoint> snapshot = new HashSet<>();
 		snapshot.addAll(cloudDangerZones);
-		snapshot.addAll(knownRockLocations);
-		snapshot.addAll(visibleRockLocations);
-		snapshot.addAll(veryCloseToRocks);
+		snapshot.addAll(rockLocations);
+		snapshot.addAll(fetidPoolLocations);
 		return snapshot;
 	}
 
