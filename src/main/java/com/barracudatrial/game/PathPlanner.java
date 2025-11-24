@@ -241,7 +241,7 @@ public class PathPlanner
 
 		var currentStaticRoute = state.getCurrentStaticRoute();
 
-		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), currentStaticRoute, start, pathfindingTarget, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance);
+		List<WorldPoint> path = pathStabilizer.findPath(tileCostCalculator, cachedConfig.getRouteOptimization(), currentStaticRoute, start, pathfindingTarget, maximumAStarSearchDistance, boatDirectionDx, boatDirectionDy, goalTolerance, isPlayerCurrentlyOnPath);
 
 		if (path.isEmpty())
 		{
