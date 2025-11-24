@@ -258,6 +258,15 @@ public class ObjectTracker
 
 			log.info("Found match! Completing it in our waypoint list.");
 			state.markWaypointCompleted(index);
+
+			var waypointLap = waypoint.getLap();
+			if (state.getCurrentLap() < waypointLap)
+			{
+				var lapsRequired = state.getCurrentDifficulty().rumsRequired;
+
+				log.info("Advanced to lap {}/{}", waypointLap, lapsRequired);
+				state.setCurrentLap(waypointLap);
+			}
 		}
 
 		log.warn("Couldn't find a match to update! That seems wrong - how did we update the imposter without it being in the list?");
