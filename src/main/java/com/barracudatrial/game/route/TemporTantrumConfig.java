@@ -116,14 +116,12 @@ public class TemporTantrumConfig implements TrialConfig
 		return Set.of(RUM_DROPOFF_BASE_ID, RUM_DROPOFF_IMPOSTOR_ID);
 	}
 
-	@Override
-	public WorldPoint getPrimaryObjectiveLocation()
+	public WorldPoint getRumPickupLocation()
 	{
 		return RUM_PICKUP_LOCATION;
 	}
 
-	@Override
-	public WorldPoint getSecondaryObjectiveLocation()
+	public WorldPoint getRumDropoffLocation()
 	{
 		return RUM_DROPOFF_LOCATION;
 	}

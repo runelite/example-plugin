@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
  */
 public class JubblyJiveConfig implements TrialConfig
 {
+	private static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2243, 2991, 0);
+
 	public static final Set<Integer> TOAD_PILLAR_IDS = Set.of(
 		ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_1_PARENT,
 		ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_2_PARENT,
@@ -126,16 +128,9 @@ public class JubblyJiveConfig implements TrialConfig
 		return Set.of(); // TODO: Jubbly bird or related object IDs
 	}
 
-	@Override
-	public WorldPoint getPrimaryObjectiveLocation()
+	public WorldPoint getToadPickupLocation()
 	{
-		return PLACEHOLDER_OBJECTIVE_LOCATION; // TODO: Actual Jubbly location
-	}
-
-	@Override
-	public WorldPoint getSecondaryObjectiveLocation()
-	{
-		return PLACEHOLDER_OBJECTIVE_LOCATION; // TODO: Actual Jubbly location
+		return TOAD_PICKUP_LOCATION;
 	}
 
 	@Override

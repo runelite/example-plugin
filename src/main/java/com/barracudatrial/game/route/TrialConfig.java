@@ -17,8 +17,6 @@ public interface TrialConfig
 	// Trial-specific objective locations (rum pickup/dropoff for Tempor, toad pillars for Jubbly, etc)
 	Set<Integer> getPrimaryObjectiveIds();
 	Set<Integer> getSecondaryObjectiveIds();
-	WorldPoint getPrimaryObjectiveLocation();
-	WorldPoint getSecondaryObjectiveLocation();
 
 	Set<Integer> getRockIds();
 	Set<Integer> getSpeedBoostIds();

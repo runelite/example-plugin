@@ -134,9 +134,9 @@ public class RouteCapture
 		}
 
 		var trial = state.getCurrentTrial();
-		if (trial != null)
+		if (trial != null && trial instanceof TemporTantrumConfig tempor)
 		{
-			var location = trial.getPrimaryObjectiveLocation();
+			var location = tempor.getRumPickupLocation();
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_PICKUP, location));
 			log.info("[ROUTE CAPTURE] Rum pickup recorded (waypoint #{}): {}",
 				capturedWaypoints.size(), formatWorldPoint(location));
@@ -157,7 +157,7 @@ public class RouteCapture
 		var trial = state.getCurrentTrial();
 		if (trial != null)
 		{
-			var location = trial.getSecondaryObjectiveLocation();
+			var location = trial.getRumDropoffLocation();
 			capturedWaypoints.add(new RouteWaypoint(RouteWaypoint.WaypointType.RUM_DROPOFF, location));
 			log.info("[ROUTE CAPTURE] Rum dropoff recorded (waypoint #{}): {}",
 				capturedWaypoints.size(), formatWorldPoint(location));

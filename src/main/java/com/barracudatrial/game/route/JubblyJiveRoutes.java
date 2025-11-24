@@ -24,7 +24,7 @@ public class JubblyJiveRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2320, 2976, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2280, 2978, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2250, 2992, 0)),
-			new RouteWaypoint(WaypointType.TOAD_PICKUP, new WorldPoint(2243, 2991, 0)), //baseid 59169 imposter 59170
+			new RouteWaypoint(WaypointType.TOAD_PICKUP, TOAD_PICKUP_LOCATION), //baseid 59169 imposter 59170
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2248, 3023, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2311, 3021, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2330, 3016, 0)),
@@ -58,7 +58,7 @@ public class JubblyJiveRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2280, 2978, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2239, 3008, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2250, 2992, 0)),
-			new RouteWaypoint(WaypointType.TOAD_PICKUP, new WorldPoint(2243, 2991, 0)), //baseid 59169 imposter 59170
+			new RouteWaypoint(WaypointType.TOAD_PICKUP, TOAD_PICKUP_LOCATION), //baseid 59169 imposter 59170
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2248, 3023, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2273, 3006, 0)),
 			new RouteWaypoint(WaypointType.TOAD_PILLAR, new WorldPoint(2264, 3003, 0), // ID : 59124

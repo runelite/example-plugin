@@ -114,15 +114,24 @@ public class DebugRenderer
 		Color boatExclusionColor = new Color(255, 100, 0, 60); // Orange
 
 		var trial = plugin.getGameState().getCurrentTrial();
-		if (trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
+		if (trial != null)
 		{
-			renderBoatExclusionZone(graphics, topLevelWorldView,
-				trial.getPrimaryObjectiveLocation(),
-				"BOAT (PICKUP)", boatExclusionColor);
+			if (trial.getTrialType() == TrialType.TEMPOR_TANTRUM && trial instanceof TemporTantrumConfig tempor)
+			{
+				renderBoatExclusionZone(graphics, topLevelWorldView,
+					tempor.getRumPickupLocation(),
+					"BOAT (PICKUP)", boatExclusionColor);
 
-			renderBoatExclusionZone(graphics, topLevelWorldView,
-				trial.getSecondaryObjectiveLocation(),
-				"BOAT (DROPOFF)", boatExclusionColor);
+				renderBoatExclusionZone(graphics, topLevelWorldView,
+					tempor.getRumDropoffLocation(),
+					"BOAT (DROPOFF)", boatExclusionColor);
+			}
+			if (trial.getTrialType() == TrialType.JUBBLY_JIVE && trial instanceof JubblyJiveConfig jubbly)
+			{
+				renderBoatExclusionZone(graphics, topLevelWorldView,
+					jubbly.getToadPickupLocation(),
+					"TOAD PICKUP", boatExclusionColor);
+			}
 		}
 	}
 
