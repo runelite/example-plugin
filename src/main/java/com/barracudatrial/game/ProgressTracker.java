@@ -75,16 +75,17 @@ public class ProgressTracker
 					if (child == null || child.isHidden())
 						continue;
 					var text = child.getText();
-					if (text != null)
+					if (text != null && !text.isEmpty())
 					{
 						trialName = text;
 						break;
 					}
 				}
 			}
+
 			if (trialName != null && !trialName.equals(state.getCurrentTrialName()))
 			{
-				log.debug("Detected trial: {}", trialName);
+				log.info("Detected trial: {}", trialName);
 				state.setCurrentTrialName(trialName);
 
 				TrialType trialType = TrialType.fromDisplayName(trialName);
