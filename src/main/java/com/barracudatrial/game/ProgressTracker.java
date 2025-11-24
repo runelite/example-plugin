@@ -154,78 +154,7 @@ public class ProgressTracker
 			log.debug("Failed to parse lost supplies progress: {}", lostSuppliesProgressText);
 		}
 	}
-
-	/**
-	 * Detect the current trial type from HUD widget text.
-	 * Looks for trial names: "Tempor Tantrum", "Jubbly Jive", "Gwenith Glide"
-	 * @return The trial name if detected, or null if not found
-	 */
-	public String detectTrialType()
-	{
-		if (!state.isInTrialArea())
-		{
-			return null;
-		}
-
-		// Check main HUD widget for trial name
-		Widget barracudaTrialHudWidget = client.getWidget(InterfaceID.SailingBtHud.BARRACUDA_TRIALS);
-		if (barracudaTrialHudWidget != null && !barracudaTrialHudWidget.isHidden())
-		{
-			String trialName = checkWidgetForTrialName(barracudaTrialHudWidget);
-			if (trialName != null)
-			{
-				return trialName;
-			}
-
-			// Check child widgets if trial name not found in parent
-			Widget[] children = barracudaTrialHudWidget.getChildren();
-			if (children != null)
-			{
-				for (Widget child : children)
-				{
-					if (child != null && !child.isHidden())
-					{
-						trialName = checkWidgetForTrialName(child);
-						if (trialName != null)
-						{
-							return trialName;
-						}
-					}
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Check if a widget's text contains a trial name.
-	 */
-	private String checkWidgetForTrialName(Widget widget)
-	{
-		String text = widget.getText();
-		if (text == null || text.isEmpty())
-		{
-			return null;
-		}
-
-		// Check for known trial names
-		if (text.contains("Tempor Tantrum"))
-		{
-			return "Tempor Tantrum";
-		}
-		else if (text.contains("Jubbly Jive"))
-		{
-			return "Jubbly Jive";
-		}
-		else if (text.contains("Gwenith Glide"))
-		{
-			return "Gwenith Glide";
-		}
-
-		return null;
-	}
-
+	
 	/**
 	 * Creates the appropriate trial configuration based on the trial type
 	 */
