@@ -191,20 +191,7 @@ public class ObjectTracker
 
 						if (matchingToadPillarByParentId != null)
 						{
-							var objectComposition = client.getObjectDefinition(id);
-							if (objectComposition == null)
-								continue;
-
-							var hasInteractedWithObjectId = false;
-
-							var impostorIds = objectComposition.getImpostorIds();
-							if (impostorIds != null)
-							{
-								var imposter = objectComposition.getImpostor();
-								hasInteractedWithObjectId = imposter.getId() == matchingToadPillarByParentId.getClickboxNoopObjectId();
-							}
-
-							onToadPillarTick(knownToadPillars, obj, hasInteractedWithObjectId);
+							onToadPillarTick(knownToadPillars, obj, matchingToadPillarByParentId);
 							continue;
 						}
 					}
@@ -213,8 +200,21 @@ public class ObjectTracker
 		}
 	}
 
-	public void onToadPillarTick(Map<WorldPoint, Boolean> knownToadPillars, GameObject newToadPillarObj, boolean isInteractedWith)
+	public void onToadPillarTick(Map<WorldPoint, Boolean> knownToadPillars, GameObject newToadPillarObj, JubblyJiveToadPillar toadPillar)
 	{
+		var objectComposition = client.getObjectDefinition(newToadPillarObj.getId());
+		if (objectComposition == null)
+			return;
+
+		var isInteractedWith = false;
+
+		var impostorIds = objectComposition.getImpostorIds();
+		if (impostorIds != null)
+		{
+			var imposter = objectComposition.getImpostor();
+			isInteractedWith = imposter.getId() == toadPillar.getClickboxNoopObjectId();
+		}
+
 		var previousIsInteractedWith = knownToadPillars.put(newToadPillarObj.getWorldLocation(), isInteractedWith);
 
 		if (previousIsInteractedWith == null) return; // first time
