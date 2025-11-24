@@ -30,9 +30,8 @@ public class BarracudaTileCostCalculator
 	private WorldPoint lastTile = null;
 	private final Set<WorldPoint> consumedBoosts = new HashSet<>();
 
-	// Precomputed spatial lookups for O(1) cost checks (huge performance boost)
-	private final Set<WorldPoint> visibleRockLocations;
-	private final Set<WorldPoint> veryCloseToRocks;
+	// Precomputed spatial lookups for O(1) cost checks
+	private final Set<WorldPoint> rockLocations;
 	private final Set<WorldPoint> closeToRocks;
 	private final Set<WorldPoint> cloudDangerZones;
 	private final Map<WorldPoint, WorldPoint> boostGrabbableTiles;
@@ -50,8 +49,6 @@ public class BarracudaTileCostCalculator
 		WorldPoint secondaryObjectiveLocation,
 		RouteOptimization routeOptimization)
 	{
-        this.knownRockLocations = knownRockLocations;
-		this.visibleRocks = visibleRocks;
 		this.exclusionZoneMinX = exclusionZoneMinX;
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
 		this.exclusionZoneMinY = exclusionZoneMinY;
@@ -60,9 +57,8 @@ public class BarracudaTileCostCalculator
 		this.secondaryObjectiveLocation = secondaryObjectiveLocation;
 		this.routeOptimization = routeOptimization;
 
-		this.visibleRockLocations = precomputeVisibleRockLocations(visibleRocks);
-		this.veryCloseToRocks = precomputeRockProximity(1);
-		this.closeToRocks = precomputeRockProximity(2);
+		this.rockLocations = precomputeVisibleRockLocations(visibleRocks);
+		this.closeToRocks = precomputeRockProximity(rockLocations, 1);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
 		this.boostGrabbableTiles = computeBoostGrabbableTiles(knownSpeedBoostLocations);
 	}
@@ -95,19 +91,14 @@ public class BarracudaTileCostCalculator
 			cost += 25; // Discouraged but allowed for pathmaking
 		}
 
-		if (knownRockLocations.contains(to) || visibleRockLocations.contains(to))
+		if (rockLocations.contains(to))
 		{
 			cost += 250;
 			speedBoostTilesRemaining = 0;
 		}
-		else if (veryCloseToRocks.contains(to))
-		{
-			cost += 100;
-			speedBoostTilesRemaining = 0;
-		}
 		else if (closeToRocks.contains(to))
 		{
-			cost += 50;
+			cost += 15;
 		}
 
 		if (isInExclusionZone(to))
@@ -247,33 +238,43 @@ public class BarracudaTileCostCalculator
 		Set<WorldPoint> locations = new HashSet<>();
 		for (GameObject rock : visibleRocks)
 		{
-			locations.add(rock.getWorldLocation());
+			locations.addAll(ObjectTracker.getObjectTiles(rock));
 		}
 		return locations;
 	}
 
-	private Set<WorldPoint> precomputeRockProximity(int maxDistance)
+	private Set<WorldPoint> precomputeRockProximity(Set<WorldPoint> allRockLocations, int maxDistance)
 	{
 		Set<WorldPoint> proximityTiles = new HashSet<>();
+		int maxDistSq = maxDistance * maxDistance;
 
-		// Check both known and visible rocks
-		Set<WorldPoint> allRockLocations = new HashSet<>(knownRockLocations);
-		for (GameObject rock : visibleRocks)
-		{
-			allRockLocations.add(rock.getWorldLocation());
-		}
-
-		// For each rock, add all tiles within maxDistance
 		for (WorldPoint rock : allRockLocations)
 		{
+			int baseX = rock.getX();
+			int baseY = rock.getY();
 			int plane = rock.getPlane();
+
 			for (int dx = -maxDistance; dx <= maxDistance; dx++)
 			{
+				int dxSq = dx * dx;
+
 				for (int dy = -maxDistance; dy <= maxDistance; dy++)
 				{
-					WorldPoint tile = new WorldPoint(rock.getX() + dx, rock.getY() + dy, plane);
-					double dist = Math.sqrt(dx * dx + dy * dy);
-					if (dist <= maxDistance && dist > 0) // Exclude rock tile itself
+					if (dx == 0 && dy == 0)
+					{
+						continue; // skip the rock tile itself
+					}
+
+					int distSq = dxSq + dy * dy;
+					if (distSq > maxDistSq)
+					{
+						continue;
+					}
+
+					WorldPoint tile = new WorldPoint(baseX + dx, baseY + dy, plane);
+
+					// Don't consider tiles that are themselves rock locations
+					if (!allRockLocations.contains(tile))
 					{
 						proximityTiles.add(tile);
 					}

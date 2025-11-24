@@ -925,4 +925,37 @@ public class ObjectTracker
 			log.debug("Error calculating front boat tile: {}", e.getMessage());
 		}
 	}
+	
+	public static List<WorldPoint> getObjectTiles(Client client, GameObject obj)
+	{
+		ObjectComposition def = client.getObjectDefinition(obj.getId());
+		if (def.getImpostorIds() != null)
+		{
+			def = def.getImpostor();
+		}
+
+		int width = def.getSizeX();
+		int height = def.getSizeY();
+
+		int o = obj.getOrientation();
+		if (o == 1 || o == 3)
+		{
+			int t = width;
+			width = height;
+			height = t;
+		}
+
+		WorldPoint sw = obj.getWorldLocation();
+		List<WorldPoint> result = new ArrayList<>(width * height);
+
+		for (int dx = 0; dx < width; dx++)
+		{
+			for (int dy = 0; dy < height; dy++)
+			{
+				result.add(sw.dx(dx).dy(dy));
+			}
+		}
+
+		return result;
+	}
 }
