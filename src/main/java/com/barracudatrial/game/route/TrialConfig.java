@@ -20,11 +20,6 @@ public interface TrialConfig
 	WorldPoint getPrimaryObjectiveLocation();
 	WorldPoint getSecondaryObjectiveLocation();
 
-	// Hazards (storm clouds for Tempor, fetid pools for Jubbly, etc)
-	Set<Integer> getHazardNpcIds();
-	boolean hasMovingHazards();
-
-	// Obstacles (rocks)
 	Set<Integer> getRockIds();
 
 	// Exclusion zone offsets (relative to primary objective location)

@@ -113,18 +113,6 @@ public class JubblyJiveConfig implements TrialConfig
 	}
 
 	@Override
-	public Set<Integer> getHazardNpcIds()
-	{
-		return Set.of(); // Jubbly Jive has fetid pools (not NPC hazards like Tempor clouds)
-	}
-
-	@Override
-	public boolean hasMovingHazards()
-	{
-		return false; // Fetid pools don't move
-	}
-
-	@Override
 	public Set<Integer> getRockIds()
 	{
 		return ROCK_IDS; // PLACEHOLDER

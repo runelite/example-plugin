@@ -1,6 +1,7 @@
 package com.barracudatrial.game;
 
 import com.barracudatrial.game.route.RouteWaypoint;
+import com.barracudatrial.game.route.TemporTantrumConfig;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -49,13 +50,6 @@ public class ObjectTracker
 			return;
 		}
 
-		var trial = state.getCurrentTrial();
-		if (trial == null || trial.getHazardNpcIds().isEmpty())
-		{
-			state.getLightningClouds().clear();
-			return;
-		}
-
 		state.getLightningClouds().clear();
 
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
@@ -64,7 +58,6 @@ public class ObjectTracker
 			return;
 		}
 
-		var hazardNpcIds = trial.getHazardNpcIds();
 		for (NPC npc : topLevelWorldView.npcs())
 		{
 			if (npc == null)
@@ -73,7 +66,7 @@ public class ObjectTracker
 			}
 
 			int npcId = npc.getId();
-			if (hazardNpcIds.contains(npcId))
+			if (TemporTantrumConfig.LIGHTNING_CLOUD_NPC_IDS.contains(npcId))
 			{
 				state.getLightningClouds().add(npc);
 			}

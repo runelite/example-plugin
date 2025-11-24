@@ -2,6 +2,7 @@ package com.barracudatrial;
 
 import com.barracudatrial.game.*;
 import com.barracudatrial.game.route.RouteWaypoint;
+import com.barracudatrial.game.route.TrialType;
 import com.google.inject.Provides;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +92,9 @@ public class BarracudaTrialPlugin extends Plugin
 			return;
 		}
 
-		if (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightClouds())
+		var trial = gameState.getCurrentTrial();
+		if (trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM
+			&& (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightClouds()))
 		{
 			objectTracker.updateLightningCloudTracking();
 		}

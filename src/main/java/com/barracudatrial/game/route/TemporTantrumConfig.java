@@ -58,14 +58,13 @@ public class TemporTantrumConfig implements TrialConfig
 	);
 	private static final int SHIPMENT_IMPOSTOR_ID = ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_SUPPLIES;
 
-	private static final Set<Integer> LIGHTNING_CLOUD_NPC_IDS = Set.of(
-		NpcID.SAILING_SEA_STORMY_CLOUD,
-		NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE
-	);
-
-	// Most rock IDs don't have constants available
 	private static final Set<Integer> ROCK_IDS = Set.of(
 		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444
+	);
+
+	public static final Set<Integer> LIGHTNING_CLOUD_NPC_IDS = Set.of(
+		NpcID.SAILING_SEA_STORMY_CLOUD,
+		NpcID.SAILING_SEA_STORMY_LIGHTNING_STRIKE
 	);
 
 	// Exclusion zone offsets relative to rum dropoff location
@@ -117,18 +116,6 @@ public class TemporTantrumConfig implements TrialConfig
 	public WorldPoint getSecondaryObjectiveLocation()
 	{
 		return RUM_DROPOFF_LOCATION;
-	}
-
-	@Override
-	public Set<Integer> getHazardNpcIds()
-	{
-		return LIGHTNING_CLOUD_NPC_IDS;
-	}
-
-	@Override
-	public boolean hasMovingHazards()
-	{
-		return true; // Lightning clouds move around
 	}
 
 	@Override

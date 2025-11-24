@@ -1,5 +1,6 @@
 package com.barracudatrial;
 
+import com.barracudatrial.game.route.TrialType;
 import com.barracudatrial.rendering.DebugRenderer;
 import com.barracudatrial.rendering.ObjectRenderer;
 import com.barracudatrial.rendering.PathRenderer;
@@ -67,7 +68,8 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderRouteCaptureSupplyLocations(graphics);
 		}
 
-		if (cachedConfig.isHighlightClouds())
+		var trial = plugin.getGameState().getCurrentTrial();
+		if (cachedConfig.isHighlightClouds() && trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
 		{
 			objectRenderer.renderLightningClouds(graphics);
 		}
