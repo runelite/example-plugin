@@ -120,12 +120,8 @@ public class ObjectTracker
 		var rockIds = trial.getRockIds();
 		var speedBoostIds = trial.getSpeedBoostIds();
 		var fetidPoolIds = JubblyJiveConfig.FETID_POOL_IDS;
-		var toadPillarClickboxParentIds =
-				trialType == TrialType.JUBBLY_JIVE
-						? List.<Integer>of()
-						: Arrays.stream(JubblyJiveConfig.TOAD_PILLARS)
-						.map(JubblyJiveToadPillar::getClickboxParentObjectId)
-						.collect(Collectors.toList());
+
+		var toadPillarParentIds = JubblyJiveConfig.TOAD_PILLARS;
 
 		var knownRockTiles = state.getKnownRockLocations();
 
@@ -149,14 +145,7 @@ public class ObjectTracker
 				{
 					if (tile == null) continue;
 
-					// Skip scanning tiles we already know about.
-					// Except Toad Pillars as we want to update them
 					WorldPoint tileWp = tile.getWorldLocation();
-					if (knownRockTiles.contains(tileWp) || knownBoostTiles.containsKey(tileWp) || knownFetidPoolTiles.contains(tileWp))
-					{
-						continue;
-					}
-
 					for (var obj : tile.getGameObjects())
 					{
 						if (obj == null) continue;
@@ -169,14 +158,14 @@ public class ObjectTracker
 							continue;
 						}
 
-						if (rockIds.contains(id))
+						if (!knownRockTiles.contains(tileWp) && rockIds.contains(id))
 						{
 							knownRockTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
 
 							continue;
 						}
 
-						if (speedBoostIds.contains(id))
+						if (!knownBoostTiles.containsKey(tileWp) && speedBoostIds.contains(id))
 						{
 							knownBoosts.add(obj);
 
@@ -186,7 +175,7 @@ public class ObjectTracker
 							continue;
 						}
 
-						if (fetidPoolIds.contains(id))
+						if (!knownFetidPoolTiles.contains(tileWp) && fetidPoolIds.contains(id))
 						{
 							knownFetidPools.add(obj);
 							knownFetidPoolTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
@@ -194,9 +183,28 @@ public class ObjectTracker
 							continue;
 						}
 
-						if (toadPillarClickboxParentIds.contains(id))
+						var matchingToadPillarByParentId =
+								Arrays.stream(JubblyJiveConfig.TOAD_PILLARS)
+										.filter(v -> v.getClickboxParentObjectId() == id)
+										.findFirst()
+										.orElse(null);
+
+						if (matchingToadPillarByParentId != null)
 						{
-							onToadPillarTick(knownToadPillars, obj);
+							var objectComposition = client.getObjectDefinition(id);
+							if (objectComposition == null)
+								continue;
+
+							var hasInteractedWithObjectId = false;
+
+							var impostorIds = objectComposition.getImpostorIds();
+							if (impostorIds != null)
+							{
+								var imposter = objectComposition.getImpostor();
+								hasInteractedWithObjectId = imposter.getId() == matchingToadPillarByParentId.getClickboxNoopObjectId();
+							}
+
+							onToadPillarTick(knownToadPillars, obj, hasInteractedWithObjectId);
 							continue;
 						}
 					}
@@ -205,15 +213,13 @@ public class ObjectTracker
 		}
 	}
 
-	public void onToadPillarTick(Map<WorldPoint, GameObject> knownToadPillars, GameObject newToadPillarObj)
+	public void onToadPillarTick(Map<WorldPoint, Boolean> knownToadPillars, GameObject newToadPillarObj, boolean isInteractedWith)
 	{
-		var previousObj = knownToadPillars.put(newToadPillarObj.getWorldLocation(), newToadPillarObj);
+		var previousIsInteractedWith = knownToadPillars.put(newToadPillarObj.getWorldLocation(), isInteractedWith);
 
-		// First time seeing this toad pillar
-		if (previousObj == null)
-		{
-			return;
-		}
+		if (previousIsInteractedWith == null) return; // first time
+		if (previousIsInteractedWith == isInteractedWith) return; // no change
+		if (previousIsInteractedWith && !isInteractedWith) return; // true -> false (reset)
 
 		var route = state.getCurrentStaticRoute();
 		if (route == null || route.isEmpty())
@@ -221,26 +227,8 @@ public class ObjectTracker
 			return;
 		}
 
-		var previousComp = client.getObjectDefinition(previousObj.getId());
-		var previousImposterIds = previousComp != null ? previousComp.getImpostorIds() : null;
-		var prevList = previousImposterIds == null
-			? List.of()
-			: Arrays.stream(previousImposterIds).boxed().collect(Collectors.toList());
-
-		var newComp = client.getObjectDefinition(newToadPillarObj.getId());
-		var newImposterIds = newComp != null ? newComp.getImpostorIds() : null;
-		var newList = newImposterIds == null
-			? List.of()
-			: Arrays.stream(newImposterIds).boxed().collect(Collectors.toList());
-
-		if (!prevList.equals(newList))
-		{
-			return;
-		}
-
 		var objectId = newToadPillarObj.getId();
-
-		log.info("Detected Imposter change. Trying to find id {} in list of waypoints. Found {} old imposterIDs and {} new imposterIds", objectId, prevList, newList);
+		log.info("Detected change in pillar. Trying to find id {} in list of waypoints", objectId);
 
 		for (int index = 0; index < route.size(); index++)
 		{
@@ -253,7 +241,7 @@ public class ObjectTracker
 
 			var pillarWaypoint = (JubblyJiveToadPillarWaypoint) waypoint;
 
-			if (pillarWaypoint.getPillar().getClickboxParentObjectId() != newToadPillarObj.getId())
+			if (!pillarWaypoint.getPillar().matchesAnyObjectId(objectId))
 			{
 				continue;
 			}

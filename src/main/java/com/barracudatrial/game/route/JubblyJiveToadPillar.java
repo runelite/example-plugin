@@ -31,4 +31,14 @@ public class JubblyJiveToadPillar
         this.clickboxNoopObjectId = clickboxNoopObjectId;
         this.clickboxObjectId = clickboxObjectId;
     }
+
+    public boolean matchesAnyObjectId(int id)
+    {
+        return id == parentObjectId
+                || id == noToadObjectId
+                || id == toadObjectId
+                || id == clickboxParentObjectId
+                || id == clickboxNoopObjectId
+                || id == clickboxObjectId;
+    }
 }
