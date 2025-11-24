@@ -352,10 +352,10 @@ public class BarracudaTrialPlugin extends Plugin
 				WorldPoint rumLocation = boatWorldLocation != null ? boatWorldLocation : worldPoint;
 				routeCapture.onExamineRumDropoff(rumLocation, sceneX, sceneY, sceneBaseX, sceneBaseY, objectId, impostorInfo);
 			}
-			else if (JubblyJiveConfig.TOAD_PILLAR_IDS.contains(objectId))
-			{
-				routeCapture.onExamineToadPillar(worldPoint, objectId);
-			}
+			// else if (JubblyJiveConfig.TOAD_PILLAR_IDS.contains(objectId))
+			// {
+			// 	routeCapture.onExamineToadPillar(worldPoint, objectId);
+			// }
 		}
 	}
 
