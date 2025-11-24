@@ -75,7 +75,7 @@ public class JubblyJiveConfig implements TrialConfig
 	);
 	private static final int SHIPMENT_IMPOSTOR_ID = ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_SUPPLIES;
 
-	// PLACEHOLDER: Tempor rock IDs, will need Jubbly-specific IDs
+	// Same as Tempor Tantrum - if they are the same in Gwenith Glide we can remove the abstraction
 	private static final Set<Integer> ROCK_IDS = Set.of(
 		59314, 59315, 60437, 60438, 60440, 60441, 60442, 60443, 60444
 	);
