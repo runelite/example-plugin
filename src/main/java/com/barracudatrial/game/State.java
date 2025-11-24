@@ -167,7 +167,7 @@ public class State
 		hasRumOnUs = false;
 		currentTrialName = null;
 		boatLocation = null;
-		currentLap = 0;
+		currentLap = 1;
 		optimalPath = new ArrayList<>();
 		currentSegmentPath = new ArrayList<>();
 		nextSegmentPath = new ArrayList<>();
