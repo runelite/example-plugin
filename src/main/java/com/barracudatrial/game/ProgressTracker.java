@@ -64,19 +64,35 @@ public class ProgressTracker
 			return;
 		}
 
-		// Detect and store trial name, initialize trial config
-		String trialName = detectTrialType();
-		if (trialName != null && !trialName.equals(state.getCurrentTrialName()))
+		var title = client.getWidget(InterfaceID.SailingBtHud.BT_TITLE);
+		if (title != null && !title.isHidden())
 		{
-			log.debug("Detected trial: {}", trialName);
-			state.setCurrentTrialName(trialName);
-
-			TrialType trialType = TrialType.fromDisplayName(trialName);
-			if (trialType != null)
+			var children = title.getChildren();
+			String trialName = null;
+			if (children != null)
 			{
-				TrialConfig trialConfig = createTrialConfig(trialType);
-				state.setCurrentTrial(trialConfig);
-				log.info("Initialized trial config for: {}", trialType);
+				for (var child : children) {
+					if (child == null || child.isHidden())
+						continue;
+					var text = child.getText();
+					if (text != null)
+					{
+						trialName = text;
+						break;
+					}
+				}
+			}
+			if (trialName != null && !trialName.equals(state.getCurrentTrialName()))
+			{
+				log.debug("Detected trial: {}", trialName);
+				state.setCurrentTrialName(trialName);
+
+				TrialType trialType = TrialType.fromDisplayName(trialName);
+				if (trialType != null) {
+					TrialConfig trialConfig = createTrialConfig(trialType);
+					state.setCurrentTrial(trialConfig);
+					log.info("Initialized trial config for: {}", trialType);
+				}
 			}
 		}
 
