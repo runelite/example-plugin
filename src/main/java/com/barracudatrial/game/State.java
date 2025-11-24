@@ -159,7 +159,7 @@ public class State
 		lostSupplies.clear();
 		routeCaptureSupplyLocations.clear();
 		lightningClouds.clear();
-		speedBoosts.clear();
+		knownToadPillars.clear();
 		rumPickupLocation = null;
 		rumReturnLocation = null;
 		rumsCollected = 0;
