@@ -75,13 +75,10 @@ public class LocationManager
 	private void scanSceneForTemporRumReturnAndPickupLocations(Scene scene, WorldEntity worldEntity)
 	{
 		var trial = state.getCurrentTrial();
-		if (trial == null)
+		if (trial == null || !(trial instanceof TemporTantrumConfig tempor))
 		{
 			return;
 		}
-
-		var primaryObjectiveIds = trial.getPrimaryObjectiveIds();
-		var secondaryObjectiveIds = trial.getSecondaryObjectiveIds();
 
 		Tile[][][] tileArray = scene.getTiles();
 		if (tileArray == null)
@@ -140,11 +137,20 @@ public class LocationManager
 						}
 
 						int objectId = gameObject.getId();
-						boolean isPrimaryObjective = primaryObjectiveIds.contains(objectId);
-						boolean isSecondaryObjective = secondaryObjectiveIds.contains(objectId);
+						boolean isRumReturnObject = false;
+						boolean isRumPickupObject = false;
+
+						if (objectId == RUM_RETURN_BASE_OBJECT_ID)
+						{
+							isRumReturnObject = true;
+						}
+						else if (objectId == RUM_PICKUP_BASE_OBJECT_ID)
+						{
+							isRumPickupObject = true;
+						}
 
 						// Check impostor IDs if not found in base IDs
-						if (!isPrimaryObjective && !isSecondaryObjective)
+						if (!isRumReturnObject && !isRumPickupObject)
 						{
 							try
 							{
@@ -155,13 +161,13 @@ public class LocationManager
 									if (activeImpostor != null)
 									{
 										int impostorId = activeImpostor.getId();
-										if (primaryObjectiveIds.contains(impostorId))
+										if (impostorId == tempor.RUM_RETURN_IMPOSTOR_ID)
 										{
-											isPrimaryObjective = true;
+											isRumReturnObject = true;
 										}
-										else if (secondaryObjectiveIds.contains(impostorId))
+										else if (impostorId == tempor.RUM_PICKUP_IMPOSTOR_ID)
 										{
-											isSecondaryObjective = true;
+											isRumPickupObject = true;
 										}
 									}
 								}
@@ -171,7 +177,7 @@ public class LocationManager
 							}
 						}
 
-						if (isSecondaryObjective)
+						if (isRumReturnObject)
 						{
 							// Secondary objective (rum dropoff for Tempor, etc.)
 							// Use the boat's real world location, not the gameObject's location
@@ -183,7 +189,7 @@ public class LocationManager
 								calculateTemporExclusionZoneBounds(boatWorldLocation);
 							}
 						}
-						else if (isPrimaryObjective)
+						else if (isRumPickupObject)
 						{
 							// Primary objective (rum pickup for Tempor, etc.)
 							// Use the boat's real world location, not the gameObject's location

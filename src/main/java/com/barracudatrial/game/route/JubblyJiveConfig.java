@@ -8,11 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * PLACEHOLDER: Jubbly Jive configuration
- * Currently uses Tempor Tantrum values as placeholders
- * Will be updated with actual Jubbly Jive object IDs and locations later
- */
 public class JubblyJiveConfig implements TrialConfig
 {
 	private static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2243, 2991, 0);
@@ -160,9 +155,6 @@ public class JubblyJiveConfig implements TrialConfig
 		ObjectID.SAILING_RAPIDS_STRONG
 	);
 
-	// PLACEHOLDER: Tempor locations, will need actual Jubbly locations
-	private static final WorldPoint PLACEHOLDER_OBJECTIVE_LOCATION = new WorldPoint(3037, 2767, 0);
-
 	@Override
 	public TrialType getTrialType()
 	{
@@ -172,13 +164,13 @@ public class JubblyJiveConfig implements TrialConfig
 	@Override
 	public Set<Integer> getShipmentBaseIds()
 	{
-		return SHIPMENT_IDS; // PLACEHOLDER
+		return SHIPMENT_IDS;
 	}
 
 	@Override
 	public int getShipmentImpostorId()
 	{
-		return SHIPMENT_IMPOSTOR_ID; // PLACEHOLDER
+		return SHIPMENT_IMPOSTOR_ID;
 	}
 
 	@Override
