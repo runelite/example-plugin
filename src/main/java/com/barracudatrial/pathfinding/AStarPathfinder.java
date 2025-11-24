@@ -13,11 +13,11 @@ public class AStarPathfinder
 {
 	public PathResult findPath(BarracudaTileCostCalculator costCalculator, RouteOptimization routeOptimization, WorldPoint start, WorldPoint goal, int maxSearchDistance, int boatDirectionDx, int boatDirectionDy, int goalTolerance)
 	{
-		// Compute grabbable area around goal based on tolerance
+		// With a tolerance provided, we can be in a range of tiles around the goal and it counts as being in the goal
 		Set<WorldPoint> goalTiles = new HashSet<>();
 		if (goalTolerance > 0)
 		{
-			goalTiles.addAll(BarracudaTileCostCalculator.computeGrabbableTiles(Set.of(goal), goalTolerance).keySet());
+			goalTiles.addAll(computeGrabbableTiles(Set.of(goal), goalTolerance).keySet());
 		}
 		else
 		{
@@ -26,7 +26,7 @@ public class AStarPathfinder
 
 		PriorityQueue<Node> openSet = new PriorityQueue<>(
 			Comparator.comparingDouble((Node n) -> n.fScore)
-				.thenComparingDouble(n -> manhattanDistance(n.position, goal))
+				.thenComparingDouble(n -> minDistanceToAnyGoal(n.position, goalTiles))
 		);
 		Map<WorldPoint, Node> allNodes = new HashMap<>();
 
@@ -239,6 +239,18 @@ public class AStarPathfinder
 	}
 
 	/**
+	 * Finds minimum manhattan distance from a position to any goal tile
+	 * Used for tie-breaking to prefer paths toward the nearest reachable goal
+	 */
+	private double minDistanceToAnyGoal(WorldPoint from, Set<WorldPoint> goals)
+	{
+		return goals.stream()
+			.mapToDouble(goal -> manhattanDistance(from, goal))
+			.min()
+			.orElse(Double.POSITIVE_INFINITY);
+	}
+
+	/**
 	 * Gets all 8 neighboring tiles (including diagonals)
 	 */
 	private List<WorldPoint> getNeighbors(WorldPoint point)
@@ -275,6 +287,35 @@ public class AStarPathfinder
 		// Reverse to get path from start to goal
 		Collections.reverse(pathNodes);
 		return pathNodes;
+	}
+
+	/**
+	 * Computes all tiles within a given tolerance distance from target locations.
+	 * Uses Chebyshev distance (max of dx, dy) for square areas.
+	 *
+	 * @param locations Center points
+	 * @param tolerance Distance in tiles (1 = 3x3 area, 2 = 5x5 area, etc.)
+	 * @return Map from grabbable tile to its center point
+	 */
+	public static Map<WorldPoint, WorldPoint> computeGrabbableTiles(Set<WorldPoint> locations, int tolerance)
+	{
+		Map<WorldPoint, WorldPoint> grabbableTiles = new HashMap<>();
+
+		for (WorldPoint center : locations)
+		{
+			int plane = center.getPlane();
+
+			for (int dx = -tolerance; dx <= tolerance; dx++)
+			{
+				for (int dy = -tolerance; dy <= tolerance; dy++)
+				{
+					WorldPoint tile = new WorldPoint(center.getX() + dx, center.getY() + dy, plane);
+					grabbableTiles.put(tile, center);
+				}
+			}
+		}
+
+		return grabbableTiles;
 	}
 
 	/**
