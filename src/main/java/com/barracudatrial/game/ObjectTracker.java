@@ -15,7 +15,7 @@ import static com.barracudatrial.game.RouteCapture.formatWorldPoint;
 
 /**
  * Handles tracking of game objects in the Barracuda Trial minigame
- * Tracks clouds, rocks, speed boosts, lost supplies, and boat location
+ * Tracks clouds, rocks, speed boosts, lost supplies, boat location, toad pillars, etc
  */
 @Slf4j
 public class ObjectTracker
@@ -162,6 +162,12 @@ public class ObjectTracker
 						if (obj == null) continue;
 
 						int id = obj.getId();
+						var objTile = obj.getWorldLocation();
+						if (!objTile.equals(tileWp))
+						{
+							// Don't want to re-process multi-tile objects
+							continue;
+						}
 
 						if (rockIds.contains(id))
 						{
@@ -174,8 +180,9 @@ public class ObjectTracker
 						{
 							knownBoosts.add(obj);
 
-							var allObjectTiles = ObjectTracker.getObjectTiles(client, obj);
-							knownBoostTiles.put(tileWp, allObjectTiles);
+							// getObjectTiles is 5x5 but we want 3x3 to encourage getting closer
+							var speedTilesWithOneTolerance = ObjectTracker.getTilesWithTolerance(objTile, 1);
+							knownBoostTiles.put(objTile, speedTilesWithOneTolerance);
 							continue;
 						}
 
@@ -934,34 +941,59 @@ public class ObjectTracker
 
 	public static List<WorldPoint> getObjectTiles(Client client, GameObject obj)
 	{
-		ObjectComposition def = client.getObjectDefinition(obj.getId());
-		if (def.getImpostorIds() != null)
+		Point min = obj.getSceneMinLocation();
+		Point max = obj.getSceneMaxLocation();
+
+		if (min == null || max == null)
 		{
-			def = def.getImpostor();
+			// Fallback: treat as 1x1 anchored on world location
+			return Collections.singletonList(obj.getWorldLocation());
 		}
 
-		int width = def.getSizeX();
-		int height = def.getSizeY();
+		Scene scene = client.getScene();
+		int baseX = scene.getBaseX();
+		int baseY = scene.getBaseY();
+		int plane = obj.getPlane();
 
-		int o = obj.getOrientation();
-		if (o == 1 || o == 3)
-		{
-			int t = width;
-			width = height;
-			height = t;
-		}
+		int width = max.getX() - min.getX() + 1;
+		int height = max.getY() - min.getY() + 1;
 
-		WorldPoint sw = obj.getWorldLocation();
 		List<WorldPoint> result = new ArrayList<>(width * height);
-
-		for (int dx = 0; dx < width; dx++)
+		for (int sx = min.getX(); sx <= max.getX(); sx++)
 		{
-			for (int dy = 0; dy < height; dy++)
+			for (int sy = min.getY(); sy <= max.getY(); sy++)
 			{
-				result.add(sw.dx(dx).dy(dy));
+				int worldX = baseX + sx;
+				int worldY = baseY + sy;
+				result.add(new WorldPoint(worldX, worldY, plane));
 			}
 		}
 
 		return result;
 	}
+
+	/**
+	 * Computes all tiles within a given tolerance distance from target locations.
+	 * Uses Chebyshev distance (max of dx, dy) for square areas.
+	 *
+	 * @param center
+	 * @param tolerance Distance in tiles (1 = 3x3 area, 2 = 5x5 area, etc.)
+	 * @return Map from grabbable tile to its center point
+	 */
+	public static List<WorldPoint> getTilesWithTolerance(WorldPoint center, int tolerance)
+	{
+		List<WorldPoint> tiles = new ArrayList<>();
+		int plane = center.getPlane();
+
+		for (int dx = -tolerance; dx <= tolerance; dx++)
+		{
+			for (int dy = -tolerance; dy <= tolerance; dy++)
+			{
+				tiles.add(new WorldPoint(center.getX() + dx, center.getY() + dy, plane));
+			}
+		}
+
+		return tiles;
+	}
+
 }

@@ -95,6 +95,15 @@ public class ObjectRenderer
 			}
 			renderGameObjectWithHighlight(graphics, speedBoostObject, color, true, debugLabel);
 		}
+
+		if (cachedConfig.isDebugMode())
+		{
+			var map = plugin.getGameState().getKnownSpeedBoostLocations();
+			for (var speedBoostObject : map.keySet())
+			{
+				renderTileHighlightAtWorldPoint(graphics, speedBoostObject, Color.GREEN, "Boost Location");
+			}
+		}
 	}
 
 	public void renderLightningClouds(Graphics2D graphics)
