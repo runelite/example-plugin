@@ -23,8 +23,8 @@ public class CachedConfig
 	@Getter private boolean highlightLostSupplies;
 	@Getter private Color lostSuppliesColorCurrentLap;
 	@Getter private Color lostSuppliesColorLaterLaps;
-	@Getter private boolean highlightRumLocations;
-	@Getter private Color rumLocationColor;
+	@Getter private boolean highlightObjectiveLocations;
+	@Getter private Color objectiveColor;
 
 	// Object highlighting settings
 	@Getter private boolean highlightSpeedBoosts;
@@ -60,8 +60,8 @@ public class CachedConfig
 		highlightLostSupplies = config.highlightLostSupplies();
 		lostSuppliesColorCurrentLap = config.lostSuppliesColorCurrentLap();
 		lostSuppliesColorLaterLaps = config.lostSuppliesColorLaterLaps();
-		highlightRumLocations = config.highlightRumLocations();
-		rumLocationColor = config.rumLocationColor();
+		highlightObjectiveLocations = config.highlightObjectiveLocations();
+		objectiveColor = config.objectiveColor();
 
 		highlightSpeedBoosts = config.highlightSpeedBoosts();
 		speedBoostColor = config.speedBoostColor();

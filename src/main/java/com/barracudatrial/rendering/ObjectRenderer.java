@@ -16,6 +16,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ObjectRenderer
 {
@@ -147,10 +148,33 @@ public class ObjectRenderer
 		}
 	}
 
+	public void renderToadPillars(Graphics2D graphics)
+	{
+		CachedConfig cachedConfig = plugin.getCachedConfig();
+		Color rumHighlightColor = cachedConfig.getObjectiveColor();
+
+		var toadPillars = plugin.getGameState().getKnownToadPillars().entrySet().stream()
+			.filter(entry -> !entry.getValue()) // only unactivated pillars
+			.map(Map.Entry::getKey)
+			.map(worldPoint -> ObjectRenderer.findGameObjectAtWorldPoint(client, worldPoint))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		for (GameObject toadPillar : toadPillars)
+		{
+			String debugLabel = null;
+			if (cachedConfig.isShowIDs())
+			{
+				debugLabel = buildObjectLabelWithImpostorInfo(toadPillar, "Toad Pillar");
+			}
+			renderGameObjectWithHighlight(graphics, toadPillar, rumHighlightColor, false, debugLabel);
+		}
+	}
+
 	public void renderRumLocations(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
-		Color rumHighlightColor = cachedConfig.getRumLocationColor();
+		Color rumHighlightColor = cachedConfig.getObjectiveColor();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
 		WorldPoint targetRumLocation;

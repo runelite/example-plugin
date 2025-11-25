@@ -20,11 +20,11 @@ public interface BarracudaTrialConfig extends Config
 	String pathSection = "pathSection";
 
 	@ConfigSection(
-		name = "Lost Supplies",
-		description = "Settings for lost supplies highlighting",
+		name = "Objectives",
+		description = "Settings for objective highlighting",
 		position = 1
 	)
-	String lostSuppliesSection = "lostSuppliesSection";
+	String objectivesSection = "objectivesSection";
 
 	@ConfigSection(
 		name = "Object Hightlighting",
@@ -107,7 +107,7 @@ public interface BarracudaTrialConfig extends Config
 		keyName = "highlightLostSupplies",
 		name = "Highlight Lost Supplies",
 		description = "Highlight lost supplies in the trial area",
-		section = lostSuppliesSection,
+		section = objectivesSection,
 		position = 0
 	)
 	default boolean highlightLostSupplies()
@@ -119,7 +119,7 @@ public interface BarracudaTrialConfig extends Config
 		keyName = "lostSuppliesColorCurrentLap",
 		name = "Lost Supplies Color - Current Lap",
 		description = "Color for lost supplies highlights on current lap",
-		section = lostSuppliesSection,
+		section = objectivesSection,
 		position = 1
 	)
 	@Alpha
@@ -132,36 +132,36 @@ public interface BarracudaTrialConfig extends Config
 		keyName = "lostSuppliesColorLaterLaps",
 		name = "Lost Supplies Color - Later Laps",
 		description = "Color for lost supplies highlights on later laps",
-		section = lostSuppliesSection,
+		section = objectivesSection,
 		position = 1
 	)
 	@Alpha
 	default Color lostSuppliesColorLaterLaps()
 	{
-		return new Color(255, 120, 0, 120);
+		return new Color(255, 40, 0, 120);
 	}
 
 	@ConfigItem(
-		keyName = "highlightRumLocations",
-		name = "Highlight Rum Locations",
-		description = "Highlight rum pickup and dropoff locations",
-		section = lostSuppliesSection,
+		keyName = "highlightObjectiveLocations",
+		name = "Highlight Objective Locations",
+		description = "Highlight rum pickup/dropoff, toad pillar locations",
+		section = objectivesSection,
 		position = 2
 	)
-	default boolean highlightRumLocations()
+	default boolean highlightObjectiveLocations()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-		keyName = "rumLocationColor",
-		name = "Rum Location Color",
-		description = "Color for rum location highlights",
-		section = lostSuppliesSection,
+		keyName = "objectiveColor",
+		name = "Objective Color",
+		description = "Color for rum pickup/dropoff, toad pillar",
+		section = objectivesSection,
 		position = 3
 	)
 	@Alpha
-	default Color rumLocationColor()
+	default Color objectiveColor()
 	{
 		return new Color(128, 0, 128, 180);
 	}
