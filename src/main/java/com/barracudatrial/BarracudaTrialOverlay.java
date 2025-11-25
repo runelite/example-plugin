@@ -30,7 +30,7 @@ public class BarracudaTrialOverlay extends Overlay
 		this.plugin = plugin;
 		this.objectRenderer = new ObjectRenderer(client, plugin, modelOutlineRenderer);
 		this.pathRenderer = new PathRenderer(client, plugin, objectRenderer);
-		this.debugRenderer = new DebugRenderer(client, plugin, modelOutlineRenderer);
+		this.debugRenderer = new DebugRenderer(client, plugin);
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_SCENE);
@@ -58,7 +58,7 @@ public class BarracudaTrialOverlay extends Overlay
 			pathRenderer.renderOptimalPath(graphics);
 		}
 
-		if (cachedConfig.isHighlightLostSupplies())
+		if (cachedConfig.isHighlightObjectives())
 		{
 			objectRenderer.renderLostSupplies(graphics);
 		}
@@ -84,7 +84,7 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderSpeedBoosts(graphics);
 		}
 
-		if (cachedConfig.isHighlightObjectiveLocations())
+		if (cachedConfig.isHighlightObjectiveLocations() && trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
 		{
 			objectRenderer.renderRumLocations(graphics);
 		}

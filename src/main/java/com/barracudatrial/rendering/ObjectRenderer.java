@@ -7,15 +7,15 @@ import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.game.route.TemporTantrumConfig;
 import lombok.Setter;
 import net.runelite.api.*;
+import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class ObjectRenderer
 {
@@ -68,8 +68,8 @@ public class ObjectRenderer
 			var worldLocation = lostSupplyObject.getWorldLocation();
 
 			var renderColor = laterLapLocations.contains(worldLocation)
-				? cachedConfig.getLostSuppliesColorLaterLaps()
-				: cachedConfig.getLostSuppliesColorCurrentLap();
+				? cachedConfig.getObjectivesColorLaterLaps()
+				: cachedConfig.getObjectivesColorCurrentLap();
 
 			if (cachedConfig.isDebugMode() && (allRouteLocations.isEmpty() || !allRouteLocations.contains(worldLocation)))
 			{
@@ -149,19 +149,23 @@ public class ObjectRenderer
 
 	public void renderToadPillars(Graphics2D graphics)
 	{
-		var cachedConfig = plugin.getCachedConfig();
+		var cached = plugin.getCachedConfig();
 		var state = plugin.getGameState();
 		var route = state.getCurrentStaticRoute();
-		int currentLap = state.getCurrentLap();
-		var completedWaypointIndices = state.getCompletedWaypointIndices();
+		if (route == null)
+			return;
 
+		int currentLap = state.getCurrentLap();
+		var completed = state.getCompletedWaypointIndices();
+
+		// Build lookup: WorldPoint -> lap (only UNCOMPLETED TOAD_PILLAR waypoints)
 		var lapByLocation = new HashMap<WorldPoint, Integer>();
 		for (int i = 0; i < route.size(); i++)
 		{
 			var wp = route.get(i);
 			if (wp.getType() != RouteWaypoint.WaypointType.TOAD_PILLAR)
 				continue;
-			if (completedWaypointIndices.contains(i))
+			if (completed.contains(i))
 				continue;
 
 			lapByLocation.put(wp.getLocation(), wp.getLap());
@@ -177,10 +181,10 @@ public class ObjectRenderer
 					var wpLap = lapByLocation.get(loc);
 
 					var color = (wpLap != null && wpLap != currentLap)
-							? cachedConfig.getLostSuppliesColorLaterLaps()
-							: cachedConfig.getLostSuppliesColorCurrentLap();
+							? cached.getObjectivesColorLaterLaps()
+							: cached.getObjectivesColorCurrentLap();
 
-					String label = cachedConfig.isShowIDs()
+					String label = cached.isShowIDs()
 							? buildObjectLabelWithImpostorInfo(pillar, "Toad Pillar")
 							: null;
 
@@ -237,9 +241,9 @@ public class ObjectRenderer
 		}
 	}
 
-	private void renderGameObjectWithHighlight(Graphics2D graphics, GameObject gameObject, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
+	private void renderGameObjectWithHighlight(Graphics2D graphics, TileObject tileObject, Color highlightColor, boolean shouldHighlightTile, String debugLabel)
 	{
-		LocalPoint objectLocalPoint = gameObject.getLocalLocation();
+		LocalPoint objectLocalPoint = tileObject.getLocalLocation();
 
 		if (shouldHighlightTile)
 		{
@@ -250,7 +254,7 @@ public class ObjectRenderer
 			}
 		}
 
-		modelOutlineRenderer.drawOutline(gameObject, 2, highlightColor, 4);
+		drawTileObjectHull(graphics, tileObject, highlightColor);
 
 		if (debugLabel != null)
 		{
@@ -278,6 +282,48 @@ public class ObjectRenderer
 		{
 			int heightOffsetAboveNpc = npc.getLogicalHeight() + 40;
 			renderLabelAtLocalPoint(graphics, npcLocalPoint, debugLabel, highlightColor, heightOffsetAboveNpc);
+		}
+	}
+
+	private void drawTileObjectHull(Graphics2D g, TileObject object, Color borderColor)
+	{
+		Stroke stroke = new BasicStroke(2f);
+		Shape poly = null;
+		Shape poly2 = null;
+
+		if (object instanceof GameObject)
+		{
+			poly = ((GameObject) object).getConvexHull();
+		}
+		else if (object instanceof WallObject)
+		{
+			poly = ((WallObject) object).getConvexHull();
+			poly2 = ((WallObject) object).getConvexHull2();
+		}
+		else if (object instanceof DecorativeObject)
+		{
+			poly = ((DecorativeObject) object).getConvexHull();
+			poly2 = ((DecorativeObject) object).getConvexHull2();
+		}
+		else if (object instanceof GroundObject)
+		{
+			poly = ((GroundObject) object).getConvexHull();
+		}
+
+		if (poly == null)
+		{
+			poly = object.getCanvasTilePoly();
+		}
+
+		Color fillColor = new Color(borderColor.getRed(), borderColor.getGreen(), borderColor.getBlue(), 50);
+
+		if (poly != null)
+		{
+			OverlayUtil.renderPolygon(g, poly, borderColor, fillColor, stroke);
+		}
+		if (poly2 != null)
+		{
+			OverlayUtil.renderPolygon(g, poly2, borderColor, fillColor, stroke);
 		}
 	}
 
@@ -420,6 +466,11 @@ public class ObjectRenderer
 
 	public static GameObject findGameObjectAtWorldPoint(Client client, WorldPoint worldPoint)
 	{
+		return findGameObjectAtWorldPoint(client, worldPoint, null);
+	}
+
+	public static GameObject findGameObjectAtWorldPoint(Client client, WorldPoint worldPoint, Integer objectId)
+	{
 		WorldView topLevelWorldView = client.getTopLevelWorldView();
 		if (topLevelWorldView == null)
 		{
@@ -449,6 +500,10 @@ public class ObjectRenderer
 		{
 			if (gameObject != null)
 			{
+				if (objectId != null && gameObject.getId() != objectId)
+				{
+					continue;
+				}
 				return gameObject;
 			}
 		}

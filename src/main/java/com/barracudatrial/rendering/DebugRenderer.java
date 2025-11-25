@@ -27,16 +27,14 @@ public class DebugRenderer
 {
 	private final Client client;
 	private final BarracudaTrialPlugin plugin;
-	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	@Setter
 	private Map<Point, Integer> labelCountsByCanvasPosition;
 
-	public DebugRenderer(Client client, BarracudaTrialPlugin plugin, ModelOutlineRenderer modelOutlineRenderer)
+	public DebugRenderer(Client client, BarracudaTrialPlugin plugin)
 	{
 		this.client = client;
 		this.plugin = plugin;
-		this.modelOutlineRenderer = modelOutlineRenderer;
 	}
 
 	public void renderDebugInfo(Graphics2D graphics)

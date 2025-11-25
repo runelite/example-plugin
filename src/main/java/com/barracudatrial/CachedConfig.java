@@ -20,9 +20,9 @@ public class CachedConfig
 	@Getter private int pathLookahead;
 
 	// Lost supplies settings
-	@Getter private boolean highlightLostSupplies;
-	@Getter private Color lostSuppliesColorCurrentLap;
-	@Getter private Color lostSuppliesColorLaterLaps;
+	@Getter private boolean highlightObjectives;
+	@Getter private Color objectivesColorCurrentLap;
+	@Getter private Color objectivesColorLaterLaps;
 	@Getter private boolean highlightObjectiveLocations;
 	@Getter private Color objectiveColor;
 
@@ -57,9 +57,9 @@ public class CachedConfig
 		pathWidth = config.pathWidth();
 		pathLookahead = config.pathLookahead();
 
-		highlightLostSupplies = config.highlightLostSupplies();
-		lostSuppliesColorCurrentLap = config.lostSuppliesColorCurrentLap();
-		lostSuppliesColorLaterLaps = config.lostSuppliesColorLaterLaps();
+		highlightObjectives = config.highlightObjectives();
+		objectivesColorCurrentLap = config.objectivesColorCurrentLap();
+		objectivesColorLaterLaps = config.objectivesColorLaterLaps();
 		highlightObjectiveLocations = config.highlightObjectiveLocations();
 		objectiveColor = config.objectiveColor();
 

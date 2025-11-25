@@ -104,66 +104,41 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "highlightLostSupplies",
-		name = "Highlight Lost Supplies",
-		description = "Highlight lost supplies in the trial area",
+		keyName = "highlightObjectives",
+		name = "Highlight Objectives",
+		description = "Highlight objectives in the trial area",
 		section = objectivesSection,
 		position = 0
 	)
-	default boolean highlightLostSupplies()
+	default boolean highlightObjectives()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-		keyName = "lostSuppliesColorCurrentLap",
-		name = "Lost Supplies Color - Current Lap",
-		description = "Color for lost supplies highlights on current lap",
+		keyName = "objectivesColorCurrentLap",
+		name = "Objectives Color - Current Lap",
+		description = "Color for objective highlights on current lap",
 		section = objectivesSection,
 		position = 1
 	)
 	@Alpha
-	default Color lostSuppliesColorCurrentLap()
+	default Color objectivesColorCurrentLap()
 	{
 		return new Color(255, 215, 0, 180);
 	}
 
 	@ConfigItem(
-		keyName = "lostSuppliesColorLaterLaps",
-		name = "Lost Supplies Color - Later Laps",
-		description = "Color for lost supplies highlights on later laps",
+		keyName = "objectivesColorLaterLaps",
+		name = "Objectives Color - Later Laps",
+		description = "Color for objective highlights on later laps",
 		section = objectivesSection,
 		position = 1
 	)
 	@Alpha
-	default Color lostSuppliesColorLaterLaps()
+	default Color objectivesColorLaterLaps()
 	{
 		return new Color(255, 40, 0, 120);
-	}
-
-	@ConfigItem(
-		keyName = "highlightObjectiveLocations",
-		name = "Highlight Objective Locations",
-		description = "Highlight rum pickup/dropoff, toad pillar locations",
-		section = objectivesSection,
-		position = 2
-	)
-	default boolean highlightObjectiveLocations()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "objectiveColor",
-		name = "Objective Color",
-		description = "Color for rum pickup/dropoff, toad pillar",
-		section = objectivesSection,
-		position = 3
-	)
-	@Alpha
-	default Color objectiveColor()
-	{
-		return new Color(128, 0, 128, 180);
 	}
 
 	@ConfigItem(
