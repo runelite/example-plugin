@@ -146,7 +146,9 @@ public class PathStabilizer
 			}
 		}
 
-		// If closest to the start of the path, allow larger tolerance (merging from waypoint pickup)
+		// When you're at the start of a new segment (closestIndex=0), give extra leeway (5 tiles) for merging
+		// onto the path. This handles waypoint pickups from a distance (~4 tiles). Once you're traveling along
+		// the path (closestIndex>0), enforce stricter tolerance (3 tiles) - if you stray, recalculate.
 		int tolerance = (closestIndex == 0) ? 5 : 3;
 
 		return minDistance <= tolerance;
