@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class JubblyJiveConfig implements TrialConfig
 {
-	public static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2243, 2991, 0);
+	public static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2245, 3009, 0); // ID: BALLOON_TOAD_PILE
 
 	public static final int BOAT_EXCLUSION_WIDTH = 3;
 	public static final int BOAT_EXCLUSION_HEIGHT = 8;

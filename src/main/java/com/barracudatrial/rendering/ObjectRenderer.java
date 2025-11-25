@@ -3,8 +3,10 @@ package com.barracudatrial.rendering;
 import com.barracudatrial.CachedConfig;
 import com.barracudatrial.BarracudaTrialPlugin;
 import com.barracudatrial.game.ObjectTracker;
+import com.barracudatrial.game.route.JubblyJiveConfig;
 import com.barracudatrial.game.route.RouteWaypoint;
 import com.barracudatrial.game.route.TemporTantrumConfig;
+import com.barracudatrial.game.route.TrialType;
 import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.Point;
@@ -214,6 +216,7 @@ public class ObjectRenderer
 					? buildObjectLabelWithImpostorInfo(toadObject, "Toad Pickup")
 					: null;
 
+			renderBoatZoneRectangle(graphics, loc, color);
 			renderGameObjectWithHighlight(graphics, toadObject, color, true, label);
 		}
 	}
@@ -666,8 +669,28 @@ public class ObjectRenderer
 			return;
 		}
 
-		int width = TemporTantrumConfig.BOAT_EXCLUSION_WIDTH;
-		int height = TemporTantrumConfig.BOAT_EXCLUSION_HEIGHT;
+		var trial = plugin.getGameState().getCurrentTrial();
+		if (trial == null)
+		{
+			return;
+		}
+
+		int width;
+		int height;
+		if (trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
+		{
+			width = TemporTantrumConfig.BOAT_EXCLUSION_WIDTH;
+			height = TemporTantrumConfig.BOAT_EXCLUSION_HEIGHT;
+		}
+		else if (trial.getTrialType() == TrialType.JUBBLY_JIVE)
+		{
+			width = JubblyJiveConfig.BOAT_EXCLUSION_WIDTH;
+			height = JubblyJiveConfig.BOAT_EXCLUSION_HEIGHT;
+		}
+		else
+		{
+			return;
+		}
 
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;
