@@ -68,8 +68,8 @@ public class JubblyJiveRoutes
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2248, 3023, 0)),
 			new JubblyJiveToadPillarWaypoint(TOAD_PILLARS[0]), // ID : 59124
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2273, 3006, 0)),
-			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2290, 2998, 0)),
 			new JubblyJiveToadPillarWaypoint(TOAD_PILLARS[1]), // ID : 59130
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2290, 2998, 0)),
 			new JubblyJiveToadPillarWaypoint(TOAD_PILLARS[2]), // ID : 59136
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2301, 3018, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2311, 3021, 0)),

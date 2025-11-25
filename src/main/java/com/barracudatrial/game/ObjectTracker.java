@@ -263,6 +263,8 @@ public class ObjectTracker
 				log.info("Advanced to lap {}/{}", waypointLap, lapsRequired);
 				state.setCurrentLap(waypointLap);
 			}
+
+			break;
 		}
 
 		log.warn("Couldn't find a match to update! That seems wrong - how did we update the imposter without it being in the list?");

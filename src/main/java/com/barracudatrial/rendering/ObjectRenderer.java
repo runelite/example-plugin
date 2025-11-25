@@ -235,14 +235,31 @@ public class ObjectRenderer
 		int currentLap = state.getCurrentLap();
 		var completed = state.getCompletedWaypointIndices();
 
-		// Find next uncompleted waypoint index (any type)
 		int currentWaypointIndex = -1;
+		var currentLapLocations = new HashSet<WorldPoint>();
+		var laterLapLocations = new HashSet<WorldPoint>();
+
 		for (int i = 0; i < route.size(); i++)
 		{
-			if (!completed.contains(i))
+			if (currentWaypointIndex == -1 && !completed.contains(i))
 			{
 				currentWaypointIndex = i;
-				break;
+			}
+
+			var wp = route.get(i);
+			if (wp.getType() != RouteWaypoint.WaypointType.TOAD_PILLAR)
+				continue;
+			if (completed.contains(i))
+				continue;
+
+			var loc = wp.getLocation();
+			if (wp.getLap() == currentLap)
+			{
+				currentLapLocations.add(loc);
+			}
+			else
+			{
+				laterLapLocations.add(loc);
 			}
 		}
 
@@ -254,34 +271,24 @@ public class ObjectRenderer
             currentWaypointLocation = null;
         }
 
-        // Build lookup: WorldPoint -> lap (only UNCOMPLETED TOAD_PILLAR waypoints)
-		var lapByLocation = new HashMap<WorldPoint, Integer>();
-		for (int i = 0; i < route.size(); i++)
-		{
-			var wp = route.get(i);
-			if (wp.getType() != RouteWaypoint.WaypointType.TOAD_PILLAR)
-				continue;
-			if (completed.contains(i))
-				continue;
-
-			lapByLocation.put(wp.getLocation(), wp.getLap());
-		}
-
-		state.getKnownToadPillars().entrySet().stream()
+        state.getKnownToadPillars().entrySet().stream()
 				.filter(e -> !e.getValue())
 				.map(Map.Entry::getKey)
 				.map(p -> ObjectRenderer.findGameObjectAtWorldPoint(client, p))
 				.filter(Objects::nonNull)
 				.forEach(pillar -> {
 					var loc = pillar.getWorldLocation();
-					var wpLap = lapByLocation.get(loc);
 
 					Color color;
 					if (currentWaypointLocation != null && currentWaypointLocation.equals(loc))
 					{
 						color = cached.getObjectivesColorCurrentWaypoint();
 					}
-					else if (wpLap != null && wpLap != currentLap)
+					else if (currentLapLocations.contains(loc))
+					{
+						color = cached.getObjectivesColorCurrentLap();
+					}
+					else if (laterLapLocations.contains(loc))
 					{
 						color = cached.getObjectivesColorLaterLaps();
 					}
@@ -297,8 +304,6 @@ public class ObjectRenderer
 					renderGameObjectWithHighlight(graphics, pillar, color, false, label);
 				});
 	}
-
-
 
 	public void renderRumLocations(Graphics2D graphics)
 	{
