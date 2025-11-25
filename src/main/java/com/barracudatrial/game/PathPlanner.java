@@ -184,7 +184,7 @@ public class PathPlanner
 				fullPath.addAll(segmentPath.subList(1, segmentPath.size()));
 			}
 
-			currentPosition = pathfindingTarget;
+			currentPosition = segmentPath.isEmpty() ? currentPosition : segmentPath.get(segmentPath.size() - 1);
 			isPlayerCurrentlyOnPath = false;
 		}
 
