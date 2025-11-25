@@ -97,7 +97,7 @@ public class BarracudaTileCostCalculator
 
 		if (isInBoatExclusionZone(to))
 		{
-			cost += 25; // Discouraged but allowed for pathmaking
+			cost += 100; // Discouraged but allowed for pathmaking
 		}
 		else if (rockLocations.contains(to))
 		{
@@ -118,7 +118,7 @@ public class BarracudaTileCostCalculator
 		}
 		else if (fetidPoolLocations.contains(to))
 		{
-			cost += 50;
+			cost += 100;
 		}
 		else if (toadPillarLocations.contains(to))
 		{
@@ -126,7 +126,7 @@ public class BarracudaTileCostCalculator
 		}
 		else if (closeToFetidPoolsAndToadPillars.contains(to))
 		{
-			cost += 2;
+			cost += 3;
 		}
 		else
 		{
