@@ -3,13 +3,11 @@ package com.barracudatrial.game.route;
 import lombok.Getter;
 import net.runelite.api.coords.WorldPoint;
 
+@Getter
 public class RouteWaypoint
 {
-	@Getter
 	protected final WaypointType type;
-	@Getter
 	private final int lap;
-	@Getter
 	private final WorldPoint location;
 
 	public RouteWaypoint(WaypointType type, WorldPoint location)
