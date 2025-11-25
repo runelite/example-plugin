@@ -10,7 +10,7 @@ public class JubblyJiveConfig implements TrialConfig
 {
 	public static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2245, 3009, 0); // ID: BALLOON_TOAD_PILE
 
-	public static final int BOAT_EXCLUSION_WIDTH = 3;
+	public static final int BOAT_EXCLUSION_WIDTH = 4;
 	public static final int BOAT_EXCLUSION_HEIGHT = 8;
 
 	public static final JubblyJiveToadPillar[] TOAD_PILLARS =
@@ -43,7 +43,7 @@ public class JubblyJiveConfig implements TrialConfig
 				ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_2
 		),
 		new JubblyJiveToadPillar(
-				new WorldPoint(0, 0, 0), // TODO: Populate location
+				new WorldPoint(2349, 3000, 0),
 				ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_3_PARENT,
 				ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_ROCK3_NO_TOAD,
 				ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_ROCK3_TOAD,

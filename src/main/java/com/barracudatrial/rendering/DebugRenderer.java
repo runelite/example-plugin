@@ -255,7 +255,7 @@ public class DebugRenderer
 		List<String> debugLines = new ArrayList<>();
 
 		debugLines.add("=== BARRACUDA TRIAL DEBUG ===");
-		debugLines.add(String.format("Lap: %d / %d", plugin.getGameState().getCurrentLap() + 1, plugin.getGameState().getRumsNeeded()));
+		debugLines.add(String.format("Lap: %d / %d", plugin.getGameState().getCurrentLap(), plugin.getGameState().getRumsNeeded()));
 		debugLines.add(String.format("Lost Supplies Visible: %d", plugin.getGameState().getLostSupplies().size()));
 		debugLines.add(String.format("LostSupplies: %d / %d", plugin.getGameState().getLostSuppliesCollected(), plugin.getGameState().getLostSuppliesTotal()));
 		debugLines.add(String.format("Rum: %d / %d", plugin.getGameState().getRumsCollected(), plugin.getGameState().getRumsNeeded()));

@@ -270,7 +270,7 @@ public class ObjectTracker
 				state.setCurrentLap(waypointLap);
 			}
 
-			break;
+			return;
 		}
 
 		log.warn("Couldn't find a match to update! That seems wrong - how did we update the imposter without it being in the list?");

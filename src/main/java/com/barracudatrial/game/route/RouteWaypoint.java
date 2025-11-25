@@ -30,8 +30,8 @@ public class RouteWaypoint
 		SHIPMENT(2),
 		RUM_PICKUP(7),
 		RUM_DROPOFF(7),
-		TOAD_PICKUP(7),
-		TOAD_PILLAR(8);
+		TOAD_PICKUP(9),
+		TOAD_PILLAR(10);
 
 		private final int toleranceTiles;
 

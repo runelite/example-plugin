@@ -226,7 +226,7 @@ public class PathPlanner
 		int tileDistance = start.distanceTo(target); // Chebyshev distance in tiles
 		
 		// Never too high, but allow seeking longer on long paths
-		int maximumAStarSearchDistance = Math.max(50, Math.min(180, tileDistance * 2));
+		int maximumAStarSearchDistance = Math.max(50, Math.min(180, tileDistance * 4));
 
 		var currentStaticRoute = state.getCurrentStaticRoute();
 

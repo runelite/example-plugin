@@ -71,7 +71,7 @@ public class PathStabilizer
 		StabilizedPath activeStabilizedPath = activePathsByGoal.get(goal);
 		PathResult activePathResult = activeStabilizedPath != null ? activeStabilizedPath.getPathResult() : null;
 
-		if (shouldForceNewPath(activePathResult, newPathResult, goal))
+		if (shouldForceNewPath(activePathResult, newPathResult, goal) || true)
 		{
 			activePathsByGoal.put(goal, new StabilizedPath(newPathResult, currentDangerZones));
 			return newPathResult.getPath();

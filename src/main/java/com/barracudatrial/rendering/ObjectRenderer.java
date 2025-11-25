@@ -241,15 +241,16 @@ public class ObjectRenderer
 
 		for (int i = 0; i < route.size(); i++)
 		{
-			if (currentWaypointIndex == -1 && !completed.contains(i))
+			if (completed.contains(i))
+				continue;
+
+			if (currentWaypointIndex == -1)
 			{
 				currentWaypointIndex = i;
 			}
 
 			var wp = route.get(i);
 			if (wp.getType() != RouteWaypoint.WaypointType.TOAD_PILLAR)
-				continue;
-			if (completed.contains(i))
 				continue;
 
 			var loc = wp.getLocation();
@@ -263,12 +264,20 @@ public class ObjectRenderer
 			}
 		}
 
-		WorldPoint currentWaypointLocation;
+		List<WorldPoint> currentWaypointLocations;
 		if (currentWaypointIndex >= 0)
 		{
-			currentWaypointLocation = route.get(currentWaypointIndex).getLocation();
+			// Special case - display pillars as "current" if they are the current OR NEXT waypoint
+			var currentWp = route.get(currentWaypointIndex);
+			currentWaypointLocations = new ArrayList<>();
+			currentWaypointLocations.add(currentWp.getLocation());
+			if (currentWaypointIndex + 1 < route.size())
+			{
+				var nextWp = route.get(currentWaypointIndex + 1);
+				currentWaypointLocations.add(nextWp.getLocation());
+			}
 		} else {
-            currentWaypointLocation = null;
+            currentWaypointLocations = List.of();
         }
 
         state.getKnownToadPillars().entrySet().stream()
@@ -280,7 +289,7 @@ public class ObjectRenderer
 					var loc = pillar.getWorldLocation();
 
 					Color color;
-					if (currentWaypointLocation != null && currentWaypointLocation.equals(loc))
+					if (currentWaypointLocations.contains(loc))
 					{
 						color = cached.getObjectivesColorCurrentWaypoint();
 					}
@@ -290,11 +299,14 @@ public class ObjectRenderer
 					}
 					else if (laterLapLocations.contains(loc))
 					{
-						color = cached.getObjectivesColorLaterLaps();
+						// Clearer to leave them unhighlighted
+						// color = cached.getObjectivesColorLaterLaps();
+						return;
 					}
 					else
 					{
-						color = cached.getObjectivesColorCurrentLap();
+						// Already completed or not in route
+						return;
 					}
 
 					String label = cached.isShowIDs()

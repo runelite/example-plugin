@@ -32,6 +32,7 @@ public class BarracudaTileCostCalculator
 	private final Map<WorldPoint, List<WorldPoint>> boostGrabbableTiles;
 	private final Set<WorldPoint> fetidPoolLocations;
 	private final Set<WorldPoint> toadPillarLocations;
+	private Set<WorldPoint> closeToFetidPoolsAndToadPillars = new HashSet<>();
 
 	public BarracudaTileCostCalculator(
 		Map<WorldPoint, List<WorldPoint>> knownSpeedBoostLocations,
@@ -60,15 +61,19 @@ public class BarracudaTileCostCalculator
 		this.boatExclusionHeight = boatExclusionHeight;
 
 		this.rockLocations = knownRockLocations;
-		this.closeToRocks = precomputeRockProximity(rockLocations, 1);
+		this.closeToRocks = precomputeTileProximity(rockLocations, 1);
 		this.cloudDangerZones = precomputeCloudDangerZones(lightningClouds);
 		this.boostGrabbableTiles = knownSpeedBoostLocations;
 		this.fetidPoolLocations = knownFetidPoolLocations;
 		this.toadPillarLocations = knownToadPillarLocations;
+		this.closeToFetidPoolsAndToadPillars = precomputeTileProximity(fetidPoolLocations, 1);
+		this.closeToFetidPoolsAndToadPillars.addAll(precomputeTileProximity(toadPillarLocations, 1));
 	}
 
 	public double getTileCost(WorldPoint from, WorldPoint to)
 	{
+		int maxTileCost = 100000;
+
 		if (lastTile == null || !lastTile.equals(from))
 		{
 			speedBoostTilesRemaining = 0;
@@ -94,20 +99,34 @@ public class BarracudaTileCostCalculator
 		{
 			cost += 25; // Discouraged but allowed for pathmaking
 		}
-
-		if (rockLocations.contains(to))
+		else if (rockLocations.contains(to))
 		{
-			cost += 250;
-			speedBoostTilesRemaining = 0;
+			cost = maxTileCost;
 		}
 		else if (closeToRocks.contains(to))
 		{
-			cost += 15;
+			cost += 1;
 		}
-
-		if (isInExclusionZone(to))
+		else if (isInExclusionZone(to))
 		{
-			cost += 250;
+			cost = maxTileCost;
+		}
+		else if (cloudDangerZones.contains(to))
+		{
+			cost += 200;
+			speedBoostTilesRemaining = 0;
+		}
+		else if (fetidPoolLocations.contains(to))
+		{
+			cost += 50;
+		}
+		else if (toadPillarLocations.contains(to))
+		{
+			cost = maxTileCost;
+		}
+		else if (closeToFetidPoolsAndToadPillars.contains(to))
+		{
+			cost += 1;
 		}
 		else
 		{
@@ -124,22 +143,6 @@ public class BarracudaTileCostCalculator
 			{
 				cost += 25;
 			}
-		}
-
-		if (cloudDangerZones.contains(to))
-		{
-			cost += 200;
-			speedBoostTilesRemaining = 0;
-		}
-
-		if (fetidPoolLocations.contains(to))
-		{
-			cost += 50;
-		}
-
-		if (toadPillarLocations.contains(to))
-		{
-			cost += 50;
 		}
 
 		return cost;
@@ -228,16 +231,16 @@ public class BarracudaTileCostCalculator
 		return Math.sqrt(dx * dx + dy * dy);
 	}
 
-	private Set<WorldPoint> precomputeRockProximity(Set<WorldPoint> allRockLocations, int maxDistance)
+	private Set<WorldPoint> precomputeTileProximity(Set<WorldPoint> locations, int maxDistance)
 	{
 		Set<WorldPoint> proximityTiles = new HashSet<>();
 		int maxDistSq = maxDistance * maxDistance;
 
-		for (WorldPoint rock : allRockLocations)
+		for (WorldPoint location : locations)
 		{
-			int baseX = rock.getX();
-			int baseY = rock.getY();
-			int plane = rock.getPlane();
+			int baseX = location.getX();
+			int baseY = location.getY();
+			int plane = location.getPlane();
 
 			for (int dx = -maxDistance; dx <= maxDistance; dx++)
 			{
@@ -247,7 +250,7 @@ public class BarracudaTileCostCalculator
 				{
 					if (dx == 0 && dy == 0)
 					{
-						continue; // skip the rock tile itself
+						continue; // skip the location tile itself
 					}
 
 					int distSq = dxSq + dy * dy;
@@ -258,8 +261,8 @@ public class BarracudaTileCostCalculator
 
 					WorldPoint tile = new WorldPoint(baseX + dx, baseY + dy, plane);
 
-					// Don't consider tiles that are themselves rock locations
-					if (!allRockLocations.contains(tile))
+					// Don't consider tiles that are themselves location tiles
+					if (!locations.contains(tile))
 					{
 						proximityTiles.add(tile);
 					}
