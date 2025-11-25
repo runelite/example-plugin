@@ -77,7 +77,7 @@ public class BarracudaTileCostCalculator
 		WorldPoint unconsumedBoost = getUnconsumedBoost(to);
 		if (unconsumedBoost != null)
 		{
-			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -8.0 : -5.0;
+			cost = (routeOptimization == RouteOptimization.EFFICIENT) ? -6.0 : -4.0;
 			speedBoostTilesRemaining = 15;
 			consumedBoosts.add(unconsumedBoost);
 		}
