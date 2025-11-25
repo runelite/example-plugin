@@ -103,6 +103,8 @@ public class State
 
 	private final Set<WorldPoint> knownFetidPoolLocations = new HashSet<>();
 
+	private final Set<WorldPoint> knownToadPillarLocations = new HashSet<>();
+
 	// True if interacted with
 	private final Map<WorldPoint, Boolean> knownToadPillars = new HashMap<>();
 

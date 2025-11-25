@@ -132,6 +132,7 @@ public class ObjectTracker
 		var knownFetidPoolTiles = state.getKnownFetidPoolLocations();
 
 		var knownToadPillars = state.getKnownToadPillars();
+		var knownToadPillarTiles = state.getKnownToadPillarLocations();
 
 		for (var plane : tileArray)
 		{
@@ -191,6 +192,11 @@ public class ObjectTracker
 
 						if (matchingToadPillarByParentId != null)
 						{
+							if (!knownToadPillarTiles.contains(tileWp))
+							{
+								knownToadPillarTiles.addAll(ObjectTracker.getObjectTiles(client, obj));
+							}
+
 							onToadPillarTick(knownToadPillars, obj, matchingToadPillarByParentId);
 							continue;
 						}
@@ -302,7 +308,6 @@ public class ObjectTracker
 
 	/**
 	 * Detects shipments that were collected (disappeared from scene while count increased)
-	 * DEPRECATED: This is the old scene-scanning approach. Use updateRouteWaypointShipmentTracking() instead.
 	 */
 	private void detectAndMarkCollectedShipments(Set<GameObject> currentSupplies)
 	{
@@ -315,7 +320,7 @@ public class ObjectTracker
 			}
 		}
 
-		// Game quirk: Shipments only disappear when collected
+		// Shipments only disappear when collected
 		if (!disappearedSupplyLocations.isEmpty())
 		{
 			for (WorldPoint location : disappearedSupplyLocations)
