@@ -29,11 +29,11 @@ public class RouteWaypoint
 	@Getter
 	public enum WaypointType
 	{
-		SHIPMENT(1),
-		RUM_PICKUP(4),
-		RUM_DROPOFF(4),
-		TOAD_PICKUP(4),
-		TOAD_PILLAR(4);
+		SHIPMENT(2),
+		RUM_PICKUP(7),
+		RUM_DROPOFF(7),
+		TOAD_PICKUP(8),
+		TOAD_PILLAR(8);
 
 		private final int toleranceTiles;
 
