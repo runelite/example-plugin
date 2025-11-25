@@ -272,12 +272,7 @@ public class ObjectRenderer
 
 			if (isNextWaypoint)
 			{
-				// Draw filled rectangle around entire boat exclusion zone
 				renderBoatZoneRectangle(graphics, targetRumLocation, rumHighlightColor);
-			}
-			else
-			{
-				// Fallback: try to highlight the game object (doesn't work well currently)
 				renderRumLocationHighlight(graphics, targetRumLocation, rumHighlightColor);
 			}
 		}
