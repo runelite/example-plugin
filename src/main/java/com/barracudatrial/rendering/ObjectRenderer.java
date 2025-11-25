@@ -16,7 +16,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ObjectRenderer
 {
@@ -150,26 +149,45 @@ public class ObjectRenderer
 
 	public void renderToadPillars(Graphics2D graphics)
 	{
-		CachedConfig cachedConfig = plugin.getCachedConfig();
-		Color rumHighlightColor = cachedConfig.getObjectiveColor();
+		var cachedConfig = plugin.getCachedConfig();
+		var state = plugin.getGameState();
+		var route = state.getCurrentStaticRoute();
+		int currentLap = state.getCurrentLap();
+		var completedWaypointIndices = state.getCompletedWaypointIndices();
 
-		var toadPillars = plugin.getGameState().getKnownToadPillars().entrySet().stream()
-			.filter(entry -> !entry.getValue()) // only unactivated pillars
-			.map(Map.Entry::getKey)
-			.map(worldPoint -> ObjectRenderer.findGameObjectAtWorldPoint(client, worldPoint))
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
-
-		for (GameObject toadPillar : toadPillars)
+		var lapByLocation = new HashMap<WorldPoint, Integer>();
+		for (int i = 0; i < route.size(); i++)
 		{
-			String debugLabel = null;
-			if (cachedConfig.isShowIDs())
-			{
-				debugLabel = buildObjectLabelWithImpostorInfo(toadPillar, "Toad Pillar");
-			}
-			renderGameObjectWithHighlight(graphics, toadPillar, rumHighlightColor, false, debugLabel);
+			var wp = route.get(i);
+			if (wp.getType() != RouteWaypoint.WaypointType.TOAD_PILLAR)
+				continue;
+			if (completedWaypointIndices.contains(i))
+				continue;
+
+			lapByLocation.put(wp.getLocation(), wp.getLap());
 		}
+
+		plugin.getGameState().getKnownToadPillars().entrySet().stream()
+				.filter(e -> !e.getValue())
+				.map(Map.Entry::getKey)
+				.map(p -> ObjectRenderer.findGameObjectAtWorldPoint(client, p))
+				.filter(Objects::nonNull)
+				.forEach(pillar -> {
+					var loc = pillar.getWorldLocation();
+					var wpLap = lapByLocation.get(loc);
+
+					var color = (wpLap != null && wpLap != currentLap)
+							? cachedConfig.getLostSuppliesColorLaterLaps()
+							: cachedConfig.getLostSuppliesColorCurrentLap();
+
+					String label = cachedConfig.isShowIDs()
+							? buildObjectLabelWithImpostorInfo(pillar, "Toad Pillar")
+							: null;
+
+					renderGameObjectWithHighlight(graphics, pillar, color, false, label);
+				});
 	}
+
 
 	public void renderRumLocations(Graphics2D graphics)
 	{
