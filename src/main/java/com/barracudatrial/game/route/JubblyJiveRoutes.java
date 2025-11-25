@@ -39,8 +39,8 @@ public class JubblyJiveRoutes
 			new JubblyJiveToadPillarWaypoint(TOAD_PILLARS[4]), // ID : 59148 IMPOSTER: 59150. with toad imposter = 59149
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2367, 2948, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2386, 2940, 0)),
-			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2421, 2938, 0)),
 			new JubblyJiveToadPillarWaypoint(TOAD_PILLARS[5]), // ID : 59154 IMPOSTER: 59156. with toad imposter = 59155
+			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2421, 2938, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2434, 2949, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2432, 2977, 0)),
 			new RouteWaypoint(WaypointType.SHIPMENT, new WorldPoint(2439, 2990, 0)),
