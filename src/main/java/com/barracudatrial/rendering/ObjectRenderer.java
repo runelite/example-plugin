@@ -142,7 +142,8 @@ public class ObjectRenderer
 			{
 				debugLabel = buildObjectLabelWithImpostorInfo(fetidPool, "Fetid Pool");
 			}
-			renderGameObjectWithHighlight(graphics, fetidPool, color, true, debugLabel);
+			// TODO: slowdowns & exceptions
+			// renderGameObjectWithHighlight(graphics, fetidPool, color, false, debugLabel);
 		}
 	}
 
