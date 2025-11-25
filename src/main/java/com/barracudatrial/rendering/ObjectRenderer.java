@@ -173,33 +173,43 @@ public class ObjectRenderer
 	{
 		var cached = plugin.getCachedConfig();
 		var state = plugin.getGameState();
-		var toadPickupLocation = state.getToadPickupLocation();
-		if (toadPickupLocation == null)
+		var route = state.getCurrentStaticRoute();
+		if (route == null || route.isEmpty())
 			return;
 
-		// Check if this toad pickup location is the next waypoint
-		boolean isNextWaypoint = false;
-		var route = state.getCurrentStaticRoute();
-		if (route != null && !route.isEmpty())
+		int currentLap = state.getCurrentLap();
+		var completed = state.getCompletedWaypointIndices();
+		int nextWaypointIndex = state.getNextWaypointIndex();
+
+		for (int i = 0; i < route.size(); i++)
 		{
-			int nextWaypointIndex = state.getNextWaypointIndex();
-			if (nextWaypointIndex < route.size())
+			var waypoint = route.get(i);
+			if (waypoint.getType() != RouteWaypoint.WaypointType.TOAD_PICKUP)
+				continue;
+
+			if (completed.contains(i))
+				continue; // already completed, don't show
+
+			var loc = waypoint.getLocation();
+
+			Color color;
+			if (i == nextWaypointIndex)
 			{
-				var nextWaypoint = route.get(nextWaypointIndex);
-				if (nextWaypoint.getLocation().equals(toadPickupLocation))
-				{
-					isNextWaypoint = true;
-				}
+				color = cached.getObjectivesColorCurrentWaypoint();
 			}
-		}
+			else if (waypoint.getLap() != currentLap)
+			{
+				color = cached.getObjectivesColorLaterLaps();
+			}
+			else
+			{
+				color = cached.getObjectivesColorCurrentLap();
+			}
 
-		var color = isNextWaypoint
-				? cached.getObjectivesColorCurrentWaypoint()
-				: cached.getObjectivesColorCurrentLap();
+			var toadObject = ObjectRenderer.findGameObjectAtWorldPoint(client, loc);
+			if (toadObject == null)
+				continue;
 
-		var toadObject = ObjectRenderer.findGameObjectAtWorldPoint(client, toadPickupLocation);
-		if (toadObject != null)
-		{
 			String label = cached.isShowIDs()
 					? buildObjectLabelWithImpostorInfo(toadObject, "Toad Pickup")
 					: null;
