@@ -288,7 +288,7 @@ public class PathPlanner
 							continue;
 
 						var waypoint = route.get(i);
-						if (waypoint.getType() == RouteWaypointType.TOAD_PILLAR)
+						if (waypoint.getType() == RouteWaypoint.WaypointType.TOAD_PILLAR)
 						{
 							secondaryObjectiveLocation = waypoint.getLocation();
 							break;
