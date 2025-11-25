@@ -116,11 +116,24 @@ public interface BarracudaTrialConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "objectivesColorCurrentLap",
-		name = "Objectives Color - Current Lap",
-		description = "Color for objective highlights on current lap",
+		keyName = "objectivesColorCurrentWaypoint",
+		name = "Current Waypoint",
+		description = "Color for current waypoint",
 		section = objectivesSection,
 		position = 1
+	)
+	@Alpha
+	default Color objectivesColorCurrentWaypoint()
+	{
+		return new Color(0, 255, 0, 180);
+	}
+
+	@ConfigItem(
+		keyName = "objectivesColorCurrentLap",
+		name = "Current Lap",
+		description = "Color for objective highlights on current lap",
+		section = objectivesSection,
+		position = 2
 	)
 	@Alpha
 	default Color objectivesColorCurrentLap()
@@ -130,10 +143,10 @@ public interface BarracudaTrialConfig extends Config
 
 	@ConfigItem(
 		keyName = "objectivesColorLaterLaps",
-		name = "Objectives Color - Later Laps",
+		name = "Later Lap",
 		description = "Color for objective highlights on later laps",
 		section = objectivesSection,
-		position = 1
+		position = 3
 	)
 	@Alpha
 	default Color objectivesColorLaterLaps()

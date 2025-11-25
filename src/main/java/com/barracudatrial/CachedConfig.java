@@ -21,6 +21,7 @@ public class CachedConfig
 
 	// Objective settings
 	@Getter private boolean highlightObjectives;
+	@Getter private Color objectivesColorCurrentWaypoint;
 	@Getter private Color objectivesColorCurrentLap;
 	@Getter private Color objectivesColorLaterLaps;
 
@@ -56,6 +57,7 @@ public class CachedConfig
 		pathLookahead = config.pathLookahead();
 
 		highlightObjectives = config.highlightObjectives();
+		objectivesColorCurrentWaypoint = config.objectivesColorCurrentWaypoint();
 		objectivesColorCurrentLap = config.objectivesColorCurrentLap();
 		objectivesColorLaterLaps = config.objectivesColorLaterLaps();
 
