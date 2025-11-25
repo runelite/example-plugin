@@ -10,6 +10,9 @@ public class JubblyJiveConfig implements TrialConfig
 {
 	public static final WorldPoint TOAD_PICKUP_LOCATION = new WorldPoint(2243, 2991, 0);
 
+	public static final int BOAT_EXCLUSION_WIDTH = 3;
+	public static final int BOAT_EXCLUSION_HEIGHT = 8;
+
 	public static final JubblyJiveToadPillar[] TOAD_PILLARS =
 	{
 		new JubblyJiveToadPillar(

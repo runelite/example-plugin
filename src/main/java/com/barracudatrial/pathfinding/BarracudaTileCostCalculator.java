@@ -11,10 +11,6 @@ import java.util.Set;
 
 public class BarracudaTileCostCalculator
 {
-	// Boat exclusion zone dimensions (small rectangle around objective boats)
-	private static final int BOAT_EXCLUSION_WIDTH = 8;
-	private static final int BOAT_EXCLUSION_HEIGHT = 3;
-
 	private final int exclusionZoneMinX;
 	private final int exclusionZoneMaxX;
 	private final int exclusionZoneMinY;
@@ -22,6 +18,8 @@ public class BarracudaTileCostCalculator
 	private final RouteOptimization routeOptimization;
 	private final WorldPoint primaryObjectiveLocation;
 	private final WorldPoint secondaryObjectiveLocation;
+	private final int boatExclusionWidth;
+	private final int boatExclusionHeight;
 
 	private int speedBoostTilesRemaining = 0;
 	private WorldPoint lastTile = null;
@@ -45,7 +43,9 @@ public class BarracudaTileCostCalculator
 		int exclusionZoneMaxY,
 		WorldPoint primaryObjectiveLocation,
 		WorldPoint secondaryObjectiveLocation,
-		RouteOptimization routeOptimization)
+		RouteOptimization routeOptimization,
+		int boatExclusionWidth,
+		int boatExclusionHeight)
 	{
 		this.exclusionZoneMinX = exclusionZoneMinX;
 		this.exclusionZoneMaxX = exclusionZoneMaxX;
@@ -54,6 +54,8 @@ public class BarracudaTileCostCalculator
 		this.primaryObjectiveLocation = primaryObjectiveLocation;
 		this.secondaryObjectiveLocation = secondaryObjectiveLocation;
 		this.routeOptimization = routeOptimization;
+		this.boatExclusionWidth = boatExclusionWidth;
+		this.boatExclusionHeight = boatExclusionHeight;
 
 		this.rockLocations = knownRockLocations;
 		this.closeToRocks = precomputeRockProximity(rockLocations, 1);
@@ -180,10 +182,10 @@ public class BarracudaTileCostCalculator
 		}
 
 		boolean inPrimaryZone = primaryObjectiveLocation != null
-			&& isInRectangularZone(point, primaryObjectiveLocation, BOAT_EXCLUSION_WIDTH, BOAT_EXCLUSION_HEIGHT);
+			&& isInRectangularZone(point, primaryObjectiveLocation, boatExclusionWidth, boatExclusionHeight);
 
 		boolean inSecondaryZone = secondaryObjectiveLocation != null
-			&& isInRectangularZone(point, secondaryObjectiveLocation, BOAT_EXCLUSION_WIDTH, BOAT_EXCLUSION_HEIGHT);
+			&& isInRectangularZone(point, secondaryObjectiveLocation, boatExclusionWidth, boatExclusionHeight);
 
 		return inPrimaryZone || inSecondaryZone;
 	}
