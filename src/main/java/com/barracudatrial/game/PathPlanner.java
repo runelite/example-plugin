@@ -180,7 +180,44 @@ public class PathPlanner
 			// If target is out of the extended scene, find the nearest in-scene tile along the path
 			WorldPoint pathfindingTarget = getInSceneTarget(currentPosition, target);
 
-			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, pathfindingTarget, waypoint.getType().getToleranceTiles(), isPlayerCurrentlyOnPath);
+			int initialBoatDx;
+			int initialBoatDy;
+
+			if (fullPath.isEmpty())
+			{
+				// First segment: use actual boat heading from state
+				WorldPoint frontBoatTile = state.getFrontBoatTileEstimatedActual();
+				WorldPoint backBoatTile = state.getBoatLocation();
+				if (frontBoatTile != null && backBoatTile != null)
+				{
+					initialBoatDx = frontBoatTile.getX() - backBoatTile.getX();
+					initialBoatDy = frontBoatTile.getY() - backBoatTile.getY();
+				}
+				else
+				{
+					initialBoatDx = 0;
+					initialBoatDy = 0;
+				}
+			}
+			else
+			{
+				// Subsequent segments: derive heading from last step of the accumulated fullPath
+				if (fullPath.size() >= 2)
+				{
+					WorldPoint prev = fullPath.get(fullPath.size() - 2);
+					WorldPoint last = fullPath.get(fullPath.size() - 1);
+					initialBoatDx = last.getX() - prev.getX();
+					initialBoatDy = last.getY() - prev.getY();
+				}
+				else
+				{
+					// If we don't have two path points, prefer a neutral heading (0,0)
+					initialBoatDx = 0;
+					initialBoatDy = 0;
+				}
+			}
+
+			List<WorldPoint> segmentPath = pathToSingleTarget(currentPosition, pathfindingTarget, waypoint.getType().getToleranceTiles(), isPlayerCurrentlyOnPath, initialBoatDx, initialBoatDy);
 
 			if (fullPath.isEmpty())
 			{
@@ -207,26 +244,18 @@ public class PathPlanner
 	 * @param isPlayerCurrentlyOnPath Whether or not this is the path that the player is currently navigating
 	 * @return Path from start to target
 	 */
-	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target, int goalTolerance, boolean isPlayerCurrentlyOnPath)
+	private List<WorldPoint> pathToSingleTarget(WorldPoint start, WorldPoint target, int goalTolerance, boolean isPlayerCurrentlyOnPath, int initialBoatDx, int initialBoatDy)
 	{
 		var tileCostCalculator = getBarracudaTileCostCalculator();
 
-		// Calculate boat direction for A* forward constraint
-		// Direction = front tile - back tile (player position)
-		int boatDirectionDx = 0;
-		int boatDirectionDy = 0;
-		WorldPoint frontBoatTile = state.getFrontBoatTileEstimatedActual();
-		WorldPoint backBoatTile = state.getBoatLocation();
-		if (frontBoatTile != null && backBoatTile != null)
-		{
-			boatDirectionDx = frontBoatTile.getX() - backBoatTile.getX();
-			boatDirectionDy = frontBoatTile.getY() - backBoatTile.getY();
-		}
+		// Use provided initial heading (may be 0,0 for neutral)
+		int boatDirectionDx = initialBoatDx;
+		int boatDirectionDy = initialBoatDy;
 
 		int tileDistance = start.distanceTo(target); // Chebyshev distance in tiles
 		
 		// Never too high, but allow seeking longer on long paths
-		int maximumAStarSearchDistance = Math.max(50, Math.min(180, tileDistance * 4));
+		int maximumAStarSearchDistance = Math.max(50, Math.min(280, tileDistance * 20));
 
 		var currentStaticRoute = state.getCurrentStaticRoute();
 
@@ -237,11 +266,6 @@ public class PathPlanner
 			List<WorldPoint> fallbackPath = new ArrayList<>();
 			fallbackPath.add(target);
 			return fallbackPath;
-		}
-
-		if (path.get(0).equals(start))
-		{
-			path.remove(0);
 		}
 
 		return path;
