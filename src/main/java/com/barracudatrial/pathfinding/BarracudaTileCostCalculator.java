@@ -105,7 +105,7 @@ public class BarracudaTileCostCalculator
 		}
 		else if (closeToRocks.contains(to))
 		{
-			cost += 1;
+			cost += 3;
 		}
 		else if (isInExclusionZone(to))
 		{
@@ -126,7 +126,7 @@ public class BarracudaTileCostCalculator
 		}
 		else if (closeToFetidPoolsAndToadPillars.contains(to))
 		{
-			cost += 1;
+			cost += 2;
 		}
 		else
 		{

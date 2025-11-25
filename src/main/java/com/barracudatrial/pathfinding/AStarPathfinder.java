@@ -22,21 +22,21 @@ public class AStarPathfinder
 		startNode.gScore = 0;
 		startNode.hScore = heuristic(start, goal);
 		startNode.fScore = startNode.hScore;
-		// Start heading: snap provided boat direction to a discrete 0..7 index; leave -1 if unknown
-		startNode.dirIdx = -1;
+		// Start heading: map provided 8-way boat direction into a 24-heading index (15° steps)
+		startNode.headingIdx = -1;
 		if (boatDirectionDx != 0 || boatDirectionDy != 0)
 		{
 			int snappedDx = Integer.signum(boatDirectionDx);
 			int snappedDy = Integer.signum(boatDirectionDy);
-			int startDirIdx = dirIndex(snappedDx, snappedDy);
-			if (startDirIdx != -1)
+			int baseDir8 = dirIndex(snappedDx, snappedDy);
+			if (baseDir8 != -1)
 			{
-				startNode.dirIdx = startDirIdx;
+				startNode.headingIdx = DIR8_TO_HEADING24[baseDir8];
 			}
 		}
 
 		openSet.add(startNode);
-		allNodes.put(new StateKey(start, startNode.dirIdx), startNode);
+		allNodes.put(new StateKey(start, startNode.headingIdx), startNode);
 
 		Set<StateKey> closedSet = new HashSet<>();
 		int nodesExplored = 0;
@@ -45,7 +45,7 @@ public class AStarPathfinder
 		{
 			Node current = openSet.poll();
 
-			StateKey currentKey = new StateKey(current.position, current.dirIdx);
+			StateKey currentKey = new StateKey(current.position, current.headingIdx);
 			if (closedSet.contains(currentKey))
 			{
 				continue;
@@ -70,16 +70,71 @@ public class AStarPathfinder
 				break;
 			}
 
-			// Generate neighbors limited to the front-3 relative to current heading
-			neighborLoop:
-			for (WorldPoint neighbor : getForwardNeighbors(current.position, current.dirIdx))
+			// Steering neighbors: delta heading -1,0,+1 (±15°) and move one tile in the heading's dominant 8-way direction
+			for (int deltaH : new int[] { -1, 0, 1 })
 			{
-				int newDx = neighbor.getX() - current.position.getX();
-				int newDy = neighbor.getY() - current.position.getY();
-				int nextDirIdx = dirIndex(newDx, newDy);
+				int currentHeading = current.headingIdx;
 
-				StateKey neighborKey = new StateKey(neighbor, nextDirIdx);
+				// If unknown heading, treat each 8-way direction as a possible base heading
+				if (currentHeading == -1)
+				{
+					for (int baseDir8 = 0; baseDir8 < 8; baseDir8++)
+					{
+						int nextHeading = DIR8_TO_HEADING24[baseDir8];
+						int moveDir = headingToDir8(nextHeading);
+						int nx = current.position.getX() + DIRS[moveDir][0];
+						int ny = current.position.getY() + DIRS[moveDir][1];
+						WorldPoint neighbor = new WorldPoint(nx, ny, current.position.getPlane());
 
+						StateKey neighborKey = new StateKey(neighbor, nextHeading);
+						if (closedSet.contains(neighborKey))
+						{
+							continue;
+						}
+
+						double tileCost = costCalculator.getTileCost(current.position, neighbor);
+						if (tileCost > 50000)
+						{
+							continue;
+						}
+
+						boolean isDiagonal = Math.abs(nx - current.position.getX()) == 1 && Math.abs(ny - current.position.getY()) == 1;
+						double geometricDistance = isDiagonal ? Math.sqrt(2) : 1.0;
+
+						int absDelta = 0; // starting from unknown, count as no extra turning penalty for first move
+						double turningCost = calculateTurningCost(routeOptimization, absDelta);
+
+						double tentativeGScore = current.gScore + (tileCost * geometricDistance) + turningCost;
+
+						Node neighborNode = allNodes.get(neighborKey);
+						if (neighborNode == null)
+						{
+							neighborNode = new Node(neighbor);
+							neighborNode.headingIdx = nextHeading;
+							allNodes.put(neighborKey, neighborNode);
+						}
+
+						if (tentativeGScore < neighborNode.gScore)
+						{
+							neighborNode.parent = current;
+							neighborNode.gScore = tentativeGScore;
+							neighborNode.hScore = heuristic(neighbor, goal);
+							neighborNode.fScore = neighborNode.gScore + neighborNode.hScore;
+
+							openSet.add(neighborNode);
+						}
+					}
+
+					continue; // processed all initial headings
+				}
+
+				int nextHeading = (currentHeading + deltaH + 24) % 24;
+				int moveDir = headingToDir8(nextHeading);
+				int nx = current.position.getX() + DIRS[moveDir][0];
+				int ny = current.position.getY() + DIRS[moveDir][1];
+				WorldPoint neighbor = new WorldPoint(nx, ny, current.position.getPlane());
+
+				StateKey neighborKey = new StateKey(neighbor, nextHeading);
 				if (closedSet.contains(neighborKey))
 				{
 					continue;
@@ -91,53 +146,19 @@ public class AStarPathfinder
 					continue;
 				}
 
-				int turnSteps = 0;
-				if (current.dirIdx != -1)
-				{
-					int rawDiff = Math.abs(current.dirIdx - nextDirIdx);
-					turnSteps = Math.min(rawDiff, 8 - rawDiff); // 0..4, front-3 -> 0 or 1
-				}
-
-				double extraMomentumCost = 0.0;
-
-				// Turning 45°: approximate sweeping forward several tiles in current heading
-				if (turnSteps == 1 && current.dirIdx != -1)
-				{
-					int radiusTiles = 15; // ~3 tiles forward for a 45° change
-
-					for (int k = 1; k <= radiusTiles; k++)
-					{
-						int fx = current.position.getX() + k * DIRS[current.dirIdx][0];
-						int fy = current.position.getY() + k * DIRS[current.dirIdx][1];
-						WorldPoint forwardTile = new WorldPoint(fx, fy, current.position.getPlane());
-
-						double forwardTileCost = costCalculator.getTileCost(current.position, forwardTile);
-
-						// If any tile in the swept corridor is impassable, this turn is impossible
-						if (forwardTileCost > 50000)
-						{
-							continue neighborLoop;
-						}
-
-						extraMomentumCost += forwardTileCost;
-					}
-				}
-
-				boolean isDiagonal = Math.abs(newDx) == 1 && Math.abs(newDy) == 1;
+				boolean isDiagonal = Math.abs(nx - current.position.getX()) == 1 && Math.abs(ny - current.position.getY()) == 1;
 				double geometricDistance = isDiagonal ? Math.sqrt(2) : 1.0;
 
-				double turningCost = calculateTurningCost(routeOptimization, current, nextDirIdx);
+				int absDelta = Math.abs(deltaH);
+				double turningCost = calculateTurningCost(routeOptimization, absDelta);
 
-				double tentativeGScore = current.gScore
-					+ extraMomentumCost
-					+ (tileCost * geometricDistance)
-					+ turningCost;
+				double tentativeGScore = current.gScore + (tileCost * geometricDistance) + turningCost;
 
 				Node neighborNode = allNodes.get(neighborKey);
 				if (neighborNode == null)
 				{
 					neighborNode = new Node(neighbor);
-					neighborNode.dirIdx = nextDirIdx;
+					neighborNode.headingIdx = nextHeading;
 					allNodes.put(neighborKey, neighborNode);
 				}
 
@@ -156,25 +177,17 @@ public class AStarPathfinder
 		return new PathResult(new ArrayList<>(), Double.POSITIVE_INFINITY);
 	}
 
-	private double calculateTurningCost(RouteOptimization routeOptimization, Node current, int nextDirIdx)
+	private double calculateTurningCost(RouteOptimization routeOptimization, int absDelta)
 	{
-		if (current.dirIdx == -1)
+		// absDelta is the absolute heading step change (in 24-heading units: 0 or 1 here)
+		if (absDelta == 0)
 		{
 			return 0.0;
 		}
 
-		int diff = Math.abs(current.dirIdx - nextDirIdx);
-		diff = Math.min(diff, 8 - diff);
-
-		switch (diff)
-		{
-			case 0: return 0.0;
-			case 1: return routeOptimization == RouteOptimization.EFFICIENT ? 0.5 : 1.0;
-			default: return 100000.0; // effectively forbidden by front-3 neighbor policy
-		}
+		// Single 15° step cost (tunable)
+		return routeOptimization == RouteOptimization.EFFICIENT ? 1.0 : 2.0;
 	}
-
-	// Uses discrete headings and a front-3 neighbor policy (no trig math)
 
 	/**
 	 * Heuristic: returns 0 (Dijkstra mode).
@@ -198,30 +211,26 @@ public class AStarPathfinder
 		return -1;
 	}
 
-	private List<WorldPoint> getForwardNeighbors(WorldPoint pos, int dirIdx)
+	// Map 24 headings (15° each) to the dominant 8-way movement direction
+	private static final int[] HEADING_TO_DIR8 = {
+		0, 0,    // 0°, 15° -> E
+		1, 1, 1, // 30°,45°,60° -> NE
+		2, 2, 2, // 75°,90°,105° -> N
+		3, 3, 3, // 120°,135°,150° -> NW
+		4, 4, 4, // 165°,180°,195° -> W
+		5, 5, 5, // 210°,225°,240° -> SW
+		6, 6, 6, // 255°,270°,285° -> S
+		7, 7, 7, // 300°,315°,330° -> SE
+		0        // 345° -> E
+	};
+
+	private static final int[] DIR8_TO_HEADING24 = {0, 2, 5, 8, 12, 15, 18, 21};
+
+	private int headingToDir8(int headingIdx)
 	{
-		List<WorldPoint> result = new ArrayList<>();
-		int plane = pos.getPlane();
-		if (dirIdx == -1)
-		{
-			for (int i = 0; i < DIRS.length; i++)
-			{
-				result.add(new WorldPoint(pos.getX() + DIRS[i][0], pos.getY() + DIRS[i][1], plane));
-			}
-			return result;
-		}
-
-		for (int step = -1; step <= 1; step++)
-		{
-			int nd = (dirIdx + step + 8) % 8;
-			int nx = pos.getX() + DIRS[nd][0];
-			int ny = pos.getY() + DIRS[nd][1];
-			result.add(new WorldPoint(nx, ny, plane));
-		}
-		return result;
+		int idx = (headingIdx % 24 + 24) % 24;
+		return HEADING_TO_DIR8[idx];
 	}
-
-	// getForwardNeighbors generates neighbors based on discrete heading
 
 	private List<PathNode> reconstructPath(Node goalNode)
 	{
@@ -282,12 +291,12 @@ public class AStarPathfinder
 	private static final class StateKey
 	{
 		private final WorldPoint pos;
-		private final int dirIdx;
+		private final int headingIdx;
 
-		StateKey(WorldPoint pos, int dirIdx)
+		StateKey(WorldPoint pos, int headingIdx)
 		{
 			this.pos = pos;
-			this.dirIdx = dirIdx;
+			this.headingIdx = headingIdx;
 		}
 
 		@Override
@@ -296,13 +305,13 @@ public class AStarPathfinder
 			if (this == o) return true;
 			if (o == null || getClass() != o.getClass()) return false;
 			StateKey stateKey = (StateKey) o;
-			return dirIdx == stateKey.dirIdx && pos.equals(stateKey.pos);
+			return headingIdx == stateKey.headingIdx && pos.equals(stateKey.pos);
 		}
 
 		@Override
 		public int hashCode()
 		{
-			return Objects.hash(pos, dirIdx);
+			return Objects.hash(pos, headingIdx);
 		}
 	}
 	
@@ -310,7 +319,7 @@ public class AStarPathfinder
 	{
 		WorldPoint position;
 		Node parent;
-        int dirIdx = -1; // 0..7 or -1 for unknown
+		int headingIdx = -1; // 0..23 or -1 for unknown
 		double gScore = Double.POSITIVE_INFINITY; // Cost from start to this node
 		double hScore = 0; // Heuristic cost from this node to goal
 		double fScore = Double.POSITIVE_INFINITY; // Total cost (g + h)
