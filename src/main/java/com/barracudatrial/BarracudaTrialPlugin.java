@@ -174,7 +174,7 @@ public class BarracudaTrialPlugin extends Plugin
 		if (chatMessage.contains("You collect the rum"))
 		{
 			log.debug("Rum collected! Message: {}", chatMessage);
-			gameState.setHasRumOnUs(true);
+			gameState.setHasThrowableObjective(true);
 
 			if (routeCapture.isCapturing())
 			{
@@ -204,7 +204,7 @@ public class BarracudaTrialPlugin extends Plugin
 		else if (chatMessage.contains("You deliver the rum"))
 		{
 			log.debug("Rum delivered! Message: {}", chatMessage);
-			gameState.setHasRumOnUs(false);
+			gameState.setHasThrowableObjective(false);
 
 			var route = gameState.getCurrentStaticRoute();
 
@@ -248,6 +248,8 @@ public class BarracudaTrialPlugin extends Plugin
 		else if (chatMessage.contains("balloon toads. Time to lure"))
 		{
 			log.debug("Toads collected! Message: {}", chatMessage);
+			
+			gameState.setHasThrowableObjective(true);
 
 			if (routeCapture.isCapturing())
 			{

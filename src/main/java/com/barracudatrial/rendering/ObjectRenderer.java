@@ -155,6 +155,9 @@ public class ObjectRenderer
 		if (route == null)
 			return;
 
+		if (!plugin.getGameState().isHasThrowableObjective())
+			return;
+
 		int currentLap = state.getCurrentLap();
 		var completed = state.getCompletedWaypointIndices();
 
@@ -198,7 +201,7 @@ public class ObjectRenderer
 		CachedConfig cachedConfig = plugin.getCachedConfig();
 		Color rumHighlightColor = cachedConfig.getObjectivesColorCurrentLap();
 
-		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
+		var isCarryingRum = plugin.getGameState().isHasThrowableObjective();
 		WorldPoint targetRumLocation;
 
 		if (isCarryingRum)

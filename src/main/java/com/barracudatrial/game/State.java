@@ -65,7 +65,7 @@ public class State
 	private int lostSuppliesTotal = 0;
 
 	@Setter
-	private boolean hasRumOnUs = false;
+	private boolean hasThrowableObjective = false;
 
 	@Setter
 	private int lastKnownDifficulty = 0;
@@ -167,7 +167,7 @@ public class State
 		rumsNeeded = 0;
 		lostSuppliesCollected = 0;
 		lostSuppliesTotal = 0;
-		hasRumOnUs = false;
+		hasThrowableObjective = false;
 		currentTrialName = null;
 		boatLocation = null;
 		currentLap = 1;
