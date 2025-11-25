@@ -83,7 +83,7 @@ public class State
 	private LocalPoint frontBoatTileLocal = null;
 
 	@Setter
-	private int currentLap = 0;
+	private int currentLap = 1;
 
 	@Setter
 	private List<WorldPoint> optimalPath = new ArrayList<>();

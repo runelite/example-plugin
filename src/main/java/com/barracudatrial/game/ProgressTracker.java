@@ -117,7 +117,7 @@ public class ProgressTracker
 			log.info("Difficulty changed from {} to {} rums - clearing persistent storage",
 				state.getLastKnownDifficulty(), state.getRumsNeeded());
 			state.clearPersistentStorage();
-			state.setCurrentLap(0);
+			state.setCurrentLap(1);
 		}
 		state.setLastKnownDifficulty(state.getRumsNeeded());
 	}
