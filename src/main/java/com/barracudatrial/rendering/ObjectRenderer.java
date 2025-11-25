@@ -169,6 +169,45 @@ public class ObjectRenderer
 		}
 	}
 
+	public void renderToadPickup(Graphics2D graphics)
+	{
+		var cached = plugin.getCachedConfig();
+		var state = plugin.getGameState();
+		var toadPickupLocation = state.getToadPickupLocation();
+		if (toadPickupLocation == null)
+			return;
+
+		// Check if this toad pickup location is the next waypoint
+		boolean isNextWaypoint = false;
+		var route = state.getCurrentStaticRoute();
+		if (route != null && !route.isEmpty())
+		{
+			int nextWaypointIndex = state.getNextWaypointIndex();
+			if (nextWaypointIndex < route.size())
+			{
+				var nextWaypoint = route.get(nextWaypointIndex);
+				if (nextWaypoint.getLocation().equals(toadPickupLocation))
+				{
+					isNextWaypoint = true;
+				}
+			}
+		}
+
+		var color = isNextWaypoint
+				? cached.getObjectivesColorCurrentWaypoint()
+				: cached.getObjectivesColorCurrentLap();
+
+		var toadObject = ObjectRenderer.findGameObjectAtWorldPoint(client, toadPickupLocation);
+		if (toadObject != null)
+		{
+			String label = cached.isShowIDs()
+					? buildObjectLabelWithImpostorInfo(toadObject, "Toad Pickup")
+					: null;
+
+			renderGameObjectWithHighlight(graphics, toadObject, color, true, label);
+		}
+	}
+
 	public void renderToadPillars(Graphics2D graphics)
 	{
 		var cached = plugin.getCachedConfig();

@@ -77,6 +77,7 @@ public class BarracudaTrialOverlay extends Overlay
 		if (cachedConfig.isHighlightObjectives() && trial != null && trial.getTrialType() == TrialType.JUBBLY_JIVE)
 		{
 			objectRenderer.renderToadPillars(graphics);
+			objectRenderer.renderToadPickup(graphics);
 		}
 
 		if (cachedConfig.isHighlightSpeedBoosts())
