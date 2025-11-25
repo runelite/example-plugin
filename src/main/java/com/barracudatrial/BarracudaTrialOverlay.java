@@ -74,7 +74,7 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderFetidPools(graphics);
 		}
 
-		if (cachedConfig.isHighlightObjectiveLocations() && trial != null && trial.getTrialType() == TrialType.JUBBLY_JIVE)
+		if (cachedConfig.isHighlightObjectives() && trial != null && trial.getTrialType() == TrialType.JUBBLY_JIVE)
 		{
 			objectRenderer.renderToadPillars(graphics);
 		}
@@ -84,7 +84,7 @@ public class BarracudaTrialOverlay extends Overlay
 			objectRenderer.renderSpeedBoosts(graphics);
 		}
 
-		if (cachedConfig.isHighlightObjectiveLocations() && trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
+		if (cachedConfig.isHighlightObjectives() && trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM)
 		{
 			objectRenderer.renderRumLocations(graphics);
 		}

@@ -196,7 +196,7 @@ public class ObjectRenderer
 	public void renderRumLocations(Graphics2D graphics)
 	{
 		CachedConfig cachedConfig = plugin.getCachedConfig();
-		Color rumHighlightColor = cachedConfig.getObjectiveColor();
+		Color rumHighlightColor = cachedConfig.getObjectivesColorCurrentLap();
 
 		boolean isCarryingRum = plugin.getGameState().isHasRumOnUs();
 		WorldPoint targetRumLocation;

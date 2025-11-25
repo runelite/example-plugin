@@ -101,7 +101,7 @@ public class BarracudaTrialPlugin extends Plugin
 		}
 
 		if (trial != null && trial.getTrialType() == TrialType.TEMPOR_TANTRUM
-			&& (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightObjectiveLocations()))
+			&& (cachedConfig.isShowOptimalPath() || cachedConfig.isHighlightObjectives()))
 		{
 			locationManager.updateTemporRumLocations();
 		}
@@ -109,7 +109,7 @@ public class BarracudaTrialPlugin extends Plugin
 		if (cachedConfig.isShowOptimalPath()
 			|| cachedConfig.isHighlightSpeedBoosts()
 		 	|| routeCapture.isCapturing()
-			|| cachedConfig.isHighlightObjectiveLocations())
+			|| cachedConfig.isHighlightObjectives())
 		{
 			objectTracker.updateHazardsSpeedBoostsAndToadPillars();
 		}
