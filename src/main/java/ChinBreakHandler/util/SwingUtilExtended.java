@@ -5,7 +5,6 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.OSType;
-import net.runelite.client.util.OSXUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -152,7 +151,6 @@ public class SwingUtilExtended
                     // so any other active window will prevent our window from being brought to the front.
                     // To work around this, we use our macOS-specific requestForeground().
                     frame.setVisible(false);
-                    OSXUtil.requestForeground();
                 }
                 frame.setVisible(true);
                 frame.setState(Frame.NORMAL); // Restore

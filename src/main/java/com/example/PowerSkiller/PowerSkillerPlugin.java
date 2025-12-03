@@ -92,7 +92,7 @@ public class PowerSkillerPlugin extends Plugin {
             // We do an early return if the user isn't logged in
             return;
         }
-
+        WorldPoint playerPosition = client.getLocalPlayer().getWorldLocation();
 
         // DETAILED DEBUGGING
         boolean breakActive = chinBreakHandler.isBreakActive(this);
