@@ -5,9 +5,8 @@ Based on real reviewer feedback from 600+ plugin-hub pull requests.
 
 ## Logging
 
-- **Never use `log.info()`** — RuneLite runs at INFO level in production, so info-level logs pollute user logs.
-- Always use `log.debug()` for developer/diagnostic logging.
-- If you must use `log.error()`, gate it behind a deduplicator so you don't flood the log (e.g. if an external service is offline).
+- Use `log.debug()` for developer/diagnostic logging.
+- **Do not log at `info` level per-frame or per-event** — RuneLite runs at INFO level in production, so high-frequency info logs will pollute user logs. `log.info()` is fine for one-time startup/shutdown messages or infrequent events.
 
 ## Threading & Concurrency
 
