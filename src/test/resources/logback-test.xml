@@ -52,5 +52,5 @@
 		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="FILE"/>
 	</root>
-	<logger name="com.example" level="DEBUG" />
+	<logger name="com.DamnLol" level="DEBUG" />
 </configuration>
