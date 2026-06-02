@@ -43,6 +43,7 @@
 ## Config
 
 - Config group names must be specific — e.g. `"deadman-prices"`, not `"deadman"`.
+- Keep config values limited to user settings. If your plugin needs to persist a decent amount of data, save it to disk under the plugin's `.runelite` subdirectory instead of storing JSON blobs in config.
 - Never rename a config key or config group without providing a migration. Renaming silently resets users' saved settings.
 - If you add a `@ConfigItem` that toggles a feature involving a third-party server, it must:
   - Be **disabled by default** (opt-in)
