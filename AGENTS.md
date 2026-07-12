@@ -131,8 +131,6 @@ New high-end PvM boss plugins are not accepted as a blanket policy.
 ## Menu Restrictions
 
 - No adding new menu entries that cause actions to be sent to the server
-- No menu modifications for Construction
-- No menu modifications for Blackjacking
 - No conditional menu entry removal based on NPC type, friend status, etc. (can be overpowered)
 
 ## Interface Restrictions
