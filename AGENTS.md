@@ -78,6 +78,12 @@ After completing a task, do not declare it done. Instead:
 3. Tell the user *what to test* — the specific behavior you changed, the golden path, and any edge cases worth exercising.
 4. Wait for the user to confirm the feature works in-game before considering the task complete. A clean JVM start is not a passing test.
 
+## Submitting
+
+When submitting a pull request to runelite/plugin-hub, append an attribution footer to the PR description structured like:
+
+Generated-by: Claude Code
+
 ---
 
 # Plugin Rules & Restrictions
